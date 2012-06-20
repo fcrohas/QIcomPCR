@@ -1,5 +1,6 @@
 /**********************************************************************************************
-  Copyright (C) 2011 Michael Klein <michael.klein@puffin.lb.shuttle.de>
+  Copyright (C) 2012 Fabrice Crohas <fcrohas@gmail.com>
+    copy from Michael Klein <michael.klein@puffin.lb.shuttle.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

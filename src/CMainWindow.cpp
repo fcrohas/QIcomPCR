@@ -1,5 +1,5 @@
 /**********************************************************************************************
-    Copyright (C) 2008-2009 Oliver Eichler oliver.eichler@gmx.de
+  Copyright (C) 2012 Fabrice Crohas <fcrohas@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,12 +72,9 @@ CMainWindow::CMainWindow()
     rightSplitter->addWidget(tmpTabWidget);
 
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "115200", this);
-    connect(m_device, SIGNAL(sigLiveLog(const CLiveLog&)), &CLiveLogDB::self(), SLOT(slotLiveLog(const CLiveLog&)));
-
+    //connect(m_device, SIGNAL(sigLiveLog(const CLiveLog&)), &CLiveLogDB::self(), SLOT(slotLiveLog(const CLiveLog&)));
 }
 
 CMainWindow::~CMainWindow()
 {
-
 }
-
