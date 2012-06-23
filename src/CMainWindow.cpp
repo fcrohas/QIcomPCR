@@ -18,6 +18,7 @@
 **********************************************************************************************/
 
 #include "CMainWindow.h"
+#include "ui_CMainWindow.h"
 #include "CDevicePCR2500.h"
 #include "version.h"
 
@@ -31,50 +32,69 @@
 
 #include "config.h"
 
-CMainWindow * theMainWindow = 0;
+CMainWindow *theMainWindow = 0;
 
-CMainWindow::CMainWindow()
+CMainWindow::CMainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
 {
     theMainWindow = this;
-    setObjectName("MainWidget");
-    setWindowTitle("QIcomPCR");
+    ui->setupUi(this);
 
-    // setup splitter views
-    mainSplitter = new QSplitter(Qt::Horizontal,this);
-    setCentralWidget(mainSplitter);
+    dbgWin = new CDebugWindow(this,ui);
 
-    leftSplitter = new QSplitter(Qt::Vertical,this);
-    mainSplitter->addWidget(leftSplitter);
+    m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
 
-    rightSplitter = new QSplitter(Qt::Vertical,this);
-    mainSplitter->addWidget(rightSplitter);
+    connect(ui->pushPower, SIGNAL(clicked()), this, SLOT(powerOn()));
+    connect(m_device, SIGNAL(sigData(QString)), dbgWin, SLOT(slotDebugSerial(QString)));
+    connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(sendData(QString&)));
 
-    setCentralWidget(mainSplitter);
-
-    canvasTab = new QTabWidget(this);
-    rightSplitter->addWidget(canvasTab);
-
-    plainText = new QPlainTextEdit(this);
-    canvasTab->addTab(plainText, tr("Debug"));
-/*
-    canvas = new CCanvas(this);
-    canvasTab->addTab(canvas,tr("Map"));
-
-    actionGroupProvider = new CMenus(this);
-
-    megaMenu = new CMegaMenu(canvas);
-    leftSplitter->addWidget(megaMenu);
-*/
-    tmpTabWidget = new QTabWidget(this);
-    tmpTabWidget->setTabsClosable(true);
-    tmpTabWidget->setTabPosition(QTabWidget::South);;
-    tmpTabWidget->hide();
-    rightSplitter->addWidget(tmpTabWidget);
-
-    m_device = new CDevicePCR2500("/dev/ttyUSB0", "115200", this);
-    //connect(m_device, SIGNAL(sigLiveLog(const CLiveLog&)), &CLiveLogDB::self(), SLOT(slotLiveLog(const CLiveLog&)));
+    if (m_device->open())
+    {
+        qDebug() << "Connected";
+    }
 }
 
 CMainWindow::~CMainWindow()
 {
+}
+
+void CMainWindow::powerOn()
+{
+    QString data;
+    data = "H101";
+    m_device->write(data);
+    data = "H1?";
+    m_device->write(data);
+    data = "G105";
+    m_device->write(data);
+    data = "J4000";
+    m_device->write(data);
+    data = "J6000";
+    m_device->write(data);
+    data = "J61FF";
+    m_device->write(data);
+    data = "G2?";
+    m_device->write(data);
+    data = "G4?";
+    m_device->write(data);
+    data ="GE?";
+    m_device->write(data);
+    data ="GD?";
+    m_device->write(data);
+    data = "GA0?";
+    m_device->write(data);
+    data = "GA1?";
+    m_device->write(data);
+    data = "GA2?";
+    m_device->write(data);
+    data = "GF?";
+    m_device->write(data);
+    data = "G301";
+    m_device->write(data);
+}
+
+void CMainWindow::sendData(QString &data)
+{
+    m_device->write(data);
 }

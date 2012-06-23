@@ -21,48 +21,36 @@
 #define CMAINWINDOW_H
 
 #include <QMainWindow>
-#include <QPlainTextEdit>
-class QSplitter;
-class QLabel;
-class QTabWidget;
-class QComboBox;
-class QSocketNotifier;
-class QAction;
-class QCheckBox;
+#include "CDevicePCR2500.h"
+#include "CDebugWindow.h"
+
+namespace Ui {
+    class MainWindow;
+}
+
 class IDevice;
+
 class CMainWindow : public QMainWindow
 {
-    Q_OBJECT;
-    public:
-        CMainWindow();
-        virtual ~CMainWindow();
+    Q_OBJECT
 
-        QTabWidget * getCanvasTab(){return canvasTab;}
+    public:
+        explicit CMainWindow(QWidget *parent = 0);
+        ~CMainWindow();
 
     protected:
 
     private slots:
+        void powerOn();
+        void sendData(QString &data);
 
     private:
-        /// horizontal main splitter holding the canvas and the tool view
-        QSplitter * mainSplitter;
-        /// the vertical splitter holding the tool views
-        QSplitter * leftSplitter;
-        /// the vertical splitter holding the canvas and track info view
-        QSplitter * rightSplitter;
-
-        QTabWidget * tmpTabWidget;
-
-        /// left hand tool box
-        QTabWidget  * tabbar;
-
-        QTabWidget * canvasTab;
-
-        QPlainTextEdit * plainText;
-
-        IDevice * m_device;
+        Ui::MainWindow *ui;
+        CDevicePCR2500 * m_device;
+        CDebugWindow *dbgWin;
 
 };
 
 extern CMainWindow * theMainWindow;
+
 #endif                           //CMAINWINDOW_H

@@ -11,9 +11,10 @@ include(${QT_USE_FILE})
 
 set(qicompcr_SRCS
     main.cpp
-    CApplication.cpp
     CDevicePCR2500.cpp
+    CApplication.cpp
     CMainWindow.cpp
+    CDebugWindow.cpp
     IDevice.cpp
 )
 
@@ -22,15 +23,17 @@ if (WIN32)
 endif (WIN32)
 
 set(qicompcr_HDRS
-    CApplication.h
     CDevicePCR2500.h
+    CApplication.h
     CMainWindow.h
+    CDebugWindow.h
     version.h
     IDevice.h
 )
 
 
 SET(qicompcr_UIS
+    CMainWindow.ui
 )
 
 SET(qicompcr_RCS
@@ -101,6 +104,7 @@ include_directories(
   ${QT_QTSCRIPT_INCLUDE_DIR}
   ${QL_OPENGL_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/3rdparty/qwt
   ${CMAKE_SOURCE_DIR}/3rdparty/SerialPort
   ${CMAKE_SOURCE_DIR}/3rdparty/getopt
   ${PROJ_INCLUDE_DIRS}

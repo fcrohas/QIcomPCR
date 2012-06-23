@@ -30,6 +30,7 @@ bool CApplication::event(QEvent *event)
     switch (event->type())
     {
         case QEvent::FileOpen:
+
             if (theMainWindow)
             {
                 //theMainWindow->loadData(static_cast<QFileOpenEvent *>(event)->file(), "");

@@ -30,6 +30,8 @@ class CDevicePCR2500 : public IDevice
     public:
         CDevicePCR2500(const QString& serialport, const QString& baudrate, QObject * parent);
         virtual ~CDevicePCR2500();
+        void write(QString &data);
+        bool open();
 
     private slots:
         void slotNewDataReceived(const QByteArray &dataReceived);
@@ -41,6 +43,8 @@ class CDevicePCR2500 : public IDevice
         ManageSerialPort tty;
 
         QTimer * watchdog;
+
+        bool haveSeenData;
 
 };
 #endif                           //CDEVICENMEA_H

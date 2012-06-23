@@ -25,6 +25,7 @@ CDevicePCR2500::CDevicePCR2500(const QString& serialport,
                          QObject * parent)
 : IDevice("PCR2500",parent)
 , serialport(serialport)
+, haveSeenData(false)
 {
     enum BaudRateType eBaudrate = BAUD4800;
     if (baudrate.compare("9600")   == 0) { eBaudrate = BAUD9600;   }
@@ -40,6 +41,7 @@ CDevicePCR2500::CDevicePCR2500(const QString& serialport,
     tty.setFlowControl(FLOW_OFF);//FlowControl
 
     tty.setTimeout(0, 10);
+    tty.enableSending();
     tty.enableReceiving();
     tty.setPort(serialport);
 
@@ -47,6 +49,7 @@ CDevicePCR2500::CDevicePCR2500(const QString& serialport,
     connect(watchdog, SIGNAL(timeout()), this, SLOT(slotWatchdog()));
 
     connect(&tty, SIGNAL(newDataReceived(const QByteArray &)), this, SLOT(slotNewDataReceived(const QByteArray &)));
+
 }
 
 
@@ -60,43 +63,52 @@ void CDevicePCR2500::slotNewDataReceived(const QByteArray &dataReceived)
     int i;
 
     //log.count_bytes += dataReceived.size();
+    qDebug() << "Data received " << dataReceived.data() << " length " << dataReceived.length();
+    emit sigData(QString(dataReceived));
+    haveSeenData = true;
 
-    for(i = 0; i < dataReceived.size(); ++i)
-    {
-
-        if(dataReceived[i] == '\n')
-        {
-            line = line.trimmed();
-            /*
-            if (isChecksumValid())
-            {
-                //log.count_nmea++;
-                //decode();
-            }
-            else
-            {
-                line.clear();
-            }
-            */
-        }
-        else
-        {
-            line += dataReceived[i];
-        }
-    }
-
-    //emit sigLiveLog(log);
 }
 
 void CDevicePCR2500::slotWatchdog()
 {
-    /*
+    qDebug() << "Watchdog";
     if(tty.isOpen() && haveSeenData)
     {
         haveSeenData = false;
         return;
     }
 
-    setLiveLog(false);
-    */
+    //setLiveLog(false);
+
+}
+
+void CDevicePCR2500::write(QString &data)
+{
+    QByteArray byteArray(data.toLocal8Bit());
+    byteArray.append("\n");
+    QString hexa;
+    for (int i=0; i < byteArray.length(); i++) {
+        bool ok;
+        hexa+=" "+QString("0x%1").setNum(byteArray.at(i),16);
+
+    }
+    qDebug() << hexa;
+    tty.sendData(byteArray);
+}
+
+
+bool CDevicePCR2500::open()
+{
+    if (tty.open()) {
+        if (tty.receiveData() > 1)
+        {
+            haveSeenData = false;
+            watchdog->start(10000);
+            return true;
+        }
+        else
+            return false;
+    } else
+        return false;
+
 }

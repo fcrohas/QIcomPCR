@@ -31,8 +31,11 @@ class IDevice : public QObject
     public:
         IDevice(const QString& devkey, QObject * parent);
         virtual ~IDevice();
+        void write(QString &data);
+
 
     signals:
+        void sigData(QString data);
 
     protected:
         void createProgress(const QString& title, const QString& text, int max);
