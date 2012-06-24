@@ -32,6 +32,13 @@ class CDevicePCR2500 : public IDevice
         virtual ~CDevicePCR2500();
         void write(QString &data);
         bool open();
+        struct log {
+            bool isConnected;
+            int dataCount;
+            int dataSent;
+            int dataReceive;
+
+        } log_t;
 
     private slots:
         void slotNewDataReceived(const QByteArray &dataReceived);

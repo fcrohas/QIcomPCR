@@ -15,6 +15,8 @@ set(qicompcr_SRCS
     CApplication.cpp
     CMainWindow.cpp
     CDebugWindow.cpp
+    CCommand.cpp
+    CStatusWidget.cpp
     IDevice.cpp
 )
 
@@ -27,6 +29,8 @@ set(qicompcr_HDRS
     CApplication.h
     CMainWindow.h
     CDebugWindow.h
+    CCommand.h
+    CStatusWidget.h
     version.h
     IDevice.h
 )
@@ -170,6 +174,7 @@ target_link_libraries(
       ${QT_QTSCRIPT_LIBRARIES}
       ${QT_QTXMLPATTERNS_LIBRARIES}
       ${QL_OPENGL_LIBRARIES}
+      qwt
       SerialPort
       getopt
   )

@@ -50,6 +50,11 @@ CDevicePCR2500::CDevicePCR2500(const QString& serialport,
 
     connect(&tty, SIGNAL(newDataReceived(const QByteArray &)), this, SLOT(slotNewDataReceived(const QByteArray &)));
 
+    log_t.isConnected = false;
+    log_t.dataCount = 0;
+    log_t.dataReceive = 0;
+    log_t.dataSent = 0;
+
 }
 
 
@@ -62,11 +67,10 @@ void CDevicePCR2500::slotNewDataReceived(const QByteArray &dataReceived)
 {
     int i;
 
-    //log.count_bytes += dataReceived.size();
+    log_t.dataReceive += dataReceived.size();
     qDebug() << "Data received " << dataReceived.data() << " length " << dataReceived.length();
     emit sigData(QString(dataReceived));
     haveSeenData = true;
-
 }
 
 void CDevicePCR2500::slotWatchdog()
@@ -85,14 +89,15 @@ void CDevicePCR2500::slotWatchdog()
 void CDevicePCR2500::write(QString &data)
 {
     QByteArray byteArray(data.toLocal8Bit());
+    log_t.dataSent += byteArray.size();
     byteArray.append("\n");
-    QString hexa;
+    /*QString hexa;
     for (int i=0; i < byteArray.length(); i++) {
         bool ok;
         hexa+=" "+QString("0x%1").setNum(byteArray.at(i),16);
 
-    }
-    qDebug() << hexa;
+    }*/
+    //qDebug() << "Command " << data;
     tty.sendData(byteArray);
 }
 
@@ -103,6 +108,7 @@ bool CDevicePCR2500::open()
         if (tty.receiveData() > 1)
         {
             haveSeenData = false;
+            log_t.isConnected = true;
             watchdog->start(10000);
             return true;
         }

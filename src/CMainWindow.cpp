@@ -41,13 +41,21 @@ CMainWindow::CMainWindow(QWidget *parent) :
     theMainWindow = this;
     ui->setupUi(this);
 
+    cmd = new CCommand(this);
     dbgWin = new CDebugWindow(this,ui);
+    status = new CStatusWidget(this);
+    statusTimer = new QTimer(this);
+
+    statusBar()->addPermanentWidget(status);
 
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
 
     connect(ui->pushPower, SIGNAL(clicked()), this, SLOT(powerOn()));
     connect(m_device, SIGNAL(sigData(QString)), dbgWin, SLOT(slotDebugSerial(QString)));
-    connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(sendData(QString&)));
+    connect(statusTimer, SIGNAL(timeout()), this, SLOT(slotUpdateStatus()));
+    connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
+    connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
+
 
     if (m_device->open())
     {
@@ -61,40 +69,103 @@ CMainWindow::~CMainWindow()
 
 void CMainWindow::powerOn()
 {
-    QString data;
-    data = "H101";
-    m_device->write(data);
-    data = "H1?";
-    m_device->write(data);
-    data = "G105";
-    m_device->write(data);
-    data = "J4000";
-    m_device->write(data);
-    data = "J6000";
-    m_device->write(data);
-    data = "J61FF";
-    m_device->write(data);
-    data = "G2?";
-    m_device->write(data);
-    data = "G4?";
-    m_device->write(data);
-    data ="GE?";
-    m_device->write(data);
-    data ="GD?";
-    m_device->write(data);
-    data = "GA0?";
-    m_device->write(data);
-    data = "GA1?";
-    m_device->write(data);
-    data = "GA2?";
-    m_device->write(data);
-    data = "GF?";
-    m_device->write(data);
-    data = "G301";
-    m_device->write(data);
+    if (cmd->getPower()) {
+        cmd->setPower(false);
+        return;
+    }
+    cmd->setPower(false);
+    cmd->setPower(true);
+    dbgWin->slotSendSerial("G105");
+    cmd->setRadio(0);
+    cmd->setSoundVolume(0);
+    cmd->setRadio(1);
+    cmd->setSoundVolume(0);
+    cmd->setSquelch(255);
+    dbgWin->slotSendSerial("G2?");
+    dbgWin->slotSendSerial("G4?");
+    dbgWin->slotSendSerial("GE?");
+    dbgWin->slotSendSerial("GD?");
+    dbgWin->slotSendSerial("GA0?");
+    dbgWin->slotSendSerial("GA1?");
+    dbgWin->slotSendSerial("GA2?");
+    dbgWin->slotSendSerial("GF?");
+    dbgWin->slotSendSerial("G301");
+    dbgWin->slotSendSerial("J730000");
+    dbgWin->slotSendSerial("J4600");
+    dbgWin->slotSendSerial("J6600");
+
+    // Init radio 0 Frequency;
+    cmd->setRadio(0);
+    cmd->setModulation(CCommand::eWFM);
+    cmd->setFilter(CCommand::e230k);
+    cmd->setFrequency(106500000);
+    cmd->setSquelch(255);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+
+    // Init radio 1 Frequency
+    cmd->setRadio(1);
+    cmd->setModulation(CCommand::eFM);
+    cmd->setFilter(CCommand::e50k);
+    cmd->setFrequency(440000000);
+    cmd->setSquelch(255);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+
+    cmd->setRadio(0);
+    dbgWin->slotSendSerial("J4200");
+    dbgWin->slotSendSerial("J4700");
+    dbgWin->slotSendSerial("J6700");
+    dbgWin->slotSendSerial("JC400");
+    dbgWin->slotSendSerial("J7100");
+    dbgWin->slotSendSerial("J720000");
+    dbgWin->slotSendSerial("JC000");
+    cmd->setRadio(0);
+    cmd->setSoundMute(true);
+    cmd->setSoundVolume(0);
+    dbgWin->slotSendSerial("J8001");
+    dbgWin->slotSendSerial("J8100");
+    dbgWin->slotSendSerial("J8200");
+    dbgWin->slotSendSerial("J8300");
+    dbgWin->slotSendSerial("JC500");
+    cmd->setRadio(0);
+    cmd->setSquelch(255);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+    cmd->setRadio(1);
+    cmd->setSquelch(255);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+
+    cmd->setRadio(0);
+    cmd->setSoundVolume(0);
+    cmd->setRadio(1);
+    cmd->setSoundVolume(0);
+    cmd->setSquelch(255);
+    cmd->setRadioMode(CCommand::eBoth);
+    dbgWin->slotSendSerial("JB000");
+    cmd->setRadio(1);
+    cmd->setSquelch(255);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+    cmd->setRadio(0);
+    cmd->setSquelch(1);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+    cmd->setRadio(1);
+    cmd->setVoiceControl(CCommand::eVSCOff);
+    cmd->setSquelch(1);
+
+    cmd->setRadio(0);
+    cmd->setSoundVolume(94);
+    cmd->setSoundMute(false);
+    //dbgWin->slotSendSerial("ME0000101081401050000");
+
+
 }
 
-void CMainWindow::sendData(QString &data)
+void CMainWindow::slotSendData(QString &data)
 {
     m_device->write(data);
 }
+
+void CMainWindow::slotUpdateStatus()
+{
+    QString data("Data sent %1 bytes and received %2 bytes");
+    status->slotUpdate(data.arg(m_device->log_t.dataSent).arg(m_device->log_t.dataReceive));
+}
+

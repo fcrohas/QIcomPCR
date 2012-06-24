@@ -21,8 +21,10 @@
 #define CMAINWINDOW_H
 
 #include <QMainWindow>
+#include "CCommand.h"
 #include "CDevicePCR2500.h"
 #include "CDebugWindow.h"
+#include "CStatusWidget.h"
 
 namespace Ui {
     class MainWindow;
@@ -42,12 +44,26 @@ class CMainWindow : public QMainWindow
 
     private slots:
         void powerOn();
-        void sendData(QString &data);
+        void slotSendData(QString &data);
+        void slotUpdateStatus();
 
     private:
         Ui::MainWindow *ui;
+
+        // CommandBuilder
+        CCommand * cmd;
+
+        // Device driver
         CDevicePCR2500 * m_device;
+
+        // Windows
         CDebugWindow *dbgWin;
+
+        //Widgets
+        CStatusWidget *status;
+
+        // Timer
+        QTimer *statusTimer;
 
 };
 
