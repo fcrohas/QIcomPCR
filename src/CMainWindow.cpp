@@ -74,13 +74,18 @@ void CMainWindow::powerOn()
         return;
     }
     cmd->setPower(false);
+    sleep(1);
     cmd->setPower(true);
+    sleep(1);
+    // G105 ?
     dbgWin->slotSendSerial("G105");
     cmd->setRadio(0);
+    cmd->setSquelch(255);
     cmd->setSoundVolume(0);
     cmd->setRadio(1);
     cmd->setSoundVolume(0);
     cmd->setSquelch(255);
+
     dbgWin->slotSendSerial("G2?");
     dbgWin->slotSendSerial("G4?");
     dbgWin->slotSendSerial("GE?");
@@ -89,17 +94,19 @@ void CMainWindow::powerOn()
     dbgWin->slotSendSerial("GA1?");
     dbgWin->slotSendSerial("GA2?");
     dbgWin->slotSendSerial("GF?");
+    sleep(1);
     dbgWin->slotSendSerial("G301");
+/*  NOT NEEDED
     dbgWin->slotSendSerial("J730000");
     dbgWin->slotSendSerial("J4600");
     dbgWin->slotSendSerial("J6600");
-
+*/
     // Init radio 0 Frequency;
     cmd->setRadio(0);
     cmd->setModulation(CCommand::eWFM);
     cmd->setFilter(CCommand::e230k);
     cmd->setFrequency(106500000);
-    cmd->setSquelch(255);
+    cmd->setSquelch(1);
     cmd->setVoiceControl(CCommand::eVSCOff);
 
     // Init radio 1 Frequency
@@ -111,21 +118,28 @@ void CMainWindow::powerOn()
     cmd->setVoiceControl(CCommand::eVSCOff);
 
     cmd->setRadio(0);
+/*  NOT NEEDED
     dbgWin->slotSendSerial("J4200");
     dbgWin->slotSendSerial("J4700");
     dbgWin->slotSendSerial("J6700");
+
+
     dbgWin->slotSendSerial("JC400");
     dbgWin->slotSendSerial("J7100");
     dbgWin->slotSendSerial("J720000");
     dbgWin->slotSendSerial("JC000");
+    */
+/*
     cmd->setRadio(0);
     cmd->setSoundMute(true);
     cmd->setSoundVolume(0);
+
     dbgWin->slotSendSerial("J8001");
     dbgWin->slotSendSerial("J8100");
     dbgWin->slotSendSerial("J8200");
     dbgWin->slotSendSerial("J8300");
     dbgWin->slotSendSerial("JC500");
+
     cmd->setRadio(0);
     cmd->setSquelch(255);
     cmd->setVoiceControl(CCommand::eVSCOff);
@@ -139,19 +153,20 @@ void CMainWindow::powerOn()
     cmd->setSoundVolume(0);
     cmd->setSquelch(255);
     cmd->setRadioMode(CCommand::eBoth);
-    dbgWin->slotSendSerial("JB000");
+    //dbgWin->slotSendSerial("JB000");
     cmd->setRadio(1);
     cmd->setSquelch(255);
     cmd->setVoiceControl(CCommand::eVSCOff);
+
     cmd->setRadio(0);
     cmd->setSquelch(1);
     cmd->setVoiceControl(CCommand::eVSCOff);
     cmd->setRadio(1);
     cmd->setVoiceControl(CCommand::eVSCOff);
     cmd->setSquelch(1);
-
+*/
     cmd->setRadio(0);
-    cmd->setSoundVolume(94);
+    cmd->setSoundVolume(60);
     cmd->setSoundMute(false);
     //dbgWin->slotSendSerial("ME0000101081401050000");
 
