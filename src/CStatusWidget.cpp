@@ -21,7 +21,6 @@ void CStatusWidget::paintEvent(QPaintEvent *event)
 {
     QPainter p(this);
     p.fillRect(led.pos().x(), led.pos().y(), 10, 10, (state == true) ? Qt::green : Qt::red);
-    qDebug() << "State " << state;
 }
 
 void CStatusWidget::setState(bool value)

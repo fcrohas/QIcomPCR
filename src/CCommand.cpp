@@ -7,7 +7,9 @@ CCommand::CCommand(QObject *parent) :
     // Initialize radio struct
     radioList = new QList<settings_t*>();
     currentRadio = new settings_t;
-    radioList->append(currentRadio);
+    // Add two radio entry in list
+    radioList->append(new settings_t);
+    radioList->append(new settings_t);
 
 }
 
@@ -56,8 +58,13 @@ void CCommand::setFilter(uint value)
 
 void CCommand::setRadio(uint value)
 {
-    radio = value;
-
+    if (value < radioList->count()) {
+        currentRadio = radioList->at(value);
+        qDebug() << "dump radio " << value << " filter is " << currentRadio->filter;
+        qDebug() << "dump radio " << value << " frequency is " << currentRadio->frequency;
+        qDebug() << "dump radio " << value << " mode is " << currentRadio->modulation;
+        radio = value;
+    }
 }
 
 void CCommand::setRadioMode(uint value)

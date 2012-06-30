@@ -68,7 +68,7 @@ void CDevicePCR2500::slotNewDataReceived(const QByteArray &dataReceived)
     int i;
 
     log_t.dataReceive += dataReceived.size();
-    qDebug() << "Data received " << dataReceived.data() << " length " << dataReceived.length();
+    //qDebug() << "Data received " << dataReceived.data() << " length " << dataReceived.length();
     emit sigData(QString(dataReceived));
     haveSeenData = true;
 }

@@ -50,6 +50,20 @@ class CMainWindow : public QMainWindow
         void slotSquelch(double value);
         void slotFrequency();
         void slotUpdateStatus();
+        // Filter switch
+        void slotFilter28k();
+        void slotFilter6k();
+        void slotFilter15k();
+        void slotFilter50k();
+        void slotFilter230k();
+        // Modulation switch
+        void slotModulationAM();
+        void slotModulationFM();
+        void slotModulationWFM();
+        void slotModulationCW();
+        void slotModulationLSB();
+        void slotModulationUSB();
+
 
     private:
         Ui::MainWindow *ui;

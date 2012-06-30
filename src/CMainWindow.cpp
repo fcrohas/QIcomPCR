@@ -57,6 +57,21 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
     connect(ui->pushEnter,SIGNAL(clicked()), this,SLOT(slotFrequency()));
 
+    // Connect filters
+    connect(ui->push28k,SIGNAL(clicked()), this, SLOT(slotFilter28k()));
+    connect(ui->push6k,SIGNAL(clicked()), this, SLOT(slotFilter6k()));
+    connect(ui->push15k,SIGNAL(clicked()), this, SLOT(slotFilter15k()));
+    connect(ui->push50k,SIGNAL(clicked()), this, SLOT(slotFilter50k()));
+    connect(ui->push230k,SIGNAL(clicked()), this, SLOT(slotFilter230k()));
+
+    // Connect Moudlation mode
+    connect(ui->pushAM,SIGNAL(clicked()), this, SLOT(slotModulationAM()));
+    connect(ui->pushFM,SIGNAL(clicked()), this, SLOT(slotModulationFM()));
+    connect(ui->pushCW,SIGNAL(clicked()), this, SLOT(slotModulationCW()));
+    connect(ui->pushWFM,SIGNAL(clicked()), this, SLOT(slotModulationWFM()));
+    connect(ui->pushLSB,SIGNAL(clicked()), this, SLOT(slotModulationLSB()));
+    connect(ui->pushUSB,SIGNAL(clicked()), this, SLOT(slotModulationUSB()));
+
     if (m_device->open())
     {
         qDebug() << "Connected";
@@ -77,7 +92,7 @@ void CMainWindow::powerOn()
     cmd->setPower(false);
     sleep(1);
     cmd->setPower(true);
-    sleep(1);
+    sleep(2);
     // G105 ?
     dbgWin->slotSendSerial("G105");
     cmd->setRadio(0);
@@ -104,8 +119,8 @@ void CMainWindow::powerOn()
 */
     // Init radio 0 Frequency;
     cmd->setRadio(0);
-    cmd->setModulation(CCommand::eWFM);
-    cmd->setFilter(CCommand::e230k);
+    slotModulationWFM();
+    slotFilter230k();
     cmd->setFrequency(106500000);
     cmd->setSquelch(1);
     cmd->setVoiceControl(CCommand::eVSCOff);
@@ -199,7 +214,7 @@ void CMainWindow::slotReceivedData(QString data)
     }
     if (data.contains("H100")) {
         statusBar()->showMessage(tr("Offline"));
-        //status->setState(false);
+        status->setState(false);
         found = true;
     }
     if (data.contains("H101")) {
@@ -233,10 +248,131 @@ void CMainWindow::slotFrequency()
     bool ok;
     if (ui->frequencyEnter->text() != "") {
         cmd->setRadio(0);
-        cmd->setFilter(CCommand::e230k);
-        cmd->setModulation(CCommand::eWFM);
+        //cmd->setFilter(CCommand::e230k);
+        //cmd->setModulation(CCommand::eWFM);
         cmd->setFrequency(ui->frequencyEnter->text().toInt(&ok,10));
         ui->frequency->display(ui->frequencyEnter->text().toInt(&ok,10));
         //ui->frequency->intValue();
     }
+}
+
+void CMainWindow::slotFilter28k()
+{
+    cmd->setFilter(CCommand::e28k);
+    ui->push28k->setChecked(true);
+    ui->push6k->setChecked(false);
+    ui->push15k->setChecked(false);
+    ui->push50k->setChecked(false);
+    ui->push230k->setChecked(false);
+}
+
+void CMainWindow::slotFilter6k()
+{
+    cmd->setFilter(CCommand::e6k);
+    ui->push28k->setChecked(false);
+    ui->push6k->setChecked(true);
+    ui->push15k->setChecked(false);
+    ui->push50k->setChecked(false);
+    ui->push230k->setChecked(false);
+}
+
+void CMainWindow::slotFilter15k()
+{
+    cmd->setFilter(CCommand::e15k);
+    ui->push28k->setChecked(false);
+    ui->push6k->setChecked(false);
+    ui->push15k->setChecked(true);
+    ui->push50k->setChecked(false);
+    ui->push230k->setChecked(false);
+}
+
+void CMainWindow::slotFilter50k()
+{
+    cmd->setFilter(CCommand::e50k);
+    ui->push28k->setChecked(false);
+    ui->push6k->setChecked(false);
+    ui->push15k->setChecked(false);
+    ui->push50k->setChecked(true);
+    ui->push230k->setChecked(false);
+
+}
+
+void CMainWindow::slotFilter230k()
+{
+    cmd->setFilter(CCommand::e230k);
+    ui->push28k->setChecked(false);
+    ui->push6k->setChecked(false);
+    ui->push15k->setChecked(false);
+    ui->push50k->setChecked(false);
+    ui->push230k->setChecked(true);
+
+}
+
+
+void CMainWindow::slotModulationAM()
+{
+    cmd->setModulation(CCommand::eAM);
+    ui->pushAM->setChecked(true);
+    ui->pushFM->setChecked(false);
+    ui->pushWFM->setChecked(false);
+    ui->pushCW->setChecked(false);
+    ui->pushLSB->setChecked(false);
+    ui->pushUSB->setChecked(false);
+}
+
+void CMainWindow::slotModulationFM()
+{
+    cmd->setModulation(CCommand::eFM);
+    ui->pushAM->setChecked(false);
+    ui->pushFM->setChecked(true);
+    ui->pushWFM->setChecked(false);
+    ui->pushCW->setChecked(false);
+    ui->pushLSB->setChecked(false);
+    ui->pushUSB->setChecked(false);
+}
+
+void CMainWindow::slotModulationWFM()
+{
+    cmd->setModulation(CCommand::eWFM);
+    ui->pushAM->setChecked(false);
+    ui->pushFM->setChecked(false);
+    ui->pushWFM->setChecked(true);
+    ui->pushCW->setChecked(false);
+    ui->pushLSB->setChecked(false);
+    ui->pushUSB->setChecked(false);
+
+}
+
+void CMainWindow::slotModulationLSB()
+{
+    cmd->setModulation(CCommand::eLSB);
+    ui->pushAM->setChecked(false);
+    ui->pushFM->setChecked(false);
+    ui->pushWFM->setChecked(false);
+    ui->pushCW->setChecked(false);
+    ui->pushLSB->setChecked(true);
+    ui->pushUSB->setChecked(false);
+
+}
+
+void CMainWindow::slotModulationUSB()
+{
+    cmd->setModulation(CCommand::eUSB);
+    ui->pushAM->setChecked(false);
+    ui->pushFM->setChecked(false);
+    ui->pushWFM->setChecked(false);
+    ui->pushCW->setChecked(false);
+    ui->pushLSB->setChecked(false);
+    ui->pushUSB->setChecked(true);
+}
+
+void CMainWindow::slotModulationCW()
+{
+    cmd->setModulation(CCommand::eCW);
+    ui->pushAM->setChecked(false);
+    ui->pushFM->setChecked(false);
+    ui->pushWFM->setChecked(false);
+    ui->pushCW->setChecked(true);
+    ui->pushLSB->setChecked(false);
+    ui->pushUSB->setChecked(false);
 }
