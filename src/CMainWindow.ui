@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
@@ -79,6 +82,27 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="pushNoiseBlanker">
+            <property name="text">
+             <string>Noise Blanker</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushAGC">
+            <property name="text">
+             <string>AGC</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushVSC">
+            <property name="text">
+             <string>VSC</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -94,6 +118,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QwtKnob" name="knobSquelch">
+              <property name="mass">
+               <double>0.000000000000000</double>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -138,11 +165,23 @@
             </item>
             <item>
              <widget class="QwtKnob" name="knobTune">
+              <property name="readOnly">
+               <bool>false</bool>
+              </property>
+              <property name="valid">
+               <bool>true</bool>
+              </property>
+              <property name="mass">
+               <double>0.000000000000000</double>
+              </property>
               <property name="knobStyle">
                <enum>QwtKnob::Sunken</enum>
               </property>
               <property name="markerStyle">
                <enum>QwtKnob::Dot</enum>
+              </property>
+              <property name="totalAngle">
+               <double>360.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -163,14 +202,26 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QLCDNumber" name="lcdNumber">
+               <widget class="QLCDNumber" name="frequency">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>80</height>
+                 </size>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>13</pointsize>
                  </font>
                 </property>
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
                 <property name="frameShadow">
                  <enum>QFrame::Raised</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>1</number>
                 </property>
                 <property name="smallDecimalPoint">
                  <bool>true</bool>
@@ -179,7 +230,7 @@
                  <number>10</number>
                 </property>
                 <property name="segmentStyle">
-                 <enum>QLCDNumber::Filled</enum>
+                 <enum>QLCDNumber::Flat</enum>
                 </property>
                 <property name="value" stdset="0">
                  <double>106.500000000000000</double>
@@ -191,20 +242,64 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Signal</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QwtThermo" name="Thermo">
+               <widget class="QwtThermo" name="signalRadio1">
                 <property name="scalePosition">
                  <enum>QwtThermo::TopScale</enum>
+                </property>
+                <property name="maxValue">
+                 <double>255.000000000000000</double>
                 </property>
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <item>
+               <widget class="QSlider" name="volume">
+                <property name="maximum">
+                 <number>255</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Volume</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>TextLabel</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="frequencyEnter"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushEnter">
+              <property name="text">
+               <string>Enter</string>
+              </property>
+             </widget>
             </item>
             <item>
              <spacer name="verticalSpacer">

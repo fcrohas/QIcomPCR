@@ -45,6 +45,10 @@ class CMainWindow : public QMainWindow
     private slots:
         void powerOn();
         void slotSendData(QString &data);
+        void slotReceivedData(QString data);
+        void slotVolume(int value);
+        void slotSquelch(double value);
+        void slotFrequency();
         void slotUpdateStatus();
 
     private:

@@ -44,18 +44,18 @@ CMainWindow::CMainWindow(QWidget *parent) :
     cmd = new CCommand(this);
     dbgWin = new CDebugWindow(this,ui);
     status = new CStatusWidget(this);
-    statusTimer = new QTimer(this);
 
     statusBar()->addPermanentWidget(status);
 
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
 
     connect(ui->pushPower, SIGNAL(clicked()), this, SLOT(powerOn()));
-    connect(m_device, SIGNAL(sigData(QString)), dbgWin, SLOT(slotDebugSerial(QString)));
-    connect(statusTimer, SIGNAL(timeout()), this, SLOT(slotUpdateStatus()));
+    connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
-
+    connect(ui->volume, SIGNAL(valueChanged(int)), this,SLOT(slotVolume(int)));
+    connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
+    connect(ui->pushEnter,SIGNAL(clicked()), this,SLOT(slotFrequency()));
 
     if (m_device->open())
     {
@@ -71,6 +71,7 @@ void CMainWindow::powerOn()
 {
     if (cmd->getPower()) {
         cmd->setPower(false);
+        status->setState(cmd->getPower());
         return;
     }
     cmd->setPower(false);
@@ -169,7 +170,7 @@ void CMainWindow::powerOn()
     cmd->setSoundVolume(60);
     cmd->setSoundMute(false);
     //dbgWin->slotSendSerial("ME0000101081401050000");
-
+    status->setState(cmd->getPower());
 
 }
 
@@ -184,3 +185,58 @@ void CMainWindow::slotUpdateStatus()
     status->slotUpdate(data.arg(m_device->log_t.dataSent).arg(m_device->log_t.dataReceive));
 }
 
+void CMainWindow::slotReceivedData(QString data)
+{
+    bool found = false;
+    if (data.contains("I1")) {
+        double value;
+        bool ok;
+        value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
+        if (ok) {
+            ui->signalRadio1->setValue(value);
+            found = true;
+        }
+    }
+    if (data.contains("H100")) {
+        statusBar()->showMessage(tr("Offline"));
+        //status->setState(false);
+        found = true;
+    }
+    if (data.contains("H101")) {
+        statusBar()->showMessage(tr("Online"));
+        status->setState(true);
+        found = true;
+    }
+    if (!found) {
+        dbgWin->slotDebugSerial(data);
+    }
+
+    // Update status bar
+    QString info("Data sent %1 bytes and received %2 bytes");
+    status->slotUpdate(info.arg(m_device->log_t.dataSent).arg(m_device->log_t.dataReceive));
+
+}
+
+void CMainWindow::slotVolume(int value)
+{
+    cmd->setSoundVolume(value);
+}
+
+
+void CMainWindow::slotSquelch(double value)
+{
+    cmd->setSquelch(value);
+}
+
+void CMainWindow::slotFrequency()
+{
+    bool ok;
+    if (ui->frequencyEnter->text() != "") {
+        cmd->setRadio(0);
+        cmd->setFilter(CCommand::e230k);
+        cmd->setModulation(CCommand::eWFM);
+        cmd->setFrequency(ui->frequencyEnter->text().toInt(&ok,10));
+        ui->frequency->display(ui->frequencyEnter->text().toInt(&ok,10));
+        //ui->frequency->intValue();
+    }
+}
