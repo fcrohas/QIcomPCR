@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>QIcom PCR</string>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -100,6 +100,13 @@
            <widget class="QPushButton" name="pushVSC">
             <property name="text">
              <string>VSC</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushSwitchSound">
+            <property name="text">
+             <string>Switch Sound</string>
             </property>
            </widget>
           </item>

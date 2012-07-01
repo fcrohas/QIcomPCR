@@ -42,7 +42,6 @@ void CLcdWidget::wheelEvent(QWheelEvent *event)
     } else {
         frequency = format(frequency,ts * -1);
     }
-    qDebug() << "frequency " << frequency;
     repaint();
     emit frequencyChanged(frequency.replace(".",""));
 }
@@ -64,7 +63,6 @@ QString CLcdWidget::format(QString &value, int increment)
 
         // Second part of 106.5 eg 5 in digit
         digit = frequency.mid(frequency.indexOf(".")+1).leftJustified(6,'0',true);
-        qDebug() << "unit " << unit << " digit " << digit;
         // Limit unit to 3200
         if (unit.toInt()>3200) { unit = "3200"; }
         // the full frequency can be 3200.000000 do 10 digits
@@ -75,7 +73,6 @@ QString CLcdWidget::format(QString &value, int increment)
     frequency = frequency.replace(".",""); // remove Mhz point
     frequency = QString("%1").arg(frequency.toInt() + increment);
     frequency = frequency.insert(frequency.length()-6,"."); // reinsert Mhz point
-    qDebug() << "Increment " << frequency;
     return frequency;
 }
 
@@ -103,7 +100,7 @@ void CLcdWidget::paintEvent(QPaintEvent *event)
 {
     QPainter p(this);
     QRect size = layout->geometry();
-    qDebug() << "Rendering " << frequency;
+
     // Create black rect
     p.fillRect(size, QColor(Qt::black));
 

@@ -21,6 +21,9 @@
 #define CMAINWINDOW_H
 
 #include <QMainWindow>
+#include <QAudioDeviceInfo>
+#include <QAudioInput>
+#include <QAudioOutput>
 #include "CCommand.h"
 #include "CDevicePCR2500.h"
 #include "CDebugWindow.h"
@@ -66,6 +69,8 @@ class CMainWindow : public QMainWindow
         void slotModulationUSB();
         // Radio
         void slotRadioClicked(int);
+        // Sound Control
+        void slotSwitchSound();
 
 
     private:
@@ -86,6 +91,10 @@ class CMainWindow : public QMainWindow
 
         // Timer
         QTimer *statusTimer;
+
+        // Audio management
+        QAudioOutput *soundOutput;
+        QAudioInput  *soundInput;
 
 };
 

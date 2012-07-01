@@ -84,6 +84,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 
+    connect(ui->pushSwitchSound,SIGNAL(clicked()),this,SLOT(slotSwitchSound()));
+
     if (m_device->open())
     {
         qDebug() << "Connected";
@@ -409,4 +411,33 @@ void CMainWindow::slotRadioClicked(int value)
 {
     qDebug() << "clicked " << value;
     cmd->setRadio(value);
+}
+
+void CMainWindow::slotSwitchSound()
+{
+    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
+        qDebug() << "Device Output name: " << deviceInfo.deviceName();
+    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+        qDebug() << "Device Input name: " << deviceInfo.deviceName();
+    QAudioFormat format;
+    // Set up the format, eg.
+    format.setFrequency(8000);
+    format.setChannels(1);
+    format.setSampleSize(8);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::UnSignedInt);
+
+    soundOutput = new QAudioOutput(QAudioDeviceInfo::defaultOutputDevice(), format, this);
+    soundInput  = new QAudioInput( QAudioDeviceInfo::defaultInputDevice(), format, this);
+    qDebug() << "Created";
+    QByteArray byteArrayIn;
+    QBuffer bufferin(&byteArrayIn);
+    bufferin.open(QIODevice::ReadWrite);
+    qDebug() << "Start read ";
+    soundInput->start(&bufferin);
+    qDebug() << "Start write ";
+    soundOutput->start(&bufferin);
+
+
 }
