@@ -133,6 +133,9 @@
               <property name="knobWidth">
                <number>30</number>
               </property>
+              <property name="totalAngle">
+               <double>270.000000000000000</double>
+              </property>
               <property name="markerSize">
                <number>4</number>
               </property>
@@ -224,6 +227,32 @@
              </widget>
             </item>
             <item>
+             <widget class="QRadioButton" name="radio1">
+              <property name="text">
+               <string>Antenne 1</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radio2">
+              <property name="text">
+               <string>Antenne 2</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_2">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -241,44 +270,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <item>
-               <widget class="QLCDNumber" name="frequency">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>80</height>
-                 </size>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>13</pointsize>
-                 </font>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::Box</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
-                </property>
-                <property name="lineWidth">
-                 <number>1</number>
-                </property>
-                <property name="smallDecimalPoint">
-                 <bool>true</bool>
-                </property>
-                <property name="numDigits">
-                 <number>10</number>
-                </property>
-                <property name="segmentStyle">
-                 <enum>QLCDNumber::Flat</enum>
-                </property>
-                <property name="value" stdset="0">
-                 <double>106.500000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <layout class="QHBoxLayout" name="layoutFrequency"/>
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -464,16 +456,6 @@
              </layout>
             </item>
             <item>
-             <widget class="QLineEdit" name="frequencyEnter"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushEnter">
-              <property name="text">
-               <string>Enter</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <spacer name="verticalSpacer">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -589,4 +571,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+ </buttongroups>
 </ui>

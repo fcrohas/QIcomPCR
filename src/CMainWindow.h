@@ -24,6 +24,7 @@
 #include "CCommand.h"
 #include "CDevicePCR2500.h"
 #include "CDebugWindow.h"
+#include "CLcdWidget.h"
 #include "CStatusWidget.h"
 
 namespace Ui {
@@ -48,7 +49,7 @@ class CMainWindow : public QMainWindow
         void slotReceivedData(QString data);
         void slotVolume(int value);
         void slotSquelch(double value);
-        void slotFrequency();
+        void slotFrequency(QString&value);
         void slotUpdateStatus();
         // Filter switch
         void slotFilter28k();
@@ -63,6 +64,8 @@ class CMainWindow : public QMainWindow
         void slotModulationCW();
         void slotModulationLSB();
         void slotModulationUSB();
+        // Radio
+        void slotRadioClicked(int);
 
 
     private:
@@ -78,6 +81,7 @@ class CMainWindow : public QMainWindow
         CDebugWindow *dbgWin;
 
         //Widgets
+        CLcdWidget *lcd;
         CStatusWidget *status;
 
         // Timer

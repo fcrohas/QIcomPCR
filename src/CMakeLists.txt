@@ -16,6 +16,7 @@ set(qicompcr_SRCS
     CMainWindow.cpp
     CDebugWindow.cpp
     CCommand.cpp
+    CLcdWidget.cpp
     CStatusWidget.cpp
     IDevice.cpp
 )
@@ -30,6 +31,7 @@ set(qicompcr_HDRS
     CMainWindow.h
     CDebugWindow.h
     CCommand.h
+    CLcdWidget.h
     CStatusWidget.h
     version.h
     IDevice.h

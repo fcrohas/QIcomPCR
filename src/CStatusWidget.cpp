@@ -20,7 +20,7 @@ void CStatusWidget::slotUpdate(QString value)
 void CStatusWidget::paintEvent(QPaintEvent *event)
 {
     QPainter p(this);
-    p.fillRect(led.pos().x(), led.pos().y(), 10, 10, (state == true) ? Qt::green : Qt::red);
+    p.fillRect(led.pos().x(), led.pos().y(), 10, 10, (state == true) ? QColor(0,255,0,255) : QColor(255,0,0,255));
 }
 
 void CStatusWidget::setState(bool value)

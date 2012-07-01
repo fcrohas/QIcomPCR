@@ -43,7 +43,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     cmd = new CCommand(this);
     dbgWin = new CDebugWindow(this,ui);
+
     status = new CStatusWidget(this);
+    lcd    = new CLcdWidget(this);
 
     statusBar()->addPermanentWidget(status);
 
@@ -55,7 +57,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(ui->volume, SIGNAL(valueChanged(int)), this,SLOT(slotVolume(int)));
     connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
-    connect(ui->pushEnter,SIGNAL(clicked()), this,SLOT(slotFrequency()));
+    //connect(ui->pushEnter,SIGNAL(clicked()), this,SLOT(slotFrequency()));
 
     // Connect filters
     connect(ui->push28k,SIGNAL(clicked()), this, SLOT(slotFilter28k()));
@@ -71,6 +73,16 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->pushWFM,SIGNAL(clicked()), this, SLOT(slotModulationWFM()));
     connect(ui->pushLSB,SIGNAL(clicked()), this, SLOT(slotModulationLSB()));
     connect(ui->pushUSB,SIGNAL(clicked()), this, SLOT(slotModulationUSB()));
+
+    // Radio
+    ui->buttonGroup->setId(ui->radio1,0);
+    ui->buttonGroup->setId(ui->radio2,1);
+
+    // Frequency
+    ui->layoutFrequency->addWidget(lcd);
+    connect( lcd, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency(QString&)));
+
+    connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 
     if (m_device->open())
     {
@@ -203,10 +215,21 @@ void CMainWindow::slotUpdateStatus()
 void CMainWindow::slotReceivedData(QString data)
 {
     bool found = false;
+    // Signal antenne 1
     if (data.contains("I1")) {
         double value;
         bool ok;
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
+        if (ok) {
+            ui->signalRadio1->setValue(value);
+            found = true;
+        }
+    }
+    // Signal antenne 2
+    if (data.contains("I5")) {
+        double value;
+        bool ok;
+        value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
         if (ok) {
             ui->signalRadio1->setValue(value);
             found = true;
@@ -227,8 +250,19 @@ void CMainWindow::slotReceivedData(QString data)
     }
 
     // Update status bar
-    QString info("Data sent %1 bytes and received %2 bytes");
-    status->slotUpdate(info.arg(m_device->log_t.dataSent).arg(m_device->log_t.dataReceive));
+    QString info("Data sent %1 %3bytes and received %2 %4bytes");
+    int received = m_device->log_t.dataReceive;
+    int sent       = m_device->log_t.dataSent;
+    QString receiveUnit("");
+    QString sentUnit("");
+    if (received > 9999)   { received = received / 1000; receiveUnit = "k"; }
+    if (received > 999999) { received = received / 100000; receiveUnit = "M"; }
+
+    if (sent > 9999)   { received = received / 1000; sentUnit = "k"; }
+    if (sent > 999999) { received = received / 100000; sentUnit = "M";}
+
+
+    status->slotUpdate(info.arg(sent).arg(received).arg(sentUnit).arg(receiveUnit));
 
 }
 
@@ -243,16 +277,10 @@ void CMainWindow::slotSquelch(double value)
     cmd->setSquelch(value);
 }
 
-void CMainWindow::slotFrequency()
+void CMainWindow::slotFrequency(QString &value)
 {
-    bool ok;
-    if (ui->frequencyEnter->text() != "") {
-        cmd->setRadio(0);
-        //cmd->setFilter(CCommand::e230k);
-        //cmd->setModulation(CCommand::eWFM);
-        cmd->setFrequency(ui->frequencyEnter->text().toInt(&ok,10));
-        ui->frequency->display(ui->frequencyEnter->text().toInt(&ok,10));
-        //ui->frequency->intValue();
+    if (value != "") {
+        cmd->setFrequency(value.toInt());
     }
 }
 
@@ -375,4 +403,10 @@ void CMainWindow::slotModulationCW()
     ui->pushCW->setChecked(true);
     ui->pushLSB->setChecked(false);
     ui->pushUSB->setChecked(false);
+}
+
+void CMainWindow::slotRadioClicked(int value)
+{
+    qDebug() << "clicked " << value;
+    cmd->setRadio(value);
 }

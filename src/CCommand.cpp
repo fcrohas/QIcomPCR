@@ -49,11 +49,15 @@ void CCommand::setFrequency(uint value)
 void CCommand::setModulation(uint value)
 {
     currentRadio->modulation = value;
+    // Once modulation is set call back frequency
+    setFrequency(currentRadio->frequency);
 }
 
 void CCommand::setFilter(uint value)
 {
     currentRadio->filter = value;
+    // Once filter is set call back frequency
+    setFrequency(currentRadio->frequency);
 }
 
 void CCommand::setRadio(uint value)
