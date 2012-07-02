@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1076</width>
-    <height>730</height>
+    <height>571</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -124,29 +124,20 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
-             <widget class="QwtKnob" name="knobSquelch">
-              <property name="mass">
+             <widget class="QwtKnob" name="knobSquelch" native="true">
+              <property name="mass" stdset="0">
                <double>0.000000000000000</double>
               </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="knobStyle">
-               <enum>QwtKnob::Sunken</enum>
-              </property>
-              <property name="markerStyle">
-               <enum>QwtKnob::Dot</enum>
-              </property>
-              <property name="knobWidth">
+              <property name="knobWidth" stdset="0">
                <number>30</number>
               </property>
-              <property name="totalAngle">
+              <property name="totalAngle" stdset="0">
                <double>270.000000000000000</double>
               </property>
-              <property name="markerSize">
+              <property name="markerSize" stdset="0">
                <number>4</number>
               </property>
-              <property name="borderWidth">
+              <property name="borderWidth" stdset="0">
                <number>2</number>
               </property>
              </widget>
@@ -282,11 +273,8 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QwtThermo" name="signalRadio1">
-                <property name="scalePosition">
-                 <enum>QwtThermo::TopScale</enum>
-                </property>
-                <property name="maxValue">
+               <widget class="QwtThermo" name="signalRadio1" native="true">
+                <property name="maxValue" stdset="0">
                  <double>255.000000000000000</double>
                 </property>
                </widget>
@@ -491,7 +479,7 @@
      <x>0</x>
      <y>0</y>
      <width>1076</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

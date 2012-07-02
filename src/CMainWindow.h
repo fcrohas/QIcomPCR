@@ -69,6 +69,9 @@ class CMainWindow : public QMainWindow
         void slotModulationUSB();
         // Radio
         void slotRadioClicked(int);
+        void slotNoiseBlanker();
+        void slotAGC();
+        void slotVSC();
         // Sound Control
         void slotSwitchSound();
 

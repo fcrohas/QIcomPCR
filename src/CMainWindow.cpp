@@ -28,6 +28,7 @@
 #endif
 #ifdef WIN32
 #include <io.h>
+#define sleep Sleep
 #endif
 
 #include "config.h"
@@ -57,7 +58,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(ui->volume, SIGNAL(valueChanged(int)), this,SLOT(slotVolume(int)));
     connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
-    //connect(ui->pushEnter,SIGNAL(clicked()), this,SLOT(slotFrequency()));
+    connect(ui->pushNoiseBlanker,SIGNAL(clicked()),this,SLOT(slotNoiseBlanker()));
+    connect(ui->pushAGC,SIGNAL(clicked()),this,SLOT(slotAGC()));
+    connect(ui->pushVSC,SIGNAL(clicked()),this,SLOT(slotVSC()));
+
 
     // Connect filters
     connect(ui->push28k,SIGNAL(clicked()), this, SLOT(slotFilter28k()));
@@ -415,10 +419,6 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound()
 {
-    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
-        qDebug() << "Device Output name: " << deviceInfo.deviceName();
-    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
-        qDebug() << "Device Input name: " << deviceInfo.deviceName();
     QAudioFormat format;
     // Set up the format, eg.
     format.setFrequency(8000);
@@ -428,16 +428,41 @@ void CMainWindow::slotSwitchSound()
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::UnSignedInt);
 
+    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)) {
+        qDebug() << "Device Output name: " << deviceInfo.deviceName();
+        if (!deviceInfo.isFormatSupported(format))
+            qDebug() << "Format not supported";
+    }
+    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
+        qDebug() << "Device Input name: " << deviceInfo.deviceName();
+
+    }
+
     soundOutput = new QAudioOutput(QAudioDeviceInfo::defaultOutputDevice(), format, this);
     soundInput  = new QAudioInput( QAudioDeviceInfo::defaultInputDevice(), format, this);
     qDebug() << "Created";
     QByteArray byteArrayIn;
     QBuffer bufferin(&byteArrayIn);
-    bufferin.open(QIODevice::ReadWrite);
+    bufferin.open(QBuffer::ReadWrite);
     qDebug() << "Start read ";
     soundInput->start(&bufferin);
     qDebug() << "Start write ";
     soundOutput->start(&bufferin);
 
+
+}
+
+void CMainWindow::slotNoiseBlanker()
+{
+
+}
+
+void CMainWindow::slotAGC()
+{
+
+}
+
+void CMainWindow::slotVSC()
+{
 
 }
