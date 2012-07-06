@@ -45,6 +45,31 @@ void CCommand::setFrequency(uint value)
 
 }
 
+uint CCommand::getFrequency()
+{
+    return currentRadio->frequency;
+}
+
+uint CCommand::getFilter()
+{
+    return currentRadio->filter;
+}
+
+uint CCommand::getIFShift()
+{
+    return currentRadio->ifshift;
+}
+
+uint CCommand::getModulation()
+{
+    return currentRadio->modulation;
+}
+
+uint CCommand::getSquelch()
+{
+    return currentRadio->squelch;
+}
+
 // At this time, only set to device on frequency set
 void CCommand::setModulation(uint value)
 {

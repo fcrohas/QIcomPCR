@@ -50,8 +50,10 @@ class CMainWindow : public QMainWindow
         void powerOn();
         void slotSendData(QString &data);
         void slotReceivedData(QString data);
-        void slotVolume(int value);
+        void slotVolume1(int value);
+        void slotVolume2(int value);
         void slotSquelch(double value);
+        void slotIF(double value);
         void slotFrequency(QString&value);
         void slotUpdateStatus();
         // Filter switch
@@ -69,9 +71,9 @@ class CMainWindow : public QMainWindow
         void slotModulationUSB();
         // Radio
         void slotRadioClicked(int);
-        void slotNoiseBlanker();
-        void slotAGC();
-        void slotVSC();
+        void slotNoiseBlanker(bool value);
+        void slotAGC(bool value);
+        void slotVSC(bool value);
         // Sound Control
         void slotSwitchSound();
 

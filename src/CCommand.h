@@ -16,21 +16,26 @@ public:
 
     // Set frequency
     void setFrequency(uint value);
+    uint getFrequency();
 
     // Set frequency modulation
     void setModulation(uint value);
+    uint getModulation();
 
     // Set Antenna
     void setRadio(uint value);
 
     // Set Filter
     void setFilter(uint value);
+    uint getFilter();
 
     // Set IFShift
     void setIFShift(uint value);
+    uint getIFShift();
 
     // set Squelch
     void setSquelch(uint value);
+    uint getSquelch();
 
     // set Automatic Gain Control Mode
     void setAutomaticGainControl(bool value);

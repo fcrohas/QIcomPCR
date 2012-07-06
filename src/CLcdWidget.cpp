@@ -13,7 +13,7 @@ CLcdWidget::CLcdWidget(QWidget *parent) :
     setFixedSize(300,50);
 }
 
-void CLcdWidget::setFrequency(QString &value)
+void CLcdWidget::setFrequency(QString value)
 {
     frequency = value;
 }
@@ -137,3 +137,5 @@ void CLcdWidget::paintEvent(QPaintEvent *event)
     p.fillRect(size.adjusted(5,5,-5,-5),lcdColor);
 
 }
+
+

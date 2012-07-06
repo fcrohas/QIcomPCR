@@ -9,7 +9,7 @@ class CLcdWidget : public QWidget
     Q_OBJECT
 public:
     explicit CLcdWidget(QWidget *parent = 0);
-    void setFrequency(QString &value);
+    void setFrequency(QString value);
     void setIncrement(int value);
     void drawFrequency();
     

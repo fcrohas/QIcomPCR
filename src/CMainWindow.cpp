@@ -52,15 +52,21 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
 
+    // Set Squelch max
+    ui->knobSquelch->setRange(0.0,255.0,1.0);
+    ui->knobIF->setRange(0.0,255.0,1.0);
+
     connect(ui->pushPower, SIGNAL(clicked()), this, SLOT(powerOn()));
     connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
-    connect(ui->volume, SIGNAL(valueChanged(int)), this,SLOT(slotVolume(int)));
+    connect(ui->volume1, SIGNAL(valueChanged(int)), this,SLOT(slotVolume1(int)));
+    connect(ui->volume2, SIGNAL(valueChanged(int)), this,SLOT(slotVolume2(int)));
     connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
-    connect(ui->pushNoiseBlanker,SIGNAL(clicked()),this,SLOT(slotNoiseBlanker()));
-    connect(ui->pushAGC,SIGNAL(clicked()),this,SLOT(slotAGC()));
-    connect(ui->pushVSC,SIGNAL(clicked()),this,SLOT(slotVSC()));
+    connect(ui->knobIF,SIGNAL(valueChanged(double)), this, SLOT(slotIF(double)));
+    connect(ui->pushNoiseBlanker,SIGNAL(toggled(bool)),this,SLOT(slotNoiseBlanker(bool)));
+    connect(ui->pushAGC,SIGNAL(toggled(bool)),this,SLOT(slotAGC(bool)));
+    connect(ui->pushVSC,SIGNAL(toggled(bool)),this,SLOT(slotVSC(bool)));
 
 
     // Connect filters
@@ -146,9 +152,10 @@ void CMainWindow::powerOn()
     // Init radio 1 Frequency
     cmd->setRadio(1);
     cmd->setModulation(CCommand::eFM);
-    cmd->setFilter(CCommand::e50k);
-    cmd->setFrequency(440000000);
-    cmd->setSquelch(255);
+    cmd->setFilter(CCommand::e15k);
+    cmd->setFrequency(145425000);
+    cmd->setSquelch(0);
+    cmd->setSoundVolume(0);
     cmd->setVoiceControl(CCommand::eVSCOff);
 
     cmd->setRadio(0);
@@ -222,7 +229,7 @@ void CMainWindow::slotReceivedData(QString data)
 {
     bool found = false;
     // Signal antenne 1
-    if (data.contains("I1")) {
+    if ((data.contains("I1")) && (ui->radio1->isChecked())) {
         double value;
         bool ok;
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
@@ -232,7 +239,7 @@ void CMainWindow::slotReceivedData(QString data)
         }
     }
     // Signal antenne 2
-    if (data.contains("I5")) {
+    if ((data.contains("I5")) && (ui->radio2->isChecked())) {
         double value;
         bool ok;
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
@@ -272,15 +279,29 @@ void CMainWindow::slotReceivedData(QString data)
 
 }
 
-void CMainWindow::slotVolume(int value)
+void CMainWindow::slotVolume1(int value)
 {
+    cmd->setRadio(0);
     cmd->setSoundVolume(value);
+    cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
+}
+
+void CMainWindow::slotVolume2(int value)
+{
+    cmd->setRadio(1);
+    cmd->setSoundVolume(value);
+    cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
 }
 
 
 void CMainWindow::slotSquelch(double value)
 {
     cmd->setSquelch(value);
+}
+
+void CMainWindow::slotIF(double value)
+{
+    cmd->setIFShift(value);
 }
 
 void CMainWindow::slotFrequency(QString &value)
@@ -294,50 +315,29 @@ void CMainWindow::slotFilter28k()
 {
     cmd->setFilter(CCommand::e28k);
     ui->push28k->setChecked(true);
-    ui->push6k->setChecked(false);
-    ui->push15k->setChecked(false);
-    ui->push50k->setChecked(false);
-    ui->push230k->setChecked(false);
 }
 
 void CMainWindow::slotFilter6k()
 {
     cmd->setFilter(CCommand::e6k);
-    ui->push28k->setChecked(false);
     ui->push6k->setChecked(true);
-    ui->push15k->setChecked(false);
-    ui->push50k->setChecked(false);
-    ui->push230k->setChecked(false);
 }
 
 void CMainWindow::slotFilter15k()
 {
     cmd->setFilter(CCommand::e15k);
-    ui->push28k->setChecked(false);
-    ui->push6k->setChecked(false);
     ui->push15k->setChecked(true);
-    ui->push50k->setChecked(false);
-    ui->push230k->setChecked(false);
 }
 
 void CMainWindow::slotFilter50k()
 {
     cmd->setFilter(CCommand::e50k);
-    ui->push28k->setChecked(false);
-    ui->push6k->setChecked(false);
-    ui->push15k->setChecked(false);
     ui->push50k->setChecked(true);
-    ui->push230k->setChecked(false);
-
 }
 
 void CMainWindow::slotFilter230k()
 {
     cmd->setFilter(CCommand::e230k);
-    ui->push28k->setChecked(false);
-    ui->push6k->setChecked(false);
-    ui->push15k->setChecked(false);
-    ui->push50k->setChecked(false);
     ui->push230k->setChecked(true);
 
 }
@@ -347,81 +347,72 @@ void CMainWindow::slotModulationAM()
 {
     cmd->setModulation(CCommand::eAM);
     ui->pushAM->setChecked(true);
-    ui->pushFM->setChecked(false);
-    ui->pushWFM->setChecked(false);
-    ui->pushCW->setChecked(false);
-    ui->pushLSB->setChecked(false);
-    ui->pushUSB->setChecked(false);
 }
 
 void CMainWindow::slotModulationFM()
 {
     cmd->setModulation(CCommand::eFM);
-    ui->pushAM->setChecked(false);
     ui->pushFM->setChecked(true);
-    ui->pushWFM->setChecked(false);
-    ui->pushCW->setChecked(false);
-    ui->pushLSB->setChecked(false);
-    ui->pushUSB->setChecked(false);
 }
 
 void CMainWindow::slotModulationWFM()
 {
     cmd->setModulation(CCommand::eWFM);
-    ui->pushAM->setChecked(false);
-    ui->pushFM->setChecked(false);
     ui->pushWFM->setChecked(true);
-    ui->pushCW->setChecked(false);
-    ui->pushLSB->setChecked(false);
-    ui->pushUSB->setChecked(false);
 
 }
 
 void CMainWindow::slotModulationLSB()
 {
     cmd->setModulation(CCommand::eLSB);
-    ui->pushAM->setChecked(false);
-    ui->pushFM->setChecked(false);
-    ui->pushWFM->setChecked(false);
-    ui->pushCW->setChecked(false);
     ui->pushLSB->setChecked(true);
-    ui->pushUSB->setChecked(false);
 
 }
 
 void CMainWindow::slotModulationUSB()
 {
     cmd->setModulation(CCommand::eUSB);
-    ui->pushAM->setChecked(false);
-    ui->pushFM->setChecked(false);
-    ui->pushWFM->setChecked(false);
-    ui->pushCW->setChecked(false);
-    ui->pushLSB->setChecked(false);
     ui->pushUSB->setChecked(true);
 }
 
 void CMainWindow::slotModulationCW()
 {
     cmd->setModulation(CCommand::eCW);
-    ui->pushAM->setChecked(false);
-    ui->pushFM->setChecked(false);
-    ui->pushWFM->setChecked(false);
     ui->pushCW->setChecked(true);
-    ui->pushLSB->setChecked(false);
-    ui->pushUSB->setChecked(false);
 }
 
 void CMainWindow::slotRadioClicked(int value)
 {
-    qDebug() << "clicked " << value;
     cmd->setRadio(value);
+
+    // Init button according to radio settings
+    QString freq("%1");
+    freq = freq.arg(cmd->getFrequency(),10);
+    lcd->setFrequency(freq);
+    ui->knobIF->setValue(cmd->getIFShift());
+    ui->knobSquelch->setValue(cmd->getSquelch());
+    switch(cmd->getModulation()) {
+        case CCommand::eAM : ui->pushAM->setChecked(true);   break;
+        case CCommand::eFM : ui->pushFM->setChecked(true);   break;
+        case CCommand::eWFM : ui->pushWFM->setChecked(true); break;
+        case CCommand::eCW  : ui->pushCW->setChecked(true);  break;
+        case CCommand::eLSB : ui->pushLSB->setChecked(true); break;
+        case CCommand::eUSB : ui->pushUSB->setChecked(true); break;
+    }
+    switch(cmd->getFilter()) {
+        case CCommand::e28k : ui->push28k->setChecked(true);   break;
+        case CCommand::e6k  : ui->push6k->setChecked(true);    break;
+        case CCommand::e15k : ui->push15k->setChecked(true);   break;
+        case CCommand::e50k : ui->push50k->setChecked(true);   break;
+        case CCommand::e230k : ui->push230k->setChecked(true); break;
+    }
 }
 
 void CMainWindow::slotSwitchSound()
 {
     QAudioFormat format;
     // Set up the format, eg.
-    format.setFrequency(8000);
+    format.setFrequency(22050);
     format.setChannels(1);
     format.setSampleSize(8);
     format.setCodec("audio/pcm");
@@ -432,9 +423,20 @@ void CMainWindow::slotSwitchSound()
         qDebug() << "Device Output name: " << deviceInfo.deviceName();
         if (!deviceInfo.isFormatSupported(format))
             qDebug() << "Format not supported";
+        qDebug() << "Supported format " << deviceInfo.supportedCodecs();
+        qDebug() << "Supported ByteOrders " << deviceInfo.supportedByteOrders();
+        qDebug() << "Supported Channels " << deviceInfo.supportedChannels();
+        qDebug() << "Supported Frequencies " << deviceInfo.supportedFrequencies();
+        qDebug() << "Supported Samples sizes " << deviceInfo.supportedSampleSizes();
+
     }
     foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
         qDebug() << "Device Input name: " << deviceInfo.deviceName();
+        qDebug() << "Supported format " << deviceInfo.supportedCodecs();
+        qDebug() << "Supported ByteOrders " << deviceInfo.supportedByteOrders();
+        qDebug() << "Supported Channels " << deviceInfo.supportedChannels();
+        qDebug() << "Supported Frequencies " << deviceInfo.supportedFrequencies();
+        qDebug() << "Supported Samples sizes " << deviceInfo.supportedSampleSizes();
 
     }
 
@@ -446,23 +448,25 @@ void CMainWindow::slotSwitchSound()
     bufferin.open(QBuffer::ReadWrite);
     qDebug() << "Start read ";
     soundInput->start(&bufferin);
+    sleep(5);
     qDebug() << "Start write ";
     soundOutput->start(&bufferin);
 
 
 }
 
-void CMainWindow::slotNoiseBlanker()
+void CMainWindow::slotNoiseBlanker(bool value)
 {
+    cmd->setNoiseBlanker(value);
+}
+
+void CMainWindow::slotAGC(bool value)
+{
+   cmd->setAutomaticGainControl(value);
 
 }
 
-void CMainWindow::slotAGC()
+void CMainWindow::slotVSC(bool value)
 {
-
-}
-
-void CMainWindow::slotVSC()
-{
-
+    cmd->setVoiceControl(value);
 }
