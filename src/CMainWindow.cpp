@@ -229,24 +229,24 @@ void CMainWindow::slotReceivedData(QString data)
 {
     bool found = false;
     // Signal antenne 1
-    if ((data.contains("I1")) && (ui->radio1->isChecked())) {
+    if (data.contains("I1")) {
         double value;
         bool ok;
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
-        if (ok) {
+        if ((ok)  && (ui->radio1->isChecked())) {
             ui->signalRadio1->setValue(value);
-            found = true;
         }
+        found = true;
     }
     // Signal antenne 2
-    if ((data.contains("I5")) && (ui->radio2->isChecked())) {
+    if (data.contains("I5")) {
         double value;
         bool ok;
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
-        if (ok) {
+        if ((ok)  && (ui->radio2->isChecked())) {
             ui->signalRadio1->setValue(value);
-            found = true;
         }
+        found = true;
     }
     if (data.contains("H100")) {
         statusBar()->showMessage(tr("Offline"));
@@ -388,6 +388,7 @@ void CMainWindow::slotRadioClicked(int value)
     // Init button according to radio settings
     QString freq("%1");
     freq = freq.arg(cmd->getFrequency(),10);
+    qDebug() << "freq  " << freq;
     lcd->setFrequency(freq);
     ui->knobIF->setValue(cmd->getIFShift());
     ui->knobSquelch->setValue(cmd->getSquelch());

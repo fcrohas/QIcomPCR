@@ -16,6 +16,7 @@ CLcdWidget::CLcdWidget(QWidget *parent) :
 void CLcdWidget::setFrequency(QString value)
 {
     frequency = value;
+    repaint();
 }
 
 void CLcdWidget::mousePressEvent(QMouseEvent *event)
