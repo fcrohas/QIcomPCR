@@ -47,6 +47,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     status = new CStatusWidget(this);
     lcd    = new CLcdWidget(this);
+    sound  = new CPulseSound(this);
 
     statusBar()->addPermanentWidget(status);
 
@@ -411,6 +412,8 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound()
 {
+    sound->start();
+    /*
     QAudioFormat format;
     // Set up the format, eg.
     format.setFrequency(22050);
@@ -452,7 +455,7 @@ void CMainWindow::slotSwitchSound()
     sleep(5);
     qDebug() << "Start write ";
     soundOutput->start(&bufferin);
-
+*/
 
 }
 

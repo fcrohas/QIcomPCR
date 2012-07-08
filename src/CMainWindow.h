@@ -28,6 +28,7 @@
 #include "CDevicePCR2500.h"
 #include "CDebugWindow.h"
 #include "CLcdWidget.h"
+#include "CPulseSound.h"
 #include "CStatusWidget.h"
 
 namespace Ui {
@@ -92,6 +93,7 @@ class CMainWindow : public QMainWindow
 
         //Widgets
         CLcdWidget *lcd;
+        CPulseSound *sound;
         CStatusWidget *status;
 
         // Timer
