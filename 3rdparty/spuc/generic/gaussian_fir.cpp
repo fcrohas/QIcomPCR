@@ -39,7 +39,7 @@ void gaussian_fir(fir<double>& gaussf, double bt, double spb)
   int i;
   double dt, s, t0, ts, gsum;
   int nir = gaussf.num_taps;
-  double gf[nir];
+  double *gf = new double[nir];
   dt = 1.0/spb;
   s = 1.0/(sqrt(log(2.0)) / (TWOPI*bt));
   t0 = -0.5 * nir;
@@ -53,5 +53,6 @@ void gaussian_fir(fir<double>& gaussf, double bt, double spb)
   // Unity DC gain
   gsum = 1.0/gsum;
   for (i=0; i<nir; i++) gaussf.coeff[i] = gf[i]*gsum;
+  delete gf;
 }
 } // namespace SPUC 

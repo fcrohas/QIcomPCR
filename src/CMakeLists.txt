@@ -17,7 +17,6 @@ set(qicompcr_SRCS
     CDebugWindow.cpp
     CCommand.cpp
     CLcdWidget.cpp
-    CPulseSound.cpp
     CStatusWidget.cpp
     IDevice.cpp
 )
@@ -26,6 +25,11 @@ if (WIN32)
     SET(qicompcr_SRCS ${qicompcr_SRCS} qicompcr.rc)
 endif (WIN32)
 
+if (UNIX)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
+    set(qicompcr_HDRS ${qicompcr_HDRS} CPulseSound.h)
+endif (UNIX)
+
 set(qicompcr_HDRS
     CDevicePCR2500.h
     CApplication.h
@@ -33,7 +37,6 @@ set(qicompcr_HDRS
     CDebugWindow.h
     CCommand.h
     CLcdWidget.h
-    CPulseSound.h
     CStatusWidget.h
     version.h
     IDevice.h
@@ -117,6 +120,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/SerialPort
   ${CMAKE_SOURCE_DIR}/3rdparty/getopt
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc
+  ${CMAKE_SOURCE_DIR}/3rdparty
   ${PROJ_INCLUDE_DIRS}
 )
 
@@ -184,10 +188,11 @@ target_link_libraries(
       qwt
       SerialPort
       getopt
-      pulse-simple
-      pulse
       spuc
   )
+if (UNIX)
+    add_link_libraries(pulse-simple pulse)
+endif(UNIX)
 
 install(
     TARGETS

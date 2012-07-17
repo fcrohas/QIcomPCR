@@ -49,9 +49,9 @@ reed_solomon::reed_solomon(int in_m, int in_t) {
 	
     m = in_m;
     t = in_t;
-    n = (int)(::pow(2,m)-1);
-    k = ((int)(::pow(2,m))) -1 - 2*t;
-    q = (int)(::pow(2,m));
+    n = (int)(::pow(2.0,m)-1);
+    k = ((int)(::pow(2.0,m))) -1 - 2*t;
+    q = (int)(::pow(2.0,m));
     int i;
     gfx x(q,(char *)"-1 0");
     ivec alphapow(1);

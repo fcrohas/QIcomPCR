@@ -32,7 +32,7 @@ bool* ofdm_data_encoder::interleave(bool* data_in)
 {
   int k;
   for (int i=0;i<coded_bits_per_frame;i++) {
-	k = 16*i-(coded_bits_per_frame-1)*floor(16*i/coded_bits_per_frame);
+    k = 16*i-(coded_bits_per_frame-1)*floor(16.0*i/coded_bits_per_frame);
 #ifdef NO_INT
 	interleaved[i] = data_in[i];
 #else
