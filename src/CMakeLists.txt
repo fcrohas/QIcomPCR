@@ -11,12 +11,14 @@ include(${QT_USE_FILE})
 
 set(qicompcr_SRCS
     main.cpp
-    CDevicePCR2500.cpp
     CApplication.cpp
-    CMainWindow.cpp
-    CDebugWindow.cpp
     CCommand.cpp
+    CDebugWindow.cpp
+    CDemodulator.cpp
+    CDevicePCR2500.cpp
     CLcdWidget.cpp
+    CMainWindow.cpp
+    CPogsag.cpp
     CPulseSound.cpp
     CStatusWidget.cpp
     IDevice.cpp
@@ -27,12 +29,14 @@ if (WIN32)
 endif (WIN32)
 
 set(qicompcr_HDRS
-    CDevicePCR2500.h
     CApplication.h
-    CMainWindow.h
-    CDebugWindow.h
     CCommand.h
+    CDebugWindow.h
+    CDemodulator.h
+    CDevicePCR2500.h
     CLcdWidget.h
+    CMainWindow.h
+    CPogsag.h
     CPulseSound.h
     CStatusWidget.h
     version.h

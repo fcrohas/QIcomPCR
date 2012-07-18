@@ -147,8 +147,9 @@ void CMainWindow::powerOn()
     slotModulationWFM();
     slotFilter230k();
     cmd->setFrequency(106500000);
-    cmd->setSquelch(1);
+    cmd->setSquelch(0);
     cmd->setVoiceControl(CCommand::eVSCOff);
+    cmd->setIFShift(128);
 
     // Init radio 1 Frequency
     cmd->setRadio(1);
@@ -158,8 +159,8 @@ void CMainWindow::powerOn()
     cmd->setSquelch(0);
     cmd->setSoundVolume(0);
     cmd->setVoiceControl(CCommand::eVSCOff);
+    cmd->setIFShift(128);
 
-    cmd->setRadio(0);
 /*  NOT NEEDED
     dbgWin->slotSendSerial("J4200");
     dbgWin->slotSendSerial("J4700");

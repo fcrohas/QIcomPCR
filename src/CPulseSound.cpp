@@ -7,7 +7,7 @@ CPulseSound::CPulseSound(QObject *parent) :
     running = true;
     ss.format = PA_SAMPLE_S16NE;
     ss.channels = 2;
-    ss.rate = 44100;
+    ss.rate = 22000;
 
     // Setup Out stream
     sout = pa_simple_new(NULL,            // Use the default server.
@@ -32,6 +32,14 @@ CPulseSound::CPulseSound(QObject *parent) :
                       NULL,               // Use default buffering attributes.
                       NULL                // Ignore error code.
                       );
+    volume = new pa_cvolume();
+    volume = pa_cvolume_init(volume);
+    qDebug() << "Channels ? " << volume->channels;
+    qDebug() << "Volume 0 ? " << volume->values[0];
+    qDebug() << "Volume 1 ? " << volume->values[1];
+    volume->values[0] = 10;
+    volume->values[1] = 0;
+    pa_cvolume_set(volume, 1, 20);
 }
 
 CPulseSound::~CPulseSound()
