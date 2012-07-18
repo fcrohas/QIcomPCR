@@ -17,12 +17,8 @@ set(qicompcr_SRCS
     CDemodulator.cpp
     CDevicePCR2500.cpp
     CLcdWidget.cpp
-<<<<<<< HEAD
     CMainWindow.cpp
     CPogsag.cpp
-    CPulseSound.cpp
-=======
->>>>>>> c075aa98ba9a0d14895d1864b5f6498bf459c236
     CStatusWidget.cpp
     IDevice.cpp
 )
@@ -43,12 +39,8 @@ set(qicompcr_HDRS
     CDemodulator.h
     CDevicePCR2500.h
     CLcdWidget.h
-<<<<<<< HEAD
     CMainWindow.h
     CPogsag.h
-    CPulseSound.h
-=======
->>>>>>> c075aa98ba9a0d14895d1864b5f6498bf459c236
     CStatusWidget.h
     version.h
     IDevice.h
@@ -164,7 +156,7 @@ if (APPLE)
     MACOSX_PACKAGE_LOCATION Resources
   )
   set(MACOSX_BUNDLE_COPYRIGHT
-    "Copyright © 2007-2011 Fabrice Crohas (fcrohas@gmail.com)"
+    "Copyright © 2012 Fabrice Crohas (fcrohas@gmail.com)"
   )
   add_executable(${PROGNAME} MACOSX_BUNDLE ${qicompcr_ALLINP} ${MAC_EXTRA_RES})
   set_target_properties(${PROGNAME} PROPERTIES
@@ -181,8 +173,11 @@ endif(APPLE)
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE )
 endif(MSVC)
+
+set (3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc)
+
 target_link_libraries(
-    ${PROGNAME}
+      ${PROGNAME}
       ${GDAL_LIBRARIES}
       ${PROJ_LIBRARIES}
       ${QT_LIBRARIES}
@@ -197,13 +192,10 @@ target_link_libraries(
       ${QT_QTMULTIMEDIA_LIBRARIES}
       ${QT_QTXMLPATTERNS_LIBRARIES}
       ${QL_OPENGL_LIBRARIES}
-      qwt
-      SerialPort
-      getopt
-      spuc
+      ${3RDPARTY}
   )
-if (UNIX)
-    add_link_libraries(pulse-simple pulse)
+if(UNIX)
+    set (3RDPARTY ${3RDPARTY} pulse-simple pulse)
 endif(UNIX)
 
 install(
