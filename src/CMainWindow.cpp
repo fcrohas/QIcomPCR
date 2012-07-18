@@ -47,7 +47,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     status = new CStatusWidget(this);
     lcd    = new CLcdWidget(this);
+#ifndef WIN32
     sound  = new CPulseSound(this);
+#endif
 
     statusBar()->addPermanentWidget(status);
 
@@ -94,8 +96,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect( lcd, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency(QString&)));
 
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
-
+#ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked()),this,SLOT(slotSwitchSound()));
+#endif
 
     if (m_device->open())
     {
@@ -413,51 +416,9 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound()
 {
+#ifndef WIN32
     sound->start();
-    /*
-    QAudioFormat format;
-    // Set up the format, eg.
-    format.setFrequency(22050);
-    format.setChannels(1);
-    format.setSampleSize(8);
-    format.setCodec("audio/pcm");
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::UnSignedInt);
-
-    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)) {
-        qDebug() << "Device Output name: " << deviceInfo.deviceName();
-        if (!deviceInfo.isFormatSupported(format))
-            qDebug() << "Format not supported";
-        qDebug() << "Supported format " << deviceInfo.supportedCodecs();
-        qDebug() << "Supported ByteOrders " << deviceInfo.supportedByteOrders();
-        qDebug() << "Supported Channels " << deviceInfo.supportedChannels();
-        qDebug() << "Supported Frequencies " << deviceInfo.supportedFrequencies();
-        qDebug() << "Supported Samples sizes " << deviceInfo.supportedSampleSizes();
-
-    }
-    foreach(const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
-        qDebug() << "Device Input name: " << deviceInfo.deviceName();
-        qDebug() << "Supported format " << deviceInfo.supportedCodecs();
-        qDebug() << "Supported ByteOrders " << deviceInfo.supportedByteOrders();
-        qDebug() << "Supported Channels " << deviceInfo.supportedChannels();
-        qDebug() << "Supported Frequencies " << deviceInfo.supportedFrequencies();
-        qDebug() << "Supported Samples sizes " << deviceInfo.supportedSampleSizes();
-
-    }
-
-    soundOutput = new QAudioOutput(QAudioDeviceInfo::defaultOutputDevice(), format, this);
-    soundInput  = new QAudioInput( QAudioDeviceInfo::defaultInputDevice(), format, this);
-    qDebug() << "Created";
-    QByteArray byteArrayIn;
-    QBuffer bufferin(&byteArrayIn);
-    bufferin.open(QBuffer::ReadWrite);
-    qDebug() << "Start read ";
-    soundInput->start(&bufferin);
-    sleep(5);
-    qDebug() << "Start write ";
-    soundOutput->start(&bufferin);
-*/
-
+#endif
 }
 
 void CMainWindow::slotNoiseBlanker(bool value)

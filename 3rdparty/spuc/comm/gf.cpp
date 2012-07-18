@@ -130,7 +130,7 @@ void gf::set_size(int qvalue)
 {
     int mtemp=0;
 
-    mtemp = ::log(qvalue)/::log(2.0);
+    mtemp = ::log(qvalue*1.0)/::log(2.0);
 	//    it_assert((1<<mtemp)==qvalue, "gf::setsize : q is not a power of 2");
 	//    it_assert(mtemp<=14, "gf::setsize : q must be less than or equal to 2^14");
 

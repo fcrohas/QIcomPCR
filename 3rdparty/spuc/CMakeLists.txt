@@ -91,7 +91,7 @@ set(SRCS
         #specializations/fnco.cpp
 	specializations/scic.cpp
         #utility/matlab_engine.cpp
-        #utility/spucassert.cpp
+    utility/spucassert.cpp
 )
 
 
@@ -250,7 +250,7 @@ set(HDRS
           #utility/debug.h
           #utility/debugfc.h
           #utility/matlab_engine.h
-          #utility/spucassert.h
+          utility/spucassert.h
           #utility/spucmex.h
 )
 

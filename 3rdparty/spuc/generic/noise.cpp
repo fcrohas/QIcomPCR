@@ -65,7 +65,7 @@ double noise::uni(void)
 	{
 	double rm,r1;
 	rm  = 1./M;
-	idum = (long)fmod(IA*idum+IC,M);
+    idum = (long)fmod(IA*idum+IC*1.0,M);
 	r1 = idum*rm;
 	return(r1);
 }

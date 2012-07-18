@@ -41,7 +41,7 @@ bool max_pn::get_bit() {
 signed char max_pn::out1() {
 	    int i,ii,is;
 	    char data;  
-	    char n=(char)(log(lenp1)/log(2));
+        char n=(char)(log(lenp1*1.0)/log(2.0));
 
 		u <<= 1;
 		if ((u&lenp1) != 0) data = 1; 
