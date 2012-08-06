@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1076</width>
-    <height>571</height>
+    <height>726</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -103,23 +103,20 @@
              </widget>
             </item>
             <item>
-             <widget class="QwtKnob" name="knobSquelch">
-              <property name="mass">
+             <widget class="QwtKnob" name="knobSquelch" native="true">
+              <property name="mass" stdset="0">
                <double>0.000000000000000</double>
               </property>
-              <property name="markerStyle">
-               <enum>QwtKnob::Tick</enum>
-              </property>
-              <property name="knobWidth">
+              <property name="knobWidth" stdset="0">
                <number>30</number>
               </property>
-              <property name="totalAngle">
+              <property name="totalAngle" stdset="0">
                <double>270.000000000000000</double>
               </property>
-              <property name="markerSize">
+              <property name="markerSize" stdset="0">
                <number>4</number>
               </property>
-              <property name="borderWidth">
+              <property name="borderWidth" stdset="0">
                <number>4</number>
               </property>
              </widget>
@@ -135,17 +132,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QwtKnob" name="knobIF">
-              <property name="markerStyle">
-               <enum>QwtKnob::Tick</enum>
-              </property>
-              <property name="knobWidth">
+             <widget class="QwtKnob" name="knobIF" native="true">
+              <property name="knobWidth" stdset="0">
                <number>30</number>
               </property>
-              <property name="markerSize">
+              <property name="markerSize" stdset="0">
                <number>4</number>
               </property>
-              <property name="borderWidth">
+              <property name="borderWidth" stdset="0">
                <number>4</number>
               </property>
              </widget>
@@ -402,23 +396,20 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_10">
               <item>
-               <widget class="QwtThermo" name="signalRadio1">
-                <property name="alarmEnabled">
+               <widget class="QwtThermo" name="signalRadio1" native="true">
+                <property name="alarmEnabled" stdset="0">
                  <bool>true</bool>
                 </property>
-                <property name="alarmLevel">
+                <property name="alarmLevel" stdset="0">
                  <double>80.000000000000000</double>
                 </property>
-                <property name="scalePosition">
-                 <enum>QwtThermo::BottomScale</enum>
-                </property>
-                <property name="spacing">
+                <property name="spacing" stdset="0">
                  <number>4</number>
                 </property>
-                <property name="maxValue">
+                <property name="maxValue" stdset="0">
                  <double>255.000000000000000</double>
                 </property>
-                <property name="pipeWidth">
+                <property name="pipeWidth" stdset="0">
                  <number>10</number>
                 </property>
                </widget>
@@ -598,6 +589,20 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="subwindow">
+       <property name="windowTitle">
+        <string>Subwindow</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_10">
+        <item>
+         <layout class="QVBoxLayout" name="frequency">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetFixedSize</enum>
+          </property>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -696,8 +701,8 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

@@ -9,6 +9,11 @@ endif(WITH_OPENGL)
 
 include(${QT_USE_FILE})
 
+if(UNIX)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
+endif(UNIX)
+
+
 set(qicompcr_SRCS
     main.cpp
     CApplication.cpp
@@ -21,16 +26,16 @@ set(qicompcr_SRCS
     CPogsag.cpp
     CStatusWidget.cpp
     IDevice.cpp
+    ${qicompcr_SRCS}
 )
 
 if (WIN32)
     SET(qicompcr_SRCS ${qicompcr_SRCS} qicompcr.rc)
 endif (WIN32)
 
-if (UNIX)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
+if(UNIX)
     set(qicompcr_HDRS ${qicompcr_HDRS} CPulseSound.h)
-endif (UNIX)
+endif(UNIX)
 
 set(qicompcr_HDRS
     CApplication.h
@@ -44,6 +49,7 @@ set(qicompcr_HDRS
     CStatusWidget.h
     version.h
     IDevice.h
+    ${qicompcr_HDRS}
 )
 
 
@@ -124,6 +130,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/SerialPort
   ${CMAKE_SOURCE_DIR}/3rdparty/getopt
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc
+  ${CMAKE_SOURCE_DIR}/3rdparty/spuc/generic
   ${CMAKE_SOURCE_DIR}/3rdparty
   ${PROJ_INCLUDE_DIRS}
 )
@@ -176,6 +183,11 @@ endif(MSVC)
 
 set (3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc)
 
+if(UNIX)
+    set (3RDPARTY ${3RDPARTY} pulse-simple pulse)
+endif(UNIX)
+
+
 target_link_libraries(
       ${PROGNAME}
       ${GDAL_LIBRARIES}
@@ -194,9 +206,6 @@ target_link_libraries(
       ${QL_OPENGL_LIBRARIES}
       ${3RDPARTY}
   )
-if(UNIX)
-    set (3RDPARTY ${3RDPARTY} pulse-simple pulse)
-endif(UNIX)
 
 install(
     TARGETS

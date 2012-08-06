@@ -51,6 +51,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     sound  = new CPulseSound(this);
 #endif
 
+    myPlot = new Plotter();
+    ui->frequency->addWidget(myPlot);
+
     statusBar()->addPermanentWidget(status);
 
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
@@ -90,6 +93,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     // Radio
     ui->buttonGroup->setId(ui->radio1,0);
     ui->buttonGroup->setId(ui->radio2,1);
+    ui->signalRadio1->setOrientation(Qt::Horizontal,QwtThermo::BottomScale);
 
     // Frequency
     ui->layoutFrequency->addWidget(lcd);
@@ -99,6 +103,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked()),this,SLOT(slotSwitchSound()));
 #endif
+
+    // Plotter
+    connect(sound,SIGNAL(dataBuffer(double*,double*)),this,SLOT(slotDataBuffer(double*,double*)));
 
     if (m_device->open())
     {
@@ -347,7 +354,6 @@ void CMainWindow::slotFilter230k()
 
 }
 
-
 void CMainWindow::slotModulationAM()
 {
     cmd->setModulation(CCommand::eAM);
@@ -436,3 +442,24 @@ void CMainWindow::slotVSC(bool value)
 {
     cmd->setVoiceControl(value);
 }
+
+Plotter::Plotter(QWidget *parent)
+{
+    setupUi(this);
+    spectro = new QwtPlotCurve();
+    qwtPlot->setAxisScale(QwtPlot::xBottom,0,BUFFER_SIZE/2);
+    qwtPlot->setAxisScale(QwtPlot::yLeft,0,128);
+    spectro->attach(qwtPlot);
+}
+
+void Plotter::setRawSamples(double *xval, double *yval,int size)
+{
+    spectro->setRawSamples(xval,yval,size);
+    qwtPlot->replot();
+}
+
+void CMainWindow::slotDataBuffer(double *xval, double *yval)
+{
+    myPlot->setRawSamples(xval,yval,BUFFER_SIZE/2);
+}
+

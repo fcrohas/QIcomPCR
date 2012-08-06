@@ -6,6 +6,11 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <pulse/volume.h>
+#include <qwt_plot.h>
+#include <qwt_plot_curve.h>
+#include "ui_CMainWindow.h"
+
+#define BUFFER_SIZE 512
 
 class CPulseSound : public QThread
 {
@@ -13,22 +18,27 @@ class CPulseSound : public QThread
 public:
     explicit CPulseSound(QObject *parent = 0);
     ~CPulseSound();
+
 signals:
+    void dataBuffer(double *xval, double *yval);
     
 public slots:
 
 private:
     // PulseAudio
-    uint8_t buffer[128];
+    uint16_t buffer[BUFFER_SIZE]; // 16 bits pulse audio buffer
     pa_simple *sout;
     pa_simple *sin;
     pa_sample_spec ss;
+    pa_buffer_attr attr;
+    pa_channel_map map;
     pa_cvolume *volume;
     int error;
 
     // Thread
     void run();
     bool running;
+    void decodePOCSag(uint16_t buffer[]);
 };
 
 #endif // CPULSESOUND_H
