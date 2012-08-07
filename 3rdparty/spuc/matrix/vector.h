@@ -41,7 +41,7 @@
 #include <binary.h>
 #include <spucconfig.h>
 #include <algorithm>
-//#include "spucassert.h"
+#include "spucassert.h"
 #include <complex.h>
 #include <cstdlib>
 #include <cstring>
@@ -110,6 +110,11 @@ template<class T> Vec<T> concat(const Vec<T> &v1, const Vec<T> &v2, const Vec<T>
 //! Concat vectors \c v1, \c v2 \c v3, \c v4 and \c v5
 template<class T> Vec<T> concat(const Vec<T> &v1, const Vec<T> &v2, const Vec<T> &v3, 
 				const Vec<T> &v4, const Vec<T> &v5);
+
+template<class T> void copy_vector(const int n, const T *x, T *y);
+template<class T> void copy_vector(const int n, const T *x, const int incx, T *y, const int incy);
+template<class T> void swap_vector(const int n, T *x, T *y);
+template<class T> void swap_vector(const int n, T *x, const int incx, T *y, const int incy);
 
 /*! 
   \brief Templated vectors

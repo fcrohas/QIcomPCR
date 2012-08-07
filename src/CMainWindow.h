@@ -39,6 +39,34 @@ namespace Ui {
 
 class IDevice;
 
+class Plotter : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit Plotter(QWidget *parent =0);
+    void setRawSamples(double *xval, double *yval,int size);
+private:
+    QwtPlotCurve *spectro;
+    QHBoxLayout *hboxLayout;
+    QwtPlot *qwtPlot;
+
+    void setupUi(QWidget *widget)
+    {
+                QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+                sizePolicy.setHorizontalStretch(20);
+                sizePolicy.setVerticalStretch(20);
+                sizePolicy.setHeightForWidth(widget->sizePolicy().hasHeightForWidth());
+                widget->setSizePolicy(sizePolicy);
+                widget->setAutoFillBackground(false);
+                hboxLayout = new QHBoxLayout(widget);
+                qwtPlot = new QwtPlot(widget);
+                qwtPlot->setSizePolicy(sizePolicy);
+                hboxLayout->addWidget(qwtPlot);
+
+                //QMetaObject::connectSlotsByName(widget);
+    }
+};
+
 class CMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -48,6 +76,9 @@ class CMainWindow : public QMainWindow
         ~CMainWindow();
 
     protected:
+
+    public slots:
+        void slotDataBuffer(double *xval, double *yval);
 
     private slots:
         void powerOn();
@@ -106,6 +137,9 @@ class CMainWindow : public QMainWindow
         // Audio management
         QAudioOutput *soundOutput;
         QAudioInput  *soundInput;
+
+        // spectrum
+        Plotter *myPlot;
 
 };
 
