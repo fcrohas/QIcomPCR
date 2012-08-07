@@ -17,7 +17,7 @@ signals:
 public slots:
 
 private:
-    unsigned char service_mask = 0x87;
+    unsigned char service_mask ;
 };
 
 #endif // CPOGSAG_H

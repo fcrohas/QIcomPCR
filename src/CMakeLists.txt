@@ -156,7 +156,7 @@ if (APPLE)
     MACOSX_PACKAGE_LOCATION Resources
   )
   set(MACOSX_BUNDLE_COPYRIGHT
-    "Copyright Â© 2012 Fabrice Crohas (fcrohas@gmail.com)"
+    "Copyright © 2012 Fabrice Crohas (fcrohas@gmail.com)"
   )
   add_executable(${PROGNAME} MACOSX_BUNDLE ${qicompcr_ALLINP} ${MAC_EXTRA_RES})
   set_target_properties(${PROGNAME} PROPERTIES
