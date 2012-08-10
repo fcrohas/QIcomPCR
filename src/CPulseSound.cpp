@@ -6,6 +6,8 @@
 
 // x is sample index and f frequency
 #define SAMPLERATE 22050
+#define FREQ_SPACE 2200
+#define FREQ_MARK  1200
 #define COS(x,f) x*2*PI*f/SAMPLERATE
 #define SIN(x,f) x*2*PI*f/SAMPLERATE
 
@@ -54,11 +56,12 @@ CPulseSound::CPulseSound(QObject *parent) :
     volume->values[0] = 10;
     volume->values[1] = 0;
     pa_cvolume_set(volume, 1, 20);*/
-    for (int i=0; i< BUFFER_SIZE;i++) {
-        sinf1[i] = SIN(i,1250);
-        cosf1[i] = COS(i,1250);
-        sinf2[i] = SIN(i,1550);
-        cosf2[i] = COS(i,1550);
+    correlationLength = SAMPLERATE / 1200; // For 120 baud
+    for (int i=0; i< correlationLength;i++) {
+        space_q[i] = SIN(i,FREQ_SPACE);
+        space_i[i] = COS(i,FREQ_SPACE);
+        space_q[i] = SIN(i,FREQ_MARK);
+        mark_i[i]  = COS(i,FREQ_MARK);
     }
 }
 

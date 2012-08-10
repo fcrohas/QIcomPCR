@@ -449,12 +449,8 @@ Plotter::Plotter(QWidget *parent)
     spectro = new QwtPlotCurve();
 #ifndef WIN32
     qwtPlot->setAxisScale(QwtPlot::xBottom,0,BUFFER_SIZE/2);
-<<<<<<< HEAD
 #endif
-    qwtPlot->setAxisScale(QwtPlot::yLeft,0,128);
-=======
     qwtPlot->setAxisScale(QwtPlot::yLeft,0,64);
->>>>>>> a2a5c19f5070c97158174557a6a44ece4d8bfa0d
     spectro->attach(qwtPlot);
 }
 

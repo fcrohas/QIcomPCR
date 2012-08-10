@@ -33,10 +33,11 @@ private:
     pa_cvolume *volume;
     int error;
     // Correlator FSK
-    uint16_t sinf1[BUFFER_SIZE];
-    uint16_t sinf2[BUFFER_SIZE];
-    uint16_t cosf1[BUFFER_SIZE];
-    uint16_t cosf2[BUFFER_SIZE];
+    int correlationLength;
+    double space_i[BUFFER_SIZE];
+    double space_q[BUFFER_SIZE];
+    double mark_i[BUFFER_SIZE];
+    double mark_q[BUFFER_SIZE];
     // Thread
     void run();
     bool running;
