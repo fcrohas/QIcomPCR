@@ -6,8 +6,6 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <pulse/volume.h>
-#include <qwt_plot.h>
-#include <qwt_plot_curve.h>
 #include "ui_CMainWindow.h"
 
 #define BUFFER_SIZE 512

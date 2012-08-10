@@ -31,6 +31,8 @@
 #ifndef WIN32
 #include "CPulseSound.h"
 #endif
+#include "qwt_plot_curve.h"
+#include "qwt_plot.h"
 #include "CStatusWidget.h"
 
 namespace Ui {

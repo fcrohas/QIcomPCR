@@ -102,10 +102,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked()),this,SLOT(slotSwitchSound()));
-#endif
-
     // Plotter
     connect(sound,SIGNAL(dataBuffer(double*,double*)),this,SLOT(slotDataBuffer(double*,double*)));
+#endif
+
 
     if (m_device->open())
     {
@@ -447,7 +447,9 @@ Plotter::Plotter(QWidget *parent)
 {
     setupUi(this);
     spectro = new QwtPlotCurve();
+#ifndef WIN32
     qwtPlot->setAxisScale(QwtPlot::xBottom,0,BUFFER_SIZE/2);
+#endif
     qwtPlot->setAxisScale(QwtPlot::yLeft,0,128);
     spectro->attach(qwtPlot);
 }
@@ -460,6 +462,8 @@ void Plotter::setRawSamples(double *xval, double *yval,int size)
 
 void CMainWindow::slotDataBuffer(double *xval, double *yval)
 {
+#ifndef WIN32
     myPlot->setRawSamples(xval,yval,BUFFER_SIZE/2);
+#endif
 }
 
