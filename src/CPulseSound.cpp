@@ -1,8 +1,13 @@
 #include "CPulseSound.h"
 #include "generic/complex.h"
 #include "functions/idft.h"
-
+#include "butterworth.h"
 #include <QDebug>
+
+// x is sample index and f frequency
+#define SAMPLERATE 22050
+#define COS(x,f) x*2*PI*f/SAMPLERATE
+#define SIN(x,f) x*2*PI*f/SAMPLERATE
 
 CPulseSound::CPulseSound(QObject *parent) :
     QThread(parent)
@@ -10,9 +15,9 @@ CPulseSound::CPulseSound(QObject *parent) :
     running = true;
     ss.format = PA_SAMPLE_S16NE; // 16 bits sample
     ss.channels = 1;
-    ss.rate = 22050;
-    attr.maxlength = 512;
-    attr.fragsize = 128;
+    ss.rate = SAMPLERATE;
+    attr.maxlength = -1;
+    attr.fragsize = -1;
     attr.tlength = -1;
     attr.prebuf = -1;
     map.channels = 1;
@@ -49,6 +54,12 @@ CPulseSound::CPulseSound(QObject *parent) :
     volume->values[0] = 10;
     volume->values[1] = 0;
     pa_cvolume_set(volume, 1, 20);*/
+    for (int i=0; i< BUFFER_SIZE;i++) {
+        sinf1[i] = SIN(i,1250);
+        cosf1[i] = COS(i,1250);
+        sinf2[i] = SIN(i,1550);
+        cosf2[i] = COS(i,1550);
+    }
 }
 
 
@@ -75,27 +86,29 @@ void CPulseSound::decodePOCSag(uint16_t buffer[BUFFER_SIZE])
     double *xval = new double[BUFFER_SIZE];
     double *yval = new double[BUFFER_SIZE];
     SPUC::complex<double> *data = new SPUC::complex<double>[BUFFER_SIZE];
+    SPUC::butterworth<double> filterlp(0.65,2,3.0);
+    SPUC::butterworth<double> filterhp(0.25,2,3.0);
+
     for (int i = 0; i < BUFFER_SIZE; i++)
     {
-        data[i].re = buffer[i]*1.0/32768; // set real between 0 and 1
+        data[i].re = buffer[i]*1.0/65535; // set real between 0 and 1
         data[i].im = 0;
+        data[i].re = filterlp.clock(data[i].real());
+        data[i].re = filterhp.clock(data[i].real());
     }
-
     // Do the dft transform
     SPUC::dft(data,BUFFER_SIZE);
-    for (int i = 0; i < BUFFER_SIZE; i++)
+    for (int i = 1; i < BUFFER_SIZE; i++)
     {
         xval[i] = i;
-        yval[i] = sqrt(SPUC::magsq(data[i]));
+        yval[i] = sqrt(SPUC::magsq(data[i])); // Normalized vector
     }
-
     emit dataBuffer(xval,yval);
     // dump dft
-    /*
-    for (int i = 0; i <128; i++)
-        if ((i>0) && (i<64))
-          qDebug() << "freq " << 22050*i/1024 << " hz real=" << data[i].real() << " img=" << data[i].imag();
-    */
+    // Detect frequencies
+    for (int i = 1; i <128; i++)
+        if (yval[i]>0.5)
+          qDebug() << "freq " << 22050*i/128 << " hz magnitude=" << yval[i];
     delete xval;
     delete yval;
     delete data;

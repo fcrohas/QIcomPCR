@@ -8,7 +8,7 @@
 #include <pulse/volume.h>
 #include "ui_CMainWindow.h"
 
-#define BUFFER_SIZE 512
+#define BUFFER_SIZE 256
 
 class CPulseSound : public QThread
 {
@@ -32,7 +32,11 @@ private:
     pa_channel_map map;
     pa_cvolume *volume;
     int error;
-
+    // Correlator FSK
+    uint16_t sinf1[BUFFER_SIZE];
+    uint16_t sinf2[BUFFER_SIZE];
+    uint16_t cosf1[BUFFER_SIZE];
+    uint16_t cosf2[BUFFER_SIZE];
     // Thread
     void run();
     bool running;
@@ -40,3 +44,4 @@ private:
 };
 
 #endif // CPULSESOUND_H
+
