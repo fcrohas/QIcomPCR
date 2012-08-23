@@ -1,6 +1,22 @@
 # define system dependent compiler flags
+# only build 32-bit binaries
+
+set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS OFF)
+set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB_PATHS ON)
 
 include(CheckCXXCompilerFlag)
+
+add_definitions(-m32)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/lib -m32")
+set(CMAKE_SHARED_LIBRARY_C_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS} -L/usr/lib -m32")
+set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CXX_FLAGS} -L/usr/lib -m32")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+set(COMPILE_CFLAGS "${COMPILE_CFLAGS} -m32")
+set(COMPILE_CXXFLAGS "${COMPILE_CXXFLAGS} -m32")
+set(LINK_FLAGS "${LINK_FLAGS} -L/usr/lib -m32")
+set(CMAKE_PREFIX_PATH "/usr/lib")
+
 
 # with -fPIC
 if(UNIX AND NOT WIN32)

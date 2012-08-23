@@ -8,7 +8,8 @@
 #include <pulse/volume.h>
 #include "ui_CMainWindow.h"
 
-#define BUFFER_SIZE 256
+#define SAMPLERATE 22050
+#define BUFFER_SIZE 32768
 
 class CPulseSound : public QThread
 {
@@ -16,33 +17,28 @@ class CPulseSound : public QThread
 public:
     explicit CPulseSound(QObject *parent = 0);
     ~CPulseSound();
+    void setRunning(bool value);
 
 signals:
-    void dataBuffer(double *xval, double *yval);
+    void dataBuffer(int16_t *buffer, int size);
     
 public slots:
 
 private:
     // PulseAudio
-    uint16_t buffer[BUFFER_SIZE]; // 16 bits pulse audio buffer
+    int16_t buffer[BUFFER_SIZE]; // 16 bits pulse audio buffer
     pa_simple *sout;
-    pa_simple *sin;
+    pa_simple *soundIn;
     pa_sample_spec ss;
     pa_buffer_attr attr;
     pa_channel_map map;
     pa_cvolume *volume;
     int error;
-    // Correlator FSK
-    int correlationLength;
-    double space_i[BUFFER_SIZE];
-    double space_q[BUFFER_SIZE];
-    double mark_i[BUFFER_SIZE];
-    double mark_q[BUFFER_SIZE];
     // Thread
     void run();
     bool running;
-    void decodePOCSag(uint16_t buffer[]);
 };
 
 #endif // CPULSESOUND_H
+
 

@@ -22,10 +22,18 @@ void CLcdWidget::setFrequency(QString value)
 void CLcdWidget::mousePressEvent(QMouseEvent *event)
 {
     // Grab keyboard entry
-    grabKeyboard();
-    frequency = "";
-    // Initialize Enter sequence
-    keyEnterPressed = false;
+    if (event->button() == 1) {
+        setIncrement(ts*10);
+    }
+    if (event->button() == 2) {
+        setIncrement(ts/10);
+    }
+    if (event->button() == 4) {
+        grabKeyboard();
+        frequency = "";
+        // Initialize Enter sequence
+        keyEnterPressed = false;
+    }
     repaint();
 }
 
@@ -113,7 +121,7 @@ void CLcdWidget::paintEvent(QPaintEvent *event)
 
     QFontMetrics    fm(font);
     QRect           r = fm.boundingRect(frequency);
-
+    // Calculate width() to set on corect increment digit
     r.moveCenter(QPoint(size.width()/2,size.height()/2));
     p.setPen(Qt::white);
     p.setFont(font);

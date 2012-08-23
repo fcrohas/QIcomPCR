@@ -8,6 +8,7 @@ if(WITH_OPENGL)
 endif(WITH_OPENGL)
 
 include(${QT_USE_FILE})
+#set(QT_LIBRARY_DIR "/usr/lib")
 
 if(UNIX)
     set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
@@ -15,15 +16,20 @@ endif(UNIX)
 
 
 set(qicompcr_SRCS
+    ctype.c
     main.cpp
+    CAcars.cpp
+    CAcarsGPL.cpp
     CApplication.cpp
     CCommand.cpp
     CDebugWindow.cpp
     CDemodulator.cpp
     CDevicePCR2500.cpp
+    CFft.cpp
     CLcdWidget.cpp
     CMainWindow.cpp
     CPogsag.cpp
+    CSpectrumWidget.cpp
     CStatusWidget.cpp
     IDevice.cpp
     ${qicompcr_SRCS}
@@ -38,14 +44,18 @@ if(UNIX)
 endif(UNIX)
 
 set(qicompcr_HDRS
+    CAcars.h
+    CAcarsGPL.h
     CApplication.h
     CCommand.h
     CDebugWindow.h
     CDemodulator.h
     CDevicePCR2500.h
+    CFft.h
     CLcdWidget.h
     CMainWindow.h
     CPogsag.h
+    CSpectrumWidget.h
     CStatusWidget.h
     version.h
     IDevice.h
@@ -181,10 +191,10 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE )
 endif(MSVC)
 
-set (3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc)
+set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc)
 
 if(UNIX)
-    set (3RDPARTY ${3RDPARTY} pulse-simple pulse)
+    set(3RDPARTY ${3RDPARTY} pulse-simple pulse fftw3 acarsd)
 endif(UNIX)
 
 

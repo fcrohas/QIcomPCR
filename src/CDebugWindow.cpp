@@ -10,6 +10,7 @@ CDebugWindow::CDebugWindow(QObject *parent, Ui::MainWindow *gui) :
 void CDebugWindow::writeConsole(QString data)
 {
     ui->serialOutput->insertPlainText(data+"\n");
+    //ui->serialOutput->scrollToAnchor();
 }
 
 void CDebugWindow::slotDebugSerial(QString data)

@@ -13,6 +13,7 @@ class CDebugWindow : public QObject
     Q_OBJECT
 public:
     explicit CDebugWindow(QObject *parent = 0, Ui::MainWindow *gui=0);
+
     void writeConsole(QString data);
 signals:
     void sendData(QString &data);

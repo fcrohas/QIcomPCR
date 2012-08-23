@@ -44,15 +44,15 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     cmd = new CCommand(this);
     dbgWin = new CDebugWindow(this,ui);
+    demodulator = new CDemodulator(this);
 
     status = new CStatusWidget(this);
     lcd    = new CLcdWidget(this);
 #ifndef WIN32
     sound  = new CPulseSound(this);
 #endif
-
-    myPlot = new Plotter();
-    ui->frequency->addWidget(myPlot);
+    mySpectrum = new CSpectrumWidget(this);
+    ui->frequency1->addWidget(mySpectrum); // Widget channel 1
 
     statusBar()->addPermanentWidget(status);
 
@@ -99,13 +99,21 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->layoutFrequency->addWidget(lcd);
     connect( lcd, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency(QString&)));
 
+    // Connect sound with demodulator
+    connect(sound,SIGNAL(dataBuffer(int16_t*,int)), demodulator, SLOT(slotDataBuffer(int16_t*,int)));
+
+    // Connect spectrum widget
+    connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
+
+    // Connect Demodulator to debug windows
+    connect(demodulator,SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
+
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
-    connect(ui->pushSwitchSound,SIGNAL(clicked()),this,SLOT(slotSwitchSound()));
-    // Plotter
-    connect(sound,SIGNAL(dataBuffer(double*,double*)),this,SLOT(slotDataBuffer(double*,double*)));
+    connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
 #endif
 
+    mySpectrum->setAxis(0,1024,0,256);
 
     if (m_device->open())
     {
@@ -174,7 +182,7 @@ void CMainWindow::powerOn()
 /*  NOT NEEDED
     dbgWin->slotSendSerial("J4200");
     dbgWin->slotSendSerial("J4700");
-    dbgWin->slotSendSerial("J6700");
+    dbgWin->slotSendSerial("J6700");1024
 
 
     dbgWin->slotSendSerial("JC400");
@@ -420,10 +428,16 @@ void CMainWindow::slotRadioClicked(int value)
     }
 }
 
-void CMainWindow::slotSwitchSound()
+void CMainWindow::slotSwitchSound(bool value)
 {
 #ifndef WIN32
-    sound->start();
+    if (value) {
+        sound->start();
+    }
+    else {
+        sound->setRunning(false);
+        sound->terminate();
+    }
 #endif
 }
 
@@ -443,27 +457,7 @@ void CMainWindow::slotVSC(bool value)
     cmd->setVoiceControl(value);
 }
 
-Plotter::Plotter(QWidget *parent)
+void CMainWindow::slotDemodulatorData(QString data)
 {
-    setupUi(this);
-    spectro = new QwtPlotCurve();
-#ifndef WIN32
-    qwtPlot->setAxisScale(QwtPlot::xBottom,0,BUFFER_SIZE/2);
-#endif
-    qwtPlot->setAxisScale(QwtPlot::yLeft,0,64);
-    spectro->attach(qwtPlot);
+    dbgWin->writeConsole(data);
 }
-
-void Plotter::setRawSamples(double *xval, double *yval,int size)
-{
-    spectro->setRawSamples(xval,yval,size);
-    qwtPlot->replot();
-}
-
-void CMainWindow::slotDataBuffer(double *xval, double *yval)
-{
-#ifndef WIN32
-    myPlot->setRawSamples(xval,yval,BUFFER_SIZE/2);
-#endif
-}
-
