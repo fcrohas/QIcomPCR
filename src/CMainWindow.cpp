@@ -19,6 +19,7 @@
 
 #include "CMainWindow.h"
 #include "ui_CMainWindow.h"
+#include <QScrollBar>
 #include "CDevicePCR2500.h"
 #include "version.h"
 
@@ -53,7 +54,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 #endif
     mySpectrum = new CSpectrumWidget(this);
     ui->frequency1->addWidget(mySpectrum); // Widget channel 1
-
+    ui->decoderText->setReadOnly(true);
     statusBar()->addPermanentWidget(status);
 
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
@@ -108,12 +109,21 @@ CMainWindow::CMainWindow(QWidget *parent) :
     // Connect Demodulator to debug windows
     connect(demodulator,SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
 
+    // Connect Decoder
+    connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
+
+    // Channel change
+    connect(ui->channel, SIGNAL(currentIndexChanged(int)), this, SLOT(slotChannelChange(int)));
+
+    // Connect Scope type
+    connect(ui->FFT, SIGNAL(clicked(bool)), this,SLOT(slotScopeChanged(bool)));
+
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
 #endif
 
-    mySpectrum->setAxis(0,1024,0,256);
+    mySpectrum->setAxis(0,16384,0,256);
 
     if (m_device->open())
     {
@@ -430,6 +440,7 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound(bool value)
 {
+    demodulator->initBuffer(32768);
 #ifndef WIN32
     if (value) {
         sound->start();
@@ -459,5 +470,31 @@ void CMainWindow::slotVSC(bool value)
 
 void CMainWindow::slotDemodulatorData(QString data)
 {
-    dbgWin->writeConsole(data);
+    ui->decoderText->append(data);
+    QScrollBar *sb = ui->decoderText->verticalScrollBar();
+    sb->setValue(sb->maximum());
+}
+
+void CMainWindow::slotDecoderChange(int value)
+{
+    qDebug() << "CMainWindow::slotDecoderChange(" << value << ")";
+    demodulator->slotSetDemodulator(value,ui->channel->currentIndex(),16384);
+}
+
+void CMainWindow::slotChannelChange(int value)
+{
+    qDebug() << "CMainWindow::slotChannelChange(" << value << ")";
+    //demodulator->slotSetDemodulator(ui->decoderList->currentIndex(), value, 16384);
+}
+
+void CMainWindow::slotScopeChanged(bool value)
+{
+    if (value) {
+        demodulator->setScopeType(1);
+        mySpectrum->setAxis(0,512,0,256);
+    }
+    else {
+        demodulator->setScopeType(0);
+        mySpectrum->setAxis(0,16384,0,256);
+    }
 }

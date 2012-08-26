@@ -2,6 +2,7 @@
 #define CACARSGPL_H
 
 #include <QObject>
+#include "IDemodulator.h"
 
 #define Fe 22050.0
 #define Freqh 4800.0/Fe*2.0*M_PI
@@ -14,18 +15,22 @@
 /* CCITT 16 CRC */
 #define POLY 0x1021
 
-class CAcarsGPL : public QObject
+class CAcarsGPL : public IDemodulator
 {
     Q_OBJECT
 public:
-    explicit CAcarsGPL(QObject *parent = 0);
-    void decode(int16_t *data, int size);
+    explicit CAcarsGPL(QObject *parent = 0, uint channel=1);
+    void decode(int16_t *data, int size, int offset);
+    uint getChannel();
+    uint getDataSize();
+    uint getBufferSize();
     
 signals:
     
 public slots:
 
 private:
+    uint channel;
     // Structure
     typedef struct {
         unsigned char mode;

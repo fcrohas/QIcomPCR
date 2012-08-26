@@ -1,8 +1,8 @@
 #include "CAcars.h"
 #include <QDebug>
 
-CAcars::CAcars(QObject *parent, int bufferSize, int sampleRate, int passes) :
-    QObject(parent)
+CAcars::CAcars(QObject *parent, uint channel, int bufferSize, int sampleRate, int passes) :
+    IDemodulator(parent)
 {
     if (!(L = acarsd_init(bufferSize,sampleRate,passes))) {
         qDebug() << "acarsd_init() error";
@@ -27,15 +27,16 @@ CAcars::CAcars(QObject *parent, int bufferSize, int sampleRate, int passes) :
     /* Use 9 codetables */
     asetopt(L,ACARSD_CODETABLES,9);
 
+    this->channel = channel;
+
 }
 
-void CAcars::decode(uchar *buffer, int size)
+void CAcars::decode(uchar *buffer, int size, int offset)
 {
     int i=0, j=0, succ=0, err= 0, num=0;
     char *a;
     /* Try to find all messages from soundfile */
     while (ACARS_Decoder(L,buffer)) {
-
         /* Get the best message */
         num = acarsd_goodoffset(L,&i);
         qDebug() << "Decode buffer offest num=" << num << "offset=" << i;
@@ -84,4 +85,19 @@ void CAcars::decode(uchar *buffer, int size)
         qDebug() << QString("+----+----+\n| %1 | %2 |\n+----+----+\n").arg(succ).arg(err);
     }
 
+}
+
+uint CAcars::getDataSize()
+{
+    return 8;
+}
+
+uint CAcars::getChannel()
+{
+    return channel;
+}
+
+uint CAcars::getBufferSize()
+{
+    return ACARSBUFFER;
 }

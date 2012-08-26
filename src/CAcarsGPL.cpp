@@ -2,11 +2,12 @@
 #include <math.h>
 #include <QDebug>
 
-CAcarsGPL::CAcarsGPL(QObject *parent) :
-    QObject(parent)
+CAcarsGPL::CAcarsGPL(QObject *parent, uint channel) :
+    IDemodulator(parent)
 {
     init_bits();
     init_mesg();
+    this->channel = channel;
 }
 
 void CAcarsGPL::init_bits(void)
@@ -332,12 +333,14 @@ void CAcarsGPL::print_mesg(msg_t * msg)
     struct tm *tmp;
     char pos[128];
 
+    emit sendData(QString("ACARS mode: %1").arg(msg->mode));
     qDebug() << QString("ACARS mode: %1").arg(msg->mode);
     qDebug() << QString(" Aircraft reg: %1").arg( (int)msg->addr);
     qDebug() << QString("Message label: %1").arg((int)msg->label);
     qDebug() << QString(" Block id: %1").arg(msg->bid);
     qDebug() << QString(" Msg. no: %1").arg((int)msg->no);
     qDebug() << QString("Flight id: %1").arg((int)msg->fid);
+    emit sendData(QString("Message content:-\n%1").arg(msg->txt));
     qDebug() << QString("Message content:-\n%1").arg(msg->txt);
 
     //if (posconv(msg->txt, msg->label, pos)==0)
@@ -345,7 +348,7 @@ void CAcarsGPL::print_mesg(msg_t * msg)
 
 }
 
-void CAcarsGPL::decode(int16_t *data, int size)
+void CAcarsGPL::decode(int16_t *data, int size, int offset)
 {
     int ind, len;
     int el=1, er=0; // only one channel
@@ -386,4 +389,19 @@ void CAcarsGPL::decode(int16_t *data, int size)
             ind++;
         }
     }
+}
+
+uint CAcarsGPL::getChannel()
+{
+    return channel;
+}
+
+uint CAcarsGPL::getDataSize()
+{
+    return 16;
+}
+
+uint CAcarsGPL::getBufferSize()
+{
+    return 32728;
 }

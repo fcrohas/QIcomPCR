@@ -2,15 +2,14 @@
 #define CDEMODULATOR_H
 
 #include <QObject>
+#include "IDemodulator.h"
 #include "CAcars.h"
 #include "CAcarsGPL.h"
+#include "CMorse.h"
 #include "CFft.h"
 
-// x is sample index and f frequency
-#define SAMPLERATE 22050
-#define FREQ_SPACE 10000
-#define FREQ_MARK  1000
 #define FFTW // Use FFTW library for fourrier transform, else use SPUC
+#define MAXBLOCK 64 // for a max buffer of 32768 and sound buffer of 512 per channel
 
 class CDemodulator : public QObject
 {
@@ -18,7 +17,10 @@ class CDemodulator : public QObject
 public:
     explicit CDemodulator(QObject *parent = 0);
     ~CDemodulator();
-    enum availableDemodulator {Acars=0, AcarsGpl=1, CW=2, RTTY=3};
+    enum availableDemodulator {Acars=1, AcarsGpl=2, CW=3, RTTY=4};
+    void initBuffer(uint bufferSize);
+    enum scopeType {time=0, fft=1, waterfall=2};
+    void setScopeType(uint scope);
 
 signals:
     void sigRawSamples(double *xval, double *yval, int size);
@@ -27,22 +29,21 @@ signals:
 public slots:
     void slotDataBuffer(int16_t *buffer, int size);
     void slotSendData(QString data);
-    void slotSetDemodulator(uint demod);
+    void slotSetDemodulator(uint demod, uint channel, uint bufferSize);
 private:
-    double *space_i;
-    double *space_q;
-    double *mark_i;
-    double *mark_q;
+    QList<IDemodulator*> list;
     double *xval;
     double *yval;
-    uchar *data;
-    int correlationLength;
+    int bufferBlock;
+    uchar *data8bitsl;
+    int16_t *data16bitsl;
+    uchar *data8bitsr;
+    int16_t *data16bitsr;
+    uint scope;
+    IDemodulator *demodulator;
 
-    // Acars demodulator
-    CAcars *acarsd;
-    CAcarsGPL *acarsdGPL;
-    CFFT *fft;
-    int acarsBuffer;
+    // FFT
+    CFFT *fftw;
 };
 
 #endif // CDEMODULATOR_H

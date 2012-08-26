@@ -28,10 +28,12 @@ set(qicompcr_SRCS
     CFft.cpp
     CLcdWidget.cpp
     CMainWindow.cpp
+    CMorse.cpp
     CPogsag.cpp
     CSpectrumWidget.cpp
     CStatusWidget.cpp
     IDevice.cpp
+    IDemodulator.cpp
     ${qicompcr_SRCS}
 )
 
@@ -54,11 +56,13 @@ set(qicompcr_HDRS
     CFft.h
     CLcdWidget.h
     CMainWindow.h
+    CMorse.h
     CPogsag.h
     CSpectrumWidget.h
     CStatusWidget.h
     version.h
     IDevice.h
+    IDemodulator.h
     ${qicompcr_HDRS}
 )
 

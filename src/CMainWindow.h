@@ -86,6 +86,12 @@ class CMainWindow : public QMainWindow
         void slotSwitchSound(bool value);
         // Demodulator text output
         void slotDemodulatorData(QString data);
+        // Decoder change event
+        void slotDecoderChange(int value);
+        // Sound channel
+        void slotChannelChange(int value);
+        // Scope
+        void slotScopeChanged(bool value);
 
     private:
         Ui::MainWindow *ui;

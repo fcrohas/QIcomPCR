@@ -9,7 +9,7 @@
 #include "ui_CMainWindow.h"
 
 #define SAMPLERATE 22050
-#define BUFFER_SIZE 32768
+#define BUFFER_SIZE 1024
 
 class CPulseSound : public QThread
 {
