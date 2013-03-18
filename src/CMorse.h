@@ -4,6 +4,7 @@
 #include <QObject>
 #include <IDemodulator.h>
 #include <math.h>
+#include "generic/fir.h"
 
 // x is sample index and f frequency
 #define SAMPLERATE 22050

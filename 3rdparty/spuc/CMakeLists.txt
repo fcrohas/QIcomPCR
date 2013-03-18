@@ -55,7 +55,7 @@ set(SRCS
 	functions/misc.cpp
 	functions/scalfunc.cpp
 	functions/spuc_math.cpp
-	functions/window.cpp
+        functions/window.cpp
 	generic/binary.cpp
 	generic/bool_nco.cpp
 	generic/butterworth_fir.cpp

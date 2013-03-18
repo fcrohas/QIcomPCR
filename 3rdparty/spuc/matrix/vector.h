@@ -39,9 +39,9 @@
 
 // This needs to be included before algorithm included in scalfunc for g++-2.7.2
 #include <binary.h>
-#include <spucconfig.h>
+#include <matrix/spucconfig.h>
 #include <algorithm>
-#include "spucassert.h"
+#include "utility/spucassert.h"
 #include <complex.h>
 #include <cstdlib>
 #include <cstring>

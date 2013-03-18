@@ -6,7 +6,15 @@ CSpectrumWidget::CSpectrumWidget(QWidget *parent) :
 {
     setupUi(this);
     spectro = new QwtPlotCurve();
+
+    CpuCurve *curve;
+    Background * background;
     spectro->attach(qwtPlot);
+    curve = new CpuCurve( "FFT" );
+    curve->setColor( Qt::blue );
+    curve->attach(qwtPlot);
+    background = new Background();
+    background->attach(qwtPlot);
 }
 
 void CSpectrumWidget::slotRawSamples(double *xval, double *yval,int size)

@@ -46,6 +46,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     cmd = new CCommand(this);
     dbgWin = new CDebugWindow(this,ui);
     demodulator = new CDemodulator(this);
+    remote = new CRemoteControl(this);
 
     status = new CStatusWidget(this);
     lcd    = new CLcdWidget(this);
@@ -122,6 +123,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
 #endif
+
+    // Connect remote to event
+    connect(remote, SIGNAL(command(QString&)), this, SLOT(slotRemoteData));
 
     mySpectrum->setAxis(0,16384,0,256);
 
@@ -265,6 +269,7 @@ void CMainWindow::slotReceivedData(QString data)
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
         if ((ok)  && (ui->radio1->isChecked())) {
             ui->signalRadio1->setValue(value);
+            remote->sendData(QString("sig%1").arg(value));
         }
         found = true;
     }
@@ -290,8 +295,9 @@ void CMainWindow::slotReceivedData(QString data)
     }
     if (!found) {
         dbgWin->slotDebugSerial(data);
+        // Remote control
+        remote->sendData(data);
     }
-
     // Update status bar
     QString info("Data sent %1 %3bytes and received %2 %4bytes");
     int received = m_device->log_t.dataReceive;
@@ -497,4 +503,9 @@ void CMainWindow::slotScopeChanged(bool value)
         demodulator->setScopeType(0);
         mySpectrum->setAxis(0,16384,0,256);
     }
+}
+
+void CMainWindow::slotRemoteData(QString &data)
+{
+
 }
