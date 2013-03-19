@@ -53,6 +53,7 @@ socket.on('connection', function (client){
     icompcr.write('I am Chuck Norris!');
 
   });
+  //client.send('QIcomPCR closed');
   // Add a 'close' event handler for the client socket
   icompcr.on('close', function() {
     console.log('Connection closed');
