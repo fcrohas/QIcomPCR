@@ -2,7 +2,9 @@
 #include "functions/idft.h"
 #include <math.h>
 #include <QDebug>
-#include <fftw3.h>
+#ifdef FFTW
+    #include <fftw3.h>
+#endif
 #include "CDemodulator.h"
 
 CDemodulator::CDemodulator(QObject *parent) :
@@ -119,7 +121,9 @@ void CDemodulator::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
         case 0 :
             list[channel] = new IDemodulator(this); break;
         case Acars :
+#ifdef WITH_ACARS
             list[channel] = new CAcars(this, channel); break;
+#endif
         case AcarsGpl :
             list[channel] = new CAcarsGPL(this, channel); break;
         case CW :

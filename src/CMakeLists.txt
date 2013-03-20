@@ -1,6 +1,8 @@
 project(qicompcr-binary)
 
-option(WITH_OPENGL "BUILD OPENGL" ON)
+option(WITH_OPENGL "Build OPENGL" ON)
+option(WITH_ACARS "Build with licensed ACARS Library" OFF)
+option(WITH_FFTW "Build with Fast Fourrier Transform Library" OFF)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -10,14 +12,24 @@ endif(WITH_OPENGL)
 include(${QT_USE_FILE})
 #set(QT_LIBRARY_DIR "/usr/lib")
 
+if(WIN32)
+    add_definitions(-D_USE_MATH_DEFINES)
+endif(WIN32)
+
 if(UNIX)
     set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp ctype.c)
 endif(UNIX)
 
+if(WITH_ACARS)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CAcars.cpp)
+endif(WITH_ACARS)
+
+if(WITH_FFTW)
+     add_definitions(-DFFTW)
+endif(WITH_FFTW)
 
 set(qicompcr_SRCS
     main.cpp
-    CAcars.cpp
     CAcarsGPL.cpp
     CApplication.cpp
     CCommand.cpp
@@ -45,8 +57,12 @@ if(UNIX)
     set(qicompcr_HDRS ${qicompcr_HDRS} CPulseSound.h)
 endif(UNIX)
 
+if(WITH_ACARS)
+    set(qicompcr_HDRS ${qicompcr_HDRS} CAcars.h)
+endif(WITH_ACARS)
+
+
 set(qicompcr_HDRS
-    CAcars.h
     CAcarsGPL.h
     CApplication.h
     CCommand.h

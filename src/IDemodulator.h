@@ -2,6 +2,7 @@
 #define IDEMODULATOR_H
 
 #include <QObject>
+#include <stdint.h>
 
 class IDemodulator : public QObject
 {

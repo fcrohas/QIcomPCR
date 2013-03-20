@@ -100,10 +100,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     // Frequency
     ui->layoutFrequency->addWidget(lcd);
     connect( lcd, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency(QString&)));
-
+#ifndef WIN32
     // Connect sound with demodulator
     connect(sound,SIGNAL(dataBuffer(int16_t*,int)), demodulator, SLOT(slotDataBuffer(int16_t*,int)));
-
+#endif
     // Connect spectrum widget
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
 

@@ -5,10 +5,12 @@
 #include "generic/complex.h"
 #include "functions/idft.h"
 #include <math.h>
+#include <stdint.h>
 #include <QDebug>
-#include <fftw3.h>
+#ifdef FFTW
+    #include <fftw3.h>
+#endif
 
-#define FFTW
 
 class CFFT : public QObject
 {

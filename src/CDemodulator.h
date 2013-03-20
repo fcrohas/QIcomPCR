@@ -3,7 +3,9 @@
 
 #include <QObject>
 #include "IDemodulator.h"
-#include "CAcars.h"
+#ifdef WITH_ACARS
+    #include "CAcars.h"
+#endif
 #include "CAcarsGPL.h"
 #include "CMorse.h"
 #include "CFft.h"
