@@ -10,6 +10,7 @@
 #define FREQ_SPACE 10000
 #define FREQ_MARK  1000
 
+
 class CMorse : public IDemodulator
 {
     Q_OBJECT

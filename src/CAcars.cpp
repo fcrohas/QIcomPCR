@@ -18,7 +18,7 @@ CAcars::CAcars(QObject *parent, uint channel, int bufferSize, int sampleRate, in
     /* Disable CRC check */
     asetopt(L,ACARSD_CRCMODE,0);
 
-    /* CRC/FCB Check is activ? */
+    /* CRC/FCB Check is active? */
     qDebug() <<  "CRC MODE IS ENABLED: " << QString("%1").arg(acarsd_option(L,ACARSD_GET|ACARSD_CRCMODE,0)?"YES":"NO");
 
     /* Set 10 passes on each buffer */

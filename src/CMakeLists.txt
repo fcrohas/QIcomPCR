@@ -11,12 +11,11 @@ include(${QT_USE_FILE})
 #set(QT_LIBRARY_DIR "/usr/lib")
 
 if(UNIX)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp ctype.c)
 endif(UNIX)
 
 
 set(qicompcr_SRCS
-    ctype.c
     main.cpp
     CAcars.cpp
     CAcarsGPL.cpp
