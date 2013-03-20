@@ -30,6 +30,8 @@ CMorse::CMorse(QObject *parent, uint channel) :
 
 void CMorse::decode(int16_t *buffer, int size, int offset)
 {
+    // Windowing
+    //spuc::hamming(buffer, 512,0.5, 1.2);
     // loop on sampling
     for(int i=0; i < size; i+=2) {
         // Compute correlation for frequency

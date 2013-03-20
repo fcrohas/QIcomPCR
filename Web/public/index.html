@@ -1,0 +1,102 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Web Interface for QIcomPCR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="screen"></link>
+    <link href="/stylesheets/bootstrap-responsive.min.css" type="text/css" rel="stylesheet" media="screen"></link>
+
+</head>
+<body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Project name</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <h1>Bootstrap starter template</h1>
+      <div id="signal" class="progress">
+        <div class="bar bar-danger" style="width: 0%;"></div>
+        <div class="bar bar-warning" style="width: 0%;"></div>
+        <div class="bar bar-success" style="width: 0%;"></div>
+      </div>
+      <p id="text">socket.io</p>
+      <p>Use this document as a way to quick start any new project.<br> All you get is this message and a barebones HTML document.</p>
+
+    </div>
+
+
+    <script src="/js/socket.io.js"></script>
+    <script src="/js/jquery-1.9.1.min.js"></script><!-- Downloaded Jquery -->
+    <script src="/js/bootstrap.min.js"></script><!-- Downloaded Jquery -->
+
+    <script>
+        $(document).ready(function(){
+
+            text        = $('#text');
+
+            var socket = io.connect();
+
+            socket.on('connect', function () {
+                text.html('connected');
+            });
+
+            socket.on('message', function (msg) {
+
+                if (msg.substring(0,3) == 'sig') {
+                    if ( msg.substring(3) < 100 ) {
+                        $('.bar-danger').width(msg.substring(3));
+                    }
+                    if (( msg.substring(3) > 50 ) && ( msg.substring(3) < 150 )) {
+                        $('.bar-danger').width('10%');
+                        $('.bar-warning').width(msg.substring(3)-50);
+                    }
+                    if ( msg.substring(3) > 150 ) {
+                        $('.bar-danger').width('10%');
+                        $('.bar-warning').width('30%');
+                        $('.bar-success').width(msg.substring(3)-150);
+                    }
+                }
+                else
+                    text.html(msg);
+            });
+
+            socket.on('disconnect', function () {
+                text.html('disconnected');
+            });
+            socket.on('news', function (data) {
+                text.html(data);
+                console.log(data);
+            });
+            socket.on('signal', function (data) {
+                signal.style.width = data;
+                //text.html(data);
+                console.log(data);
+            });
+
+        });
+    </script>
+</body>
+</html>

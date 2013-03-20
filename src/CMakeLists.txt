@@ -29,6 +29,7 @@ set(qicompcr_SRCS
     CMainWindow.cpp
     CMorse.cpp
     CPogsag.cpp
+    CRemoteControl.cpp
     CSpectrumWidget.cpp
     CStatusWidget.cpp
     IDevice.cpp
@@ -57,6 +58,7 @@ set(qicompcr_HDRS
     CMainWindow.h
     CMorse.h
     CPogsag.h
+    CRemoteControl.h
     CSpectrumWidget.h
     CStatusWidget.h
     version.h

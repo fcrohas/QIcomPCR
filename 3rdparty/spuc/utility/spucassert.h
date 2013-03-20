@@ -27,7 +27,7 @@
 
 #include <iostream>
 #include <string>
-#include "spucconfig.h"
+#include "matrix/spucconfig.h"
 namespace SPUC {
 //	using std::string;
 /*! 

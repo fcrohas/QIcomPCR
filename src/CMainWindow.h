@@ -27,6 +27,7 @@
 #include "CCommand.h"
 #include "CDevicePCR2500.h"
 #include "CDebugWindow.h"
+#include "CRemoteControl.h"
 #include "CLcdWidget.h"
 #ifndef WIN32
 #include "CPulseSound.h"
@@ -92,6 +93,8 @@ class CMainWindow : public QMainWindow
         void slotChannelChange(int value);
         // Scope
         void slotScopeChanged(bool value);
+        // Remote
+        void slotRemoteData(QString &data);
 
     private:
         Ui::MainWindow *ui;
@@ -124,6 +127,9 @@ class CMainWindow : public QMainWindow
 
         // Demodulator
         CDemodulator *demodulator;
+
+        // Remote Control
+        CRemoteControl *remote;
 };
 
 extern CMainWindow *theMainWindow;

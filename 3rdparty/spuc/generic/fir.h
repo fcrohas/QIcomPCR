@@ -22,7 +22,7 @@
 #define FIR
 //#include <iostream.h>
 //#include <fstream.h>
-#include <vector.h>
+#include <matrix/vector.h>
 namespace SPUC {
 /*! 
   \addtogroup fir FIR filters

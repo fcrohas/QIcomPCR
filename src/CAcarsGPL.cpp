@@ -356,7 +356,7 @@ void CAcarsGPL::decode(int16_t *data, int size, int offset)
     int nrbitl =8,  nrbitr = 8;
     unsigned char rl, rr;
     msg_t msgl, msgr;
-    int nbch = 2;
+    int nbch = 1;
 
     for (ind = 0; ind < size;) {
 
@@ -403,5 +403,5 @@ uint CAcarsGPL::getDataSize()
 
 uint CAcarsGPL::getBufferSize()
 {
-    return 32728;
+    return 16384;
 }
