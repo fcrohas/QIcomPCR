@@ -125,7 +125,22 @@ CMainWindow::CMainWindow(QWidget *parent) :
 #endif
 
     // Connect remote to event
-    connect(remote, SIGNAL(command(QString&)), this, SLOT(slotRemoteData));
+    connect(remote,SIGNAL(sigAutomaticGainControl(bool)), cmd, SLOT(setAutomaticGainControl(bool)));
+    connect(remote,SIGNAL(sigNoiseBlanker(bool)), cmd, SLOT(setNoiseBlanker(bool)));
+    connect(remote,SIGNAL(sigSoundMute(bool)), cmd, SLOT(setSoundMute(bool)));
+    connect(remote,SIGNAL(sigVoiceControl(bool)), cmd, SLOT(setVoiceControl(bool)));
+    connect(remote,SIGNAL(sigFilter(uint)), cmd, SLOT(setFilter(uint)));
+    connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
+    connect(remote,SIGNAL(sigIFShift(uint)), cmd, SLOT(setIFShift(uint)));
+    connect(remote,SIGNAL(sigPower(bool)), cmd, SLOT(setPower(bool)));
+    connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
+    connect(remote,SIGNAL(sigRadioMode(uint)), cmd, SLOT(setRadioMode(uint)));
+    connect(remote,SIGNAL(sigSoundVolume(uint)), cmd, SLOT(setSoundVolume(uint)));
+    connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
+    connect(remote,SIGNAL(sigModulation(uint)), cmd, SLOT(setModulation(uint)));
+    connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
+
+
 
     mySpectrum->setAxis(0,16384,0,256);
 

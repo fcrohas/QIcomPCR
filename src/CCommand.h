@@ -11,47 +11,22 @@ public:
     explicit CCommand(QObject *parent = 0);
 
     // Power command
-    void setPower(bool value);
     bool getPower();
 
     // Set frequency
-    void setFrequency(uint value);
     uint getFrequency();
 
     // Set frequency modulation
-    void setModulation(uint value);
     uint getModulation();
 
-    // Set Antenna
-    void setRadio(uint value);
-
     // Set Filter
-    void setFilter(uint value);
     uint getFilter();
 
     // Set IFShift
-    void setIFShift(uint value);
     uint getIFShift();
 
     // set Squelch
-    void setSquelch(uint value);
     uint getSquelch();
-
-    // set Automatic Gain Control Mode
-    void setAutomaticGainControl(bool value);
-
-    // set Noise Blanker
-    void setNoiseBlanker(bool value);
-
-    // set Voice Control
-    void setVoiceControl(bool value);
-
-    // set Radio mode
-    void setRadioMode(uint value);
-
-    // set Sound Output
-    void setSoundVolume(uint value);
-    void setSoundMute(bool value);
 
     // Enum
     enum radioSound {eSound1=0, eSound2=1};
@@ -66,6 +41,42 @@ public:
 signals:
     void sendData(QString &value);
 public slots:
+    // Power command
+    void setPower(bool value);
+
+    // Set frequency
+    void setFrequency(uint value);
+
+    // Set frequency modulation
+    void setModulation(uint value);
+
+    // set Automatic Gain Control Mode
+    void setAutomaticGainControl(bool value);
+
+    // set Noise Blanker
+    void setNoiseBlanker(bool value);
+
+    // Set Antenna
+    void setRadio(uint value);
+
+    // Set Filter
+    void setFilter(uint value);
+
+    // Set IFShift
+    void setIFShift(uint value);
+
+    // set Voice Control
+    void setVoiceControl(bool value);
+
+    // set Radio mode
+    void setRadioMode(uint value);
+
+    // set Sound Output
+    void setSoundVolume(uint value);
+    void setSoundMute(bool value);
+
+    // set Squelch
+    void setSquelch(uint value);
 
 private:
     // Radio currently working on

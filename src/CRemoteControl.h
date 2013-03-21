@@ -26,6 +26,44 @@ class CRemoteControl: public QObject
 
     signals:
       void command(QString &value);
+
+      // Power command
+      void sigPower(bool value);
+
+      // Set frequency
+      void sigFrequency(uint value);
+
+      // Set frequency modulation
+      void sigModulation(uint value);
+
+      // set Automatic Gain Control Mode
+      void sigAutomaticGainControl(bool value);
+
+      // set Noise Blanker
+      void sigNoiseBlanker(bool value);
+
+      // Set Antenna
+      void sigRadio(uint value);
+
+      // Set Filter
+      void sigFilter(uint value);
+
+      // Set IFShift
+      void sigIFShift(uint value);
+
+      // set Voice Control
+      void sigVoiceControl(bool value);
+
+      // set Radio mode
+      void sigRadioMode(uint value);
+
+      // set Sound Output
+      void sigSoundVolume(uint value);
+      void sigSoundMute(bool value);
+
+      // set Squelch
+      void sigSquelch(uint value);
+
 };
 
 #endif // CREMOTECONTROL_H
