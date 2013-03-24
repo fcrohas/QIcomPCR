@@ -7,10 +7,27 @@
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
+      .scrollbox {
+	height:90%;
+	width:90%;
+	border:1px solid #ccc;
+	font:16px/26px Georgia, Garamond, Serif;
+	overflow:auto;      
+      }
+      #signal {
+	width:25%;
+      }
+      .counter1 {
+	      width:44px;
+	      height:31px;
+	      border:1px solid #000;
+	      overflow:hidden;
+	      /*position:relative;*/
+	      background-color:#f00;
+      }      
     </style>
     <link href="/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/bootstrap-responsive.min.css" type="text/css" rel="stylesheet" media="screen"></link>
-
 </head>
 <body>
 
@@ -22,7 +39,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="#">Project name</a>
+          <a class="brand" href="#">QIcomPCR</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
@@ -35,68 +52,98 @@
     </div>
 
     <div class="container">
-
-      <h1>Bootstrap starter template</h1>
-      <div id="signal" class="progress">
-        <div class="bar bar-danger" style="width: 0%;"></div>
-        <div class="bar bar-warning" style="width: 0%;"></div>
-        <div class="bar bar-success" style="width: 0%;"></div>
+      <ul class="nav nav-tabs" id="Tab">
+	<li class="active"><a href="#cmd">Command</a></li>
+	<li><a href="#demod">Demodulator</a></li>
+	<li><a href="#debug">Debug</a></li>
+      </ul>
+      
+      <div class="tab-content">
+	<div class="tab-pane active" id="cmd">
+	  <div id="control"></div>
+	  <div id="status"></div>
+	  <div id="signal"></div>
+	  <div id="frequency"></div>	  
+	  <div id="frequencystep"></div>
+	  <audio controls src="http://localhost:8000/"></audio>
+	</div>
+	<div class="tab-pane" id="demod">...</div>
+	<div class="tab-pane" id="debug">
+	  <div id="dbgwin"></div>
+	</div>
       </div>
-      <p id="text">socket.io</p>
-      <p>Use this document as a way to quick start any new project.<br> All you get is this message and a barebones HTML document.</p>
-
     </div>
 
 
     <script src="/js/socket.io.js"></script>
     <script src="/js/jquery-1.9.1.min.js"></script><!-- Downloaded Jquery -->
-    <script src="/js/bootstrap.min.js"></script><!-- Downloaded Jquery -->
+    <script src="/js/bootstrap.min.js"></script><!-- Downloaded Bootstrap -->
+    <script src="/js/json2.js"></script><!-- Downloaded Json2 -->
+    <script src="/js/underscore-min.js"></script><!-- Downloaded Underscore -->
+    <script src="/js/backbone-min.js"></script><!-- Downloaded Backbone -->
+    <script src="/js/raphael-min.js"></script><!-- Downloaded Raphael -->
+    <script src="/js/jquery.roundabout.min.js"></script><!-- Downloaded RoundAbout -->
+    <script src="/js/jquery.roundabout-shapes.min.js"></script><!-- Downloaded RoundAbout-Shapes -->
+    <script src="/js/jquery.easing.1.3.js"></script><!-- Downloaded easing -->
+    <script src="/js/jshashtable.js"></script><!-- Debug Window widget -->
+    <script src="/js/jquery.numberformatter-1.2.3.min.js"></script><!-- Downloaded numberformatter -->
+    <script src="/js/jquery.flipCounter.1.2.pack.js"></script><!-- Downloaded flipCounter -->
+    
+    <script src="/js/models/remote.js"></script><!-- Remote model controller -->
+    <script src="/js/models/frequencytable.js"></script><!-- Remote model controller -->
+    <script src="/js/views/signal.js"></script><!-- Signal widget -->
+    <script src="/js/views/dbgwin.js"></script><!-- Debug Window widget -->
+    <script src="/js/views/status.js"></script><!-- Debug Window widget -->
+    <script src="/js/views/radio.js"></script><!-- Debug Window widget -->    
+    <script src="/js/views/frequency.js"></script><!-- Debug Window widget -->
+    <script src="/js/views/frequencystep.js"></script><!-- Debug Window widget -->
 
-    <script>
-        $(document).ready(function(){
+    <script src="/js/main.js"></script>
+    
+    <!-- Templating Signal Widget-->
+    <script type="text/template" id="signalTemplate">
+      <div id="signal1">Channel 1 power<div class="progress"><div class="bar bar-danger" style="width: 0%;"></div><div class="bar bar-warning" style="width: 0%;"></div><div class="bar bar-success" style="width: 0%;"></div></div></div>
+      <div id="signal2">Channel 2 power<div class="progress"><div class="bar bar-danger" style="width: 0%;"></div><div class="bar bar-warning" style="width: 0%;"></div><div class="bar bar-success" style="width: 0%;"></div></div></div>      
+    </script>
+    
+    <!-- Templating Debug window Widget-->
+    <script type="text/template" id="debugTemplate">
+      <div class="scrollbox"></div>
+    </script>
 
-            text        = $('#text');
-
-            var socket = io.connect();
-
-            socket.on('connect', function () {
-                text.html('connected');
-            });
-
-            socket.on('message', function (msg) {
-
-                if (msg.substring(0,3) == 'sig') {
-                    if ( msg.substring(3) < 100 ) {
-                        $('.bar-danger').width(msg.substring(3));
-                    }
-                    if (( msg.substring(3) > 50 ) && ( msg.substring(3) < 150 )) {
-                        $('.bar-danger').width('10%');
-                        $('.bar-warning').width(msg.substring(3)-50);
-                    }
-                    if ( msg.substring(3) > 150 ) {
-                        $('.bar-danger').width('10%');
-                        $('.bar-warning').width('30%');
-                        $('.bar-success').width(msg.substring(3)-150);
-                    }
-                }
-                else
-                    text.html(msg);
-            });
-
-            socket.on('disconnect', function () {
-                text.html('disconnected');
-            });
-            socket.on('news', function (data) {
-                text.html(data);
-                console.log(data);
-            });
-            socket.on('signal', function (data) {
-                signal.style.width = data;
-                //text.html(data);
-                console.log(data);
-            });
-
-        });
+    <!-- Templating Status Widget-->
+    <script type="text/template" id="statusTemplate">
+      Last status :<span id="statuscmd"></span>
+    </script>
+    
+    <!-- Templating Radio buttons Widget-->
+    <script type="text/template" id="radioTemplate">
+      <button type="button" class="btn power" data-toggle="button" >Power</button>
+      <div class="btn-toolbar">
+	<div class="btn-group" data-toggle="buttons-radio">
+	    <button class="btn wfm">Wide FM</button>
+	    <button class="btn fm">FM</button>
+	    <button class="btn am">AM</button>
+	    <button class="btn usb">USB</button>
+	    <button class="btn lsb">LSB</button>
+	    <button class="btn cw">CW</button>	
+	</div>
+	<div class="btn-group" data-toggle="buttons-radio">
+	    <button class="btn 28k">2.8k</button>
+	    <button class="btn 6k">6k</button>
+	    <button class="btn 15k">15k</button>
+	    <button class="btn 50k">50k</button>
+	    <button class="btn 230k">230k</button>	
+	</div>
+	<div class="btn-group" data-toggle="buttons-checkbox">
+	    <button class="btn nb">Noise Blanker</button>
+	    <button class="btn agc">Auto Gain Control</button>
+	    <button class="btn vsc">Voice Squelch</button>
+	</div>
+      </div>
+    </script>    
+    <script type="text/template" id="frequencyTemplate">
+      <div id="digits"></div>    
     </script>
 </body>
 </html>

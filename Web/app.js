@@ -9,7 +9,8 @@ var express = require('express')
   , http = require('http')
   , path = require('path')
   , io = require('socket.io')
-  , net = require('net');
+  , net = require('net')
+  , ffmpeg = require('fluent-ffmpeg');
 
 var app = express();
 
@@ -35,6 +36,21 @@ app.get('/users', user.list);
 
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
+});
+
+var proc = new ffmpeg({ source: rootfile, priority: 10 })
+.toFormat('ogg')
+//.withVideoBitrate('1500k')
+//.withVideoCodec('libx264')
+//.withSize('720x?')
+.withAudioBitrate('64k')
+.withAudioCodec('libfaac')
+.saveToFile(newfile, function(stdout, stderr) {
+    console.log('file has been converted succesfully');
+    lock = false;
+    console.log(stdout);
+    console.log(stderr);
+    callback();
 });
 
 var socket = io.listen(server); 
@@ -63,13 +79,12 @@ socket.on('connection', function (client){
   // Add a 'data' event handler for the client socket
   // data is what the server sent to this socket
   icompcr.on('data', function(data) {
-    
-    console.log('DATA: ' + data);
     client.send(data );
     
   });
 
-  client.on('message', function () {
+  client.on('message', function (msg) {
+   icompcr.write(msg);
   }) ;
 
   client.on('disconnect', function () {
