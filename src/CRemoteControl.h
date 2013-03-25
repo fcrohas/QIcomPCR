@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <CCommand.h>
 
 class CRemoteControl: public QObject
 {
@@ -26,6 +27,9 @@ class CRemoteControl: public QObject
 
     signals:
       void command(QString &value);
+
+      // Init device
+      void sigInitialize();
 
       // Power command
       void sigPower(bool value);

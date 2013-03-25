@@ -139,9 +139,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
     connect(remote,SIGNAL(sigModulation(uint)), cmd, SLOT(setModulation(uint)));
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
-
-
-
+    connect(remote,SIGNAL(sigInitialize()), this, SLOT(powerOn()));
     mySpectrum->setAxis(0,16384,0,256);
 
     if (m_device->open())
@@ -284,7 +282,7 @@ void CMainWindow::slotReceivedData(QString data)
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
         if ((ok)  && (ui->radio1->isChecked())) {
             ui->signalRadio1->setValue(value);
-            remote->sendData(QString("sig%1").arg(value));
+            remote->sendData(QString("SA%1").arg(value));
         }
         found = true;
     }
@@ -295,24 +293,28 @@ void CMainWindow::slotReceivedData(QString data)
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
         if ((ok)  && (ui->radio2->isChecked())) {
             ui->signalRadio1->setValue(value);
+            remote->sendData(QString("SB%1").arg(value));
         }
         found = true;
     }
     if (data.contains("H100")) {
         statusBar()->showMessage(tr("Offline"));
         status->setState(false);
+        remote->sendData(QString("PWROFF"));
         found = true;
     }
     if (data.contains("H101")) {
         statusBar()->showMessage(tr("Online"));
         status->setState(true);
+        remote->sendData(QString("PWRON"));
         found = true;
     }
     if (!found) {
         dbgWin->slotDebugSerial(data);
-        // Remote control
-        remote->sendData(data);
+        remote->sendData(QString("DBG\r\n%1").arg(data));
     }
+
+
     // Update status bar
     QString info("Data sent %1 %3bytes and received %2 %4bytes");
     int received = m_device->log_t.dataReceive;

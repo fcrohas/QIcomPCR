@@ -34,8 +34,12 @@ void CRemoteControl::decode(char *buffer)
 {
     QString decodedString(buffer);
 
+    if (decodedString.startsWith("INIT")) {
+        emit sigInitialize();
+    } else
     if (decodedString.startsWith("PWRON")) {
-        emit sigPower(true);
+        emit sigInitialize();
+        //emit sigPower(true);
     } else
     if (decodedString.startsWith("PWROFF")) {
         emit sigPower(false);
@@ -53,16 +57,29 @@ void CRemoteControl::decode(char *buffer)
         emit sigVoiceControl(false);
     } else
     if (decodedString.startsWith("FILTER")) {
-        emit sigFilter(0);
+        QString filter = decodedString.replace("FILTER","");
+        if (filter == "230K") emit sigFilter(CCommand::e230k);
+        if (filter == "50K")  emit sigFilter(CCommand::e50k);
+        if (filter == "15K")  emit sigFilter(CCommand::e15k);
+        if (filter == "6K")   emit sigFilter(CCommand::e6k);
+        if (filter == "28K")  emit sigFilter(CCommand::e28k);
     } else
     if (decodedString.startsWith("FREQ")) {
-        emit sigFrequency(0);
+        QString frequency = decodedString.replace("FREQ","");
+        qDebug() << "frequency remote " << frequency.toUInt();
+        emit sigFrequency(frequency.toUInt());
     } else
     if (decodedString.startsWith("IF")) {
         emit sigIFShift(128);
     } else
     if (decodedString.startsWith("MOD")) {
-        emit sigModulation(0);
+        QString modulation = decodedString.replace("MOD","");
+        if (modulation == "WFM") emit sigModulation(CCommand::eWFM);
+        if (modulation == "FM")  emit sigModulation(CCommand::eFM);
+        if (modulation == "AM")  emit sigModulation(CCommand::eAM);
+        if (modulation == "LSB") emit sigModulation(CCommand::eLSB);
+        if (modulation == "USB") emit sigModulation(CCommand::eUSB);
+        if (modulation == "CW")  emit sigModulation(CCommand::eCW);
     } else
     if (decodedString.startsWith("NBON")) {
         emit sigNoiseBlanker(true);
