@@ -27,7 +27,24 @@ var FrequencyView = Backbone.View.extend({
         onAnimationPaused:false, // call back for animation upon pausing
         onAnimationResumed:false, // call back for animation upon resuming from pause
 	formatNumberOptions:{format:"0,000,000,000",locale:"fr,en"}
-    });    
+    });
+    $(this.$el).find('#control').knobKnob({
+	    snap : 10,
+	    value: 154,
+	    turn : function(ratio){
+		    numBars = Math.round(128*ratio);
+
+		    // Update the dom only when the number of active bars
+		    // changes, instead of on every move
+		    
+		    //if(numBars == lastNum){
+		    //	  return false;
+		    //}
+		    //lastNum = numBars;
+
+		    //colorBars.removeClass('active').slice(0, numBars).addClass('active');
+	    }
+    });
     return this;
   },
   MouseWheelHandler : function (e) {
