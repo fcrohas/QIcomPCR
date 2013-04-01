@@ -22,6 +22,8 @@ CFFT::CFFT(QObject *parent, int size) :
 
 CFFT::~CFFT()
 {
+    delete xval;
+    delete yval;
 #ifdef FFTW
     fftw_destroy_plan(ch1);
     fftw_destroy_plan(ch2);
@@ -40,8 +42,8 @@ void CFFT::decode(int16_t *buffer, int size, double *xval, double *yval)
     // fill complex
     for (int i=0, j=0; i < size; i+=2,j++) {
 #ifdef FFTW
-        in1[j][0] = buffer[i]*1.0/32768; // set values in double between -1.0 and 1.0; channel 1
-        in2[j][0] = buffer[i+1]*1.0/32768; // set values in double between -1.0 and 1.0; channel 2
+        in1[j][0] = buffer[i]*1.0/32768.0; // set values in double between -1.0 and 1.0; channel 1
+        in2[j][0] = buffer[i+1]*1.0/32768.0; // set values in double between -1.0 and 1.0; channel 2
         in1[j][1] = 0.0;
         in2[j][1] = 0.0;
 #else
@@ -80,8 +82,8 @@ void CFFT::slotDataBuffer(int16_t *buffer, int size)
     // fill complex
     for (int i=0, j=0; i < size; i+=2,j++) {
 #ifdef FFTW
-        in1[j][0] = buffer[i]*1.0/32768; // set values in double between -1.0 and 1.0; channel 1
-        in2[j][0] = buffer[i+1]*1.0/32768; // set values in double between -1.0 and 1.0; channel 2
+        in1[j][0] = buffer[i]*1.0/32768.0; // set values in double between -1.0 and 1.0; channel 1
+        in2[j][0] = buffer[i+1]*1.0/32768.0; // set values in double between -1.0 and 1.0; channel 2
         in1[j][1] = 0.0;
         in2[j][1] = 0.0;
 #else

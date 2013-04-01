@@ -19,6 +19,7 @@ public:
     uint getBufferSize();
 
 public slots:
+    void slotFrequency(int value);
 
 private:
     libacarsd *L;

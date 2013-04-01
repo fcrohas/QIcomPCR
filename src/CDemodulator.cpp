@@ -11,7 +11,7 @@ CDemodulator::CDemodulator(QObject *parent) :
     QObject(parent)
 {
     // create acarsd
-    fftw = new CFFT(this,1024);
+    fftw = new CFFT(this,512);
     list.append(new IDemodulator()); // 0 just dummy
     list.append(new IDemodulator()); // 1 Channel
     list.append(new IDemodulator()); // 2 Channel
@@ -21,7 +21,7 @@ CDemodulator::CDemodulator(QObject *parent) :
 
 CDemodulator::~CDemodulator()
 {
-    delete demodulator;
+    //delete demodulator;
     delete fftw;
     delete data8bitsl;
     delete data16bitsl;
@@ -52,9 +52,10 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
         channel    = demodulator->getChannel();
         bufferSize = demodulator->getBufferSize();
 
-        // Check if buffersize is reached for this demodulator;
-        //qDebug() << "Demodulator(" << i << ") channel=" << channel << " dataSize=" << demodulator->getDataSize() << " Buffersize=" << ((bufferBlock * channelSize + channelSize) % bufferSize);
-        if ((bufferSize!=0) && ((bufferBlock * channelSize + channelSize) % bufferSize == 0)) {
+        if ((bufferSize!=0))
+            // Check if buffersize is reached for this demodulator;
+            //qDebug() << "Demodulator(" << i << ") channelSize=" << channelSize << " dataSize=" << demodulator->getDataSize() << " bufferBlock=" << bufferBlock <<" bufferSize=" << bufferSize << " buffer=" << ((bufferBlock * channelSize + channelSize) % bufferSize);
+        if ((bufferSize!=0) && ((bufferBlock * channelSize + channelSize)  == bufferSize)) {
             //qDebug() << "Demodulator(" << i << ") channel=" << channel << " dataSize=" << demodulator->getDataSize() << " Buffersize=" << bufferBlock * channelSize + channelSize;
 
 #if 1
@@ -74,21 +75,24 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
                 //qDebug() << "Demodulator(" << i << ") channel=" << channel << " dataSize=" << demodulator->getDataSize() << " Buffersize=" << bufferSize;//bufferBlock * channelSize + channelSize;
                 if (demodulator->getDataSize() !=0 )
                 {
-                    for (int i=0; i < bufferSize; i++) {
+                    for (int i=0; i < bufferSize ; i++) {
                         xval[i] = i;
                         if (channel == 1)
                             yval[i] = data8bitsl[i];
                         if (channel == 2)
                             yval[i] = data8bitsr[i];
                     }
+                    emit sigRawSamples(xval, yval, bufferSize);
                 }
             }
+            //bufferBlock = 0;
             bufferBlock = -1;
         }
         // Do FFT
         if (scope == fft) {
             // Do it on stereo channel
-            fftw->decode(buffer,1024, xval, yval); // Shift to correct buffer start
+            fftw->decode(buffer,512, xval, yval); // Shift to correct buffer start, do FFT on 512 bins
+            emit sigRawSamples(xval, yval, 256); // Only 256 usable so 128 per channel
         }
         // fill back spectrum buffer
         //if (((bufferBlock * channelSize + channelSize) % bufferSize == 0) && (demodulator->getDataSize()!=0)) {
@@ -100,11 +104,8 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
     // incrememnt block until max block size
     bufferBlock++;
 
-    if (bufferBlock == MAXBLOCK)
+    if ((bufferBlock * channelSize + channelSize) > 32768)
         bufferBlock = 0;
-
-
-    emit sigRawSamples(xval, yval, 16384);
 }
 
 void CDemodulator::slotSendData(QString data)
@@ -153,4 +154,12 @@ void CDemodulator::initBuffer(uint bufferSize)
 void CDemodulator::setScopeType(uint scope)
 {
     this->scope = scope;
+}
+
+IDemodulator *CDemodulator::getDemodulatorFromChannel(int channel)
+{
+    if (list[channel] != NULL)
+        return (IDemodulator*)list[channel];
+    else
+        return NULL;
 }

@@ -29,13 +29,17 @@
 #include "CDebugWindow.h"
 #include "CRemoteControl.h"
 #include "CLcdWidget.h"
-#ifndef WIN32
+#ifdef WITH_PULSEAUDIO
 #include "CPulseSound.h"
+#endif
+#ifdef WITH_PORTAUDIO
+#include "CPortAudio.h"
 #endif
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
 #include "CDemodulator.h"
 #include "CFft.h"
+#include "ISound.h"
 
 namespace Ui {
     class MainWindow;
@@ -95,6 +99,10 @@ class CMainWindow : public QMainWindow
         void slotScopeChanged(bool value);
         // Remote
         void slotRemoteData(QString &data);
+        // Input Device selection
+        void slotInputDevice();
+        // Output Device selection
+        void slotOutputDevice();
 
     private:
         Ui::MainWindow *ui;
@@ -111,7 +119,7 @@ class CMainWindow : public QMainWindow
         //Widgets
         CLcdWidget *lcd;
 #ifndef WIN32
-        CPulseSound *sound;
+        ISound *sound;
 #endif
         CStatusWidget *status;
 
@@ -124,6 +132,9 @@ class CMainWindow : public QMainWindow
 
         // spectrum
         CSpectrumWidget *mySpectrum;
+
+        // dump decoder view
+        CSpectrumWidget *myDecoder;
 
         // Demodulator
         CDemodulator *demodulator;

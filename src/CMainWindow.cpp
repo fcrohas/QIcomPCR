@@ -50,11 +50,20 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     status = new CStatusWidget(this);
     lcd    = new CLcdWidget(this);
-#ifndef WIN32
+#ifdef WITH_PULSEAUDIO
     sound  = new CPulseSound(this);
 #endif
+#ifdef WITH_PORTAUDIO
+    sound  = new CPortAudio(this);
+#endif
+    // Spectrum widget
     mySpectrum = new CSpectrumWidget(this);
     ui->frequency1->addWidget(mySpectrum); // Widget channel 1
+
+    // Add decoder view plotter
+    myDecoder = new CSpectrumWidget(this);
+    ui->DumpView->addWidget(myDecoder);
+    // Decoder text
     ui->decoderText->setReadOnly(true);
     statusBar()->addPermanentWidget(status);
 
@@ -102,7 +111,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect( lcd, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency(QString&)));
 #ifndef WIN32
     // Connect sound with demodulator
-    connect(sound,SIGNAL(dataBuffer(int16_t*,int)), demodulator, SLOT(slotDataBuffer(int16_t*,int)));
+    sound->SetDemodulator(demodulator);
+    //connect(sound,SIGNAL(dataBuffer(int16_t*,int)), demodulator, SLOT(slotDataBuffer(int16_t*,int)));
 #endif
     // Connect spectrum widget
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
@@ -142,10 +152,32 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigInitialize()), this, SLOT(powerOn()));
     mySpectrum->setAxis(0,16384,0,256);
 
-    if (m_device->open())
-    {
-        qDebug() << "Connected";
+    // Build menu settings
+    // Add input list device
+    QMenu *input = ui->menu_Settings->addMenu(tr("input"));
+    QHashIterator<QString, int> in(sound->getDeviceList());
+    QAction *action;
+    while (in.hasNext()) {
+        in.next();
+        action = new QAction(in.key(), this);
+        action->setCheckable(true);
+        action->setObjectName(in.key());
+        input->addAction(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(slotInputDevice()));
     }
+
+    // add output list device
+    QMenu *output = ui->menu_Settings->addMenu(tr("output"));
+    QHashIterator<QString, int> out(sound->getDeviceList());
+    while (out.hasNext()) {
+        out.next();
+        action = new QAction(out.key(), this);
+        action->setCheckable(true);
+        action->setObjectName(out.key());
+        output->addAction(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
+    }
+
 }
 
 CMainWindow::~CMainWindow()
@@ -154,6 +186,11 @@ CMainWindow::~CMainWindow()
 
 void CMainWindow::powerOn()
 {
+    if (m_device->open())
+    {
+        qDebug() << "Connected";
+    }
+
     if (cmd->getPower()) {
         cmd->setPower(false);
         status->setState(cmd->getPower());
@@ -182,11 +219,11 @@ void CMainWindow::powerOn()
     dbgWin->slotSendSerial("GF?");
     sleep(1);
     dbgWin->slotSendSerial("G301");
-/*  NOT NEEDED
+/*  NOT NEEDED */
     dbgWin->slotSendSerial("J730000");
     dbgWin->slotSendSerial("J4600");
     dbgWin->slotSendSerial("J6600");
-*/
+
     // Init radio 0 Frequency;
     cmd->setRadio(0);
     slotModulationWFM();
@@ -206,18 +243,18 @@ void CMainWindow::powerOn()
     cmd->setVoiceControl(CCommand::eVSCOff);
     cmd->setIFShift(128);
 
-/*  NOT NEEDED
+/*  NOT NEEDED */
     dbgWin->slotSendSerial("J4200");
     dbgWin->slotSendSerial("J4700");
-    dbgWin->slotSendSerial("J6700");1024
+    dbgWin->slotSendSerial("J6700");
 
 
     dbgWin->slotSendSerial("JC400");
     dbgWin->slotSendSerial("J7100");
     dbgWin->slotSendSerial("J720000");
     dbgWin->slotSendSerial("JC000");
-    */
-/*
+
+/* */
     cmd->setRadio(0);
     cmd->setSoundMute(true);
     cmd->setSoundVolume(0);
@@ -252,7 +289,7 @@ void CMainWindow::powerOn()
     cmd->setRadio(1);
     cmd->setVoiceControl(CCommand::eVSCOff);
     cmd->setSquelch(1);
-*/
+
     cmd->setRadio(0);
     cmd->setSoundVolume(60);
     cmd->setSoundMute(false);
@@ -321,11 +358,11 @@ void CMainWindow::slotReceivedData(QString data)
     int sent       = m_device->log_t.dataSent;
     QString receiveUnit("");
     QString sentUnit("");
-    if (received > 9999)   { received = received / 1000; receiveUnit = "k"; }
-    if (received > 999999) { received = received / 100000; receiveUnit = "M"; }
+    if (received > 9999)   { received = received / 1000.0; receiveUnit = "k"; }
+    if (received > 999999) { received = received / 100000.0; receiveUnit = "M"; }
 
-    if (sent > 9999)   { received = received / 1000; sentUnit = "k"; }
-    if (sent > 999999) { received = received / 100000; sentUnit = "M";}
+    if (sent > 9999)   { received = received / 1000.0; sentUnit = "k"; }
+    if (sent > 999999) { received = received / 100000.0; sentUnit = "M";}
 
 
     status->slotUpdate(info.arg(sent).arg(received).arg(sentUnit).arg(receiveUnit));
@@ -500,8 +537,13 @@ void CMainWindow::slotDemodulatorData(QString data)
 
 void CMainWindow::slotDecoderChange(int value)
 {
+    int channel = ui->channel->currentIndex();
     qDebug() << "CMainWindow::slotDecoderChange(" << value << ")";
-    demodulator->slotSetDemodulator(value,ui->channel->currentIndex(),16384);
+    demodulator->slotSetDemodulator(value,channel,16384);
+    // Connect Demodulator to debug windows
+    connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
+    connect(mySpectrum, SIGNAL(frequency(int)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(int)));
+    myDecoder->setAxis(0,256,-10000,10000);
 }
 
 void CMainWindow::slotChannelChange(int value)
@@ -514,15 +556,25 @@ void CMainWindow::slotScopeChanged(bool value)
 {
     if (value) {
         demodulator->setScopeType(1);
-        mySpectrum->setAxis(0,512,0,256);
+        mySpectrum->setAxis(0,256,0,256);
     }
     else {
         demodulator->setScopeType(0);
-        mySpectrum->setAxis(0,16384,0,256);
+        mySpectrum->setAxis(0,1024,0,256);
     }
 }
 
 void CMainWindow::slotRemoteData(QString &data)
 {
 
+}
+
+void CMainWindow::slotInputDevice()
+{
+    sound->selectInputDevice(QObject::sender()->objectName());
+}
+
+void CMainWindow::slotOutputDevice()
+{
+    sound->selectOutputDevice(QObject::sender()->objectName());
 }

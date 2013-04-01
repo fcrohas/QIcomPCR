@@ -10,7 +10,7 @@
 #include "CMorse.h"
 #include "CFft.h"
 
-#define FFTW // Use FFTW library for fourrier transform, else use SPUC
+//#define FFTW // Use FFTW library for fourrier transform, else use SPUC
 #define MAXBLOCK 64 // for a max buffer of 32768 and sound buffer of 512 per channel
 
 class CDemodulator : public QObject
@@ -23,6 +23,7 @@ public:
     void initBuffer(uint bufferSize);
     enum scopeType {time=0, fft=1, waterfall=2};
     void setScopeType(uint scope);
+    IDemodulator* getDemodulatorFromChannel(int channel);
 
 signals:
     void sigRawSamples(double *xval, double *yval, int size);

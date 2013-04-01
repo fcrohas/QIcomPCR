@@ -14,6 +14,9 @@
 #include <qwt_legend_item.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot.h>
+#include <qwt_plot_picker.h>
+#include <qwt_compat.h>
+#include <qwt_picker_machine.h>
 
 class TimeScaleDraw: public QwtScaleDraw
 {
@@ -83,6 +86,31 @@ public:
     }
 };
 
+class MyPicker : public QwtPlotPicker
+{
+        Q_OBJECT
+
+    public:
+        MyPicker( int xAxis, int yAxis, RubberBand rubberBand, DisplayMode trackerMode, QwtPlotCanvas *canvas ):
+            QwtPlotPicker(xAxis, yAxis, rubberBand, trackerMode,canvas)
+        {
+
+        }
+
+    signals:
+        void mouseMoved(const QPoint& pos) const;
+
+    protected:
+        QwtText trackerText (const QwtDoublePoint & pos)
+        {
+            const QPoint point = pos.toPoint();
+            emit mouseMoved(point);
+            return QwtText(QString::number(point.x()) + ", " + QString::number(point.y()));
+        }
+
+};
+
+
 class CSpectrumWidget : public QWidget
 {
     Q_OBJECT
@@ -90,14 +118,19 @@ public:
     explicit CSpectrumWidget(QWidget *parent = 0);
     void setAxis(int x1, int x2, int y1, int y2);
 signals:
+    void frequency(int value);
     
 public slots:
     void slotRawSamples(double *xval, double *yval,int size);
+    void slotClicked(QPoint point);
 private:
     void setupUi(QWidget *widget);
     QwtPlotCurve *spectro;
     QHBoxLayout *hboxLayout;
     QwtPlot *qwtPlot;
+    MyPicker *picker;
+    int x1;
+    int x2;
 
     
 };
