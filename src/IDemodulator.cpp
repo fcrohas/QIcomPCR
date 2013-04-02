@@ -29,3 +29,8 @@ uint IDemodulator::getBufferSize()
 {
     return 0;
 }
+
+void IDemodulator::slotFrequency(int value)
+{
+    return;
+}

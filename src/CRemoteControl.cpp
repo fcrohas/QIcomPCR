@@ -70,7 +70,8 @@ void CRemoteControl::decode(char *buffer)
         emit sigFrequency(frequency.toUInt());
     } else
     if (decodedString.startsWith("IF")) {
-        emit sigIFShift(128);
+        QString shift = decodedString.replace("IF","");
+        emit sigIFShift(shift.toUInt());
     } else
     if (decodedString.startsWith("MOD")) {
         QString modulation = decodedString.replace("MOD","");

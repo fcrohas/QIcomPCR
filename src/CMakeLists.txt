@@ -1,8 +1,10 @@
 project(qicompcr-binary)
 
 option(WITH_OPENGL "Build OPENGL" ON)
-option(WITH_ACARS "Build with licensed ACARS Library" OFF)
-option(WITH_FFTW "Build with Fast Fourrier Transform Library" OFF)
+option(WITH_ACARS "Build with licensed ACARS Library" ON)
+option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
+option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
+option(WITH_PORTAUDIO "Build with PortAudio support" ON)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -17,11 +19,24 @@ if(WIN32)
 endif(WIN32)
 
 if(UNIX)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp ctype.c)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ctype.c)
 endif(UNIX)
+
+
+if(WITH_PULSEAUDIO)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
+    add_definitions(-DWITH_PULSEAUDIO)
+endif(WITH_PULSEAUDIO)
+
+if(WITH_PORTAUDIO)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CPortAudio.cpp)
+    add_definitions(-DWITH_PORTAUDIO)
+endif(WITH_PORTAUDIO)
+
 
 if(WITH_ACARS)
     set(qicompcr_SRCS ${qicompcr_SRCS} CAcars.cpp)
+    add_definitions(-DWITH_ACARS)
 endif(WITH_ACARS)
 
 if(WITH_FFTW)
@@ -42,10 +57,12 @@ set(qicompcr_SRCS
     CMorse.cpp
     CPogsag.cpp
     CRemoteControl.cpp
+    CSound.cpp
     CSpectrumWidget.cpp
     CStatusWidget.cpp
     IDevice.cpp
     IDemodulator.cpp
+    ISound.cpp
     ${qicompcr_SRCS}
 )
 
@@ -53,9 +70,14 @@ if (WIN32)
     SET(qicompcr_SRCS ${qicompcr_SRCS} qicompcr.rc)
 endif (WIN32)
 
-if(UNIX)
+if(WITH_PORTAUDIO)
+    set(qicompcr_HDRS ${qicompcr_HDRS} CPortAudio.h)
+endif(WITH_PORTAUDIO)
+
+
+if(WITH_PULSEAUDIO)
     set(qicompcr_HDRS ${qicompcr_HDRS} CPulseSound.h)
-endif(UNIX)
+endif(WITH_PULSEAUDIO)
 
 if(WITH_ACARS)
     set(qicompcr_HDRS ${qicompcr_HDRS} CAcars.h)
@@ -75,11 +97,13 @@ set(qicompcr_HDRS
     CMorse.h
     CPogsag.h
     CRemoteControl.h
+    CSound.h
     CSpectrumWidget.h
     CStatusWidget.h
     version.h
     IDevice.h
     IDemodulator.h
+    ISound.h
     ${qicompcr_HDRS}
 )
 
@@ -214,10 +238,21 @@ endif(MSVC)
 
 set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc)
 
-if(UNIX)
-    set(3RDPARTY ${3RDPARTY} pulse-simple pulse fftw3 acarsd)
-endif(UNIX)
+if(WITH_PULSEAUDIO)
+    set(3RDPARTY ${3RDPARTY} pulse-simple pulse)
+endif(WITH_PULSEAUDIO)
 
+if(WITH_ACARS)
+    set(3RDPARTY ${3RDPARTY} acarsd)
+endif(WITH_ACARS)
+
+if(WITH_FFTW)
+    set(3RDPARTY ${3RDPARTY} fftw3)
+endif(WITH_FFTW)
+
+if(WITH_PORTAUDIO)
+    set(3RDPARTY ${3RDPARTY} portaudio)
+endif(WITH_PORTAUDIO)
 
 target_link_libraries(
       ${PROGNAME}

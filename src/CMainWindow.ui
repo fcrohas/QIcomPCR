@@ -24,7 +24,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
+    <item alignment="Qt::AlignHCenter">
      <widget class="QMdiArea" name="mdiArea">
       <widget class="QWidget" name="debugWindow">
        <property name="windowTitle">
@@ -705,6 +705,20 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="subwindow_3">
+       <property name="windowTitle">
+        <string>Sous fenêtre</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_12">
+        <item>
+         <layout class="QVBoxLayout" name="DumpView">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -734,6 +748,12 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <widget class="QMenu" name="menu_Settings">
+     <property name="title">
+      <string>&amp;Settings</string>
+     </property>
+    </widget>
+    <addaction name="menu_Settings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -768,6 +788,16 @@
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionInput">
+   <property name="text">
+    <string>Input</string>
+   </property>
+  </action>
+  <action name="actionOutput">
+   <property name="text">
+    <string>Output</string>
    </property>
   </action>
  </widget>

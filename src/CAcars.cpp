@@ -101,3 +101,8 @@ uint CAcars::getBufferSize()
 {
     return ACARSBUFFER;
 }
+
+void CAcars::slotFrequency(int value)
+{
+
+}

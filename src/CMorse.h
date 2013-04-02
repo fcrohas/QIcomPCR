@@ -4,7 +4,7 @@
 #include <QObject>
 #include <IDemodulator.h>
 #include <math.h>
-#include "generic/fir.h"
+#include "functions/window.h"
 
 // x is sample index and f frequency
 #define SAMPLERATE 22050
@@ -23,16 +23,22 @@ public:
     uint getBufferSize();
     
 signals:
-    
+    void dumpData(double*,double*,int);
 public slots:
+    void slotFrequency(int value);
 
 private:
     double *space_i;
     double *space_q;
     double *mark_i;
     double *mark_q;
+    double *window;
+    double *xval;
+    double *yval;
+    double *corr;
     int correlationLength;
     uint channel;
+    int frequency;
 };
 
 #endif // CMORSE_H

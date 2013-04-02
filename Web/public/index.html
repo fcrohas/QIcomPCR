@@ -28,6 +28,7 @@
     </style>
     <link href="/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/bootstrap-responsive.min.css" type="text/css" rel="stylesheet" media="screen"></link>
+    <link href="/stylesheets/knobKnob.css" type="text/css" rel="stylesheet" media="screen"></link>
 </head>
 <body>
 
@@ -65,7 +66,7 @@
 	  <div id="signal"></div>
 	  <div id="frequency"></div>	  
 	  <div id="frequencystep"></div>
-	  <audio controls src="http://localhost:8000/"></audio>
+	  <!-- audio controls src="http://localhost:8000/"></audio -->
 	</div>
 	<div class="tab-pane" id="demod">...</div>
 	<div class="tab-pane" id="debug">
@@ -88,6 +89,8 @@
     <script src="/js/jshashtable.js"></script><!-- Debug Window widget -->
     <script src="/js/jquery.numberformatter-1.2.3.min.js"></script><!-- Downloaded numberformatter -->
     <script src="/js/jquery.flipCounter.1.2.pack.js"></script><!-- Downloaded flipCounter -->
+    <script src="/js/knob/transform.js"></script>
+    <script src="/js/knob/knobKnob.jquery.js"></script>
     
     <script src="/js/models/remote.js"></script><!-- Remote model controller -->
     <script src="/js/models/frequencytable.js"></script><!-- Remote model controller -->
@@ -143,7 +146,10 @@
       </div>
     </script>    
     <script type="text/template" id="frequencyTemplate">
-      <div id="digits"></div>    
+      <div>
+	<div id="digits"></div>
+	<div id="control"></div>
+      </div>
     </script>
 </body>
 </html>

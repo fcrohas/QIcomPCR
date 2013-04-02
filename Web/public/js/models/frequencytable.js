@@ -2,7 +2,7 @@ var FrequencyTable = Backbone.Model.extend({
   defaults : {
     step: [ 10, 50, 100, 500, 1000, 2000, 3000, 6000, 12500, 15000, 25000, 50000, 100000, 1000000, 10000000 ],
     position : 0,
-    value : 500
+    value : 10
   },
   initialize : function() {
     

@@ -3,13 +3,12 @@
 
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
+  ,frequency(0)
 {
     // Init sinus and cos for correlation
-    correlationLength = 22050 /1200; // For 1200 baud
+    correlationLength = 256; // For 1200 baud
     space_i = new double[correlationLength];
     space_q = new double[correlationLength];
-    mark_i  = new double[correlationLength];
-    mark_q  = new double[correlationLength];
     double f = 0.0;
     for (int i=0; i< correlationLength;i++) {
         space_i[i] = cos(f);
@@ -18,28 +17,32 @@ CMorse::CMorse(QObject *parent, uint channel) :
         //qDebug() << "space[" << i << "]=" << space_i[i];
 
     }
-    f = 0.0;
-    for (int i=0; i< correlationLength;i++) {
-        mark_i[i] = cos(f);
-        mark_q[i] = sin(f);
-        f += 2.0*M_PI*FREQ_MARK/SAMPLERATE;
-    }
-
+    xval = new double[256];
+    yval = new double[256];
+    window = new double[256];
+    corr = new double[256];
+    SPUC::hamming(window, 256,0.5, 1.2);
     this->channel = channel;
 }
 
 void CMorse::decode(int16_t *buffer, int size, int offset)
 {
-    // Windowing
-    //spuc::hamming(buffer, 512,0.5, 1.2);
+
     // loop on sampling
-    for(int i=0; i < size; i+=2) {
+    for(int i=0; i < size; i++) {
+        // Haming window
+        //buffer[i] = buffer[i] * window[i];
+
         // Compute correlation for frequency
         for (int j=0; j<correlationLength; j++) {
-            double value = buffer[i] * mark_i[j] + buffer[i] * mark_q[j];
+            corr[i] = buffer[i] * space_i[j] + buffer[i] * space_q[j];
+            //qDebug() << "correlation " << abs(corr[i]);
+            yval[i] = corr[i] * 1.0;
+            xval[i] = i;
 
         }
     }
+    emit dumpData(xval,yval,256);
 }
 
 uint CMorse::getDataSize()
@@ -54,5 +57,19 @@ uint CMorse::getChannel()
 
 uint CMorse::getBufferSize()
 {
-    return 512;
+    return 256;
+}
+
+void CMorse::slotFrequency(int value)
+{
+    frequency = value * SAMPLERATE / (512/2); // SAMPLERATE / (N Sample / 2) , give frequency per fft bin
+    double f = 0.0;
+    // Generate Correlation for this frequency
+    for (int i=0; i< 256;i++) {
+        space_i[i] = cos(f);
+        space_q[i] = sin(f);
+        f += 2.0*M_PI*frequency/SAMPLERATE;
+    }
+    qDebug() << "Correlation generated for frequency " << frequency << " hz";
+
 }

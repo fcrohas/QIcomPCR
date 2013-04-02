@@ -162,6 +162,7 @@ set(HDRS
           functions/misc.h
           functions/scalfunc.h
           functions/spuc_math.h
+          functions/window.h
           generic/allpass_1.h
           generic/a_d.h
           generic/allpass_halfband.h
