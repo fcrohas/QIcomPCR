@@ -22,7 +22,7 @@ var RadioCmd = Backbone.View.extend({
 	    "click button.50k": "toggle50k",
 	    "click button.15k": "toggle15k",
 	    "click button.6k": "toggle6k",
-	    "click button.28k": "toggle28k",
+	    "click button.28k": "toggle28k"
   },  
   togglePower: function(event) {
     this.model.togglePower();

@@ -6,7 +6,7 @@ var FrequencyView = Backbone.View.extend({
             "DOMMouseScroll": "MouseWheelHandler",
 	    "mousewheel":"MouseWheelHandler",
 	    "contextmenu":"decreaseStep",
-	    "click":"increaseStep",
+	    "click":"increaseStep"
   },
   render: function() {
     this.template = _.template($("#frequencyTemplate").html(), this.model);

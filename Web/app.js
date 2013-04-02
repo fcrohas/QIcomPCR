@@ -9,8 +9,8 @@ var express = require('express')
   , http = require('http')
   , path = require('path')
   , io = require('socket.io')
-  , net = require('net')
-  , ffmpeg = require('fluent-ffmpeg');
+  , net = require('net');
+  //, ffmpeg = require('fluent-ffmpeg');
 
 var app = express();
 
@@ -37,7 +37,7 @@ app.get('/users', user.list);
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
-
+/*
 var proc = new ffmpeg({ source: rootfile, priority: 10 })
 .toFormat('ogg')
 //.withVideoBitrate('1500k')
@@ -51,7 +51,7 @@ var proc = new ffmpeg({ source: rootfile, priority: 10 })
     console.log(stdout);
     console.log(stderr);
     callback();
-});
+});*/
 
 var socket = io.listen(server); 
 

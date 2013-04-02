@@ -7,7 +7,7 @@ var RemoteControl = Backbone.Model.extend({
       power   : false,
       frequency: 106500000,
       ifshift  : 128,
-      modulation: "FM",
+      modulation: "FM"
     },
     initialize: function() { 
   
