@@ -142,7 +142,7 @@ uint CMorse::getChannel()
 uint CMorse::getBufferSize()
 {
     // Buffer size
-    return 16384;
+    return 1024;
 }
 
 void CMorse::slotFrequency(double value)

@@ -27,12 +27,15 @@ CPortAudio::CPortAudio(QObject *parent) :
 CPortAudio::~CPortAudio()
 {
     int error;
-    error = Pa_StopStream(stream);
-    if( error != paNoError )
-       qDebug() <<   QString("PortAudio Pa_StopStream error: %1\n").arg(Pa_GetErrorText( error ) );
-    error = Pa_Terminate();
-    if( error != paNoError )
-       qDebug() <<   QString("PortAudio Pa_Terminate error: %1\n").arg(Pa_GetErrorText( error ) );
+    if (stream != NULL)
+    {
+        error = Pa_StopStream(stream);
+        if( error != paNoError )
+           qDebug() <<   QString("PortAudio Pa_StopStream error: %1\n").arg(Pa_GetErrorText( error ) );
+        error = Pa_Terminate();
+        if( error != paNoError )
+           qDebug() <<   QString("PortAudio Pa_Terminate error: %1\n").arg(Pa_GetErrorText( error ) );
+    }
 }
 
 void CPortAudio::run()
@@ -114,4 +117,9 @@ void CPortAudio::selectInputDevice(QString device)
 void CPortAudio::selectOutputDevice(QString device)
 {
     outputParameters.device = deviceList.value(device);
+}
+
+bool CPortAudio::Load(QString &fileName)
+{
+    return false;
 }

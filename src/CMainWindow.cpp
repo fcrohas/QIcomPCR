@@ -178,6 +178,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
         connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
     }
 
+    // Connect load file
+    connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
 }
 
 CMainWindow::~CMainWindow()
@@ -502,7 +504,7 @@ void CMainWindow::slotSwitchSound(bool value)
 {
     demodulator->initBuffer(32768);
 #ifndef WIN32
-    if (value) {
+    if (value == true) {
         sound->start();
     }
     else {
@@ -577,4 +579,22 @@ void CMainWindow::slotInputDevice()
 void CMainWindow::slotOutputDevice()
 {
     sound->selectOutputDevice(QObject::sender()->objectName());
+}
+
+void CMainWindow::slotLoadFile()
+{
+    // File dialog chooser
+    QString fileName = QFileDialog::getOpenFileName(this,
+         tr("Open Sound"), QDir::homePath(), tr("Sound Files (*.wav *.flac *.au *.voc *.ogg)"));
+    // Close sound card reader
+    sound->terminate();
+    delete sound;
+#ifdef WITH_SNDFILE
+    // Create new sound reader from file
+    sound = new CSoundFile(this);
+    sound->Load(fileName);
+    sound->SetDemodulator(demodulator);
+    sound->setRunning(true);
+#endif
+    slotSwitchSound(true);
 }

@@ -5,6 +5,7 @@ option(WITH_ACARS "Build with licensed ACARS Library" ON)
 option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
 option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
 option(WITH_PORTAUDIO "Build with PortAudio support" ON)
+option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -42,6 +43,13 @@ endif(WITH_ACARS)
 if(WITH_FFTW)
      add_definitions(-DFFTW)
 endif(WITH_FFTW)
+
+if(WITH_SNDFILE)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CSoundFile.cpp)
+    add_definitions(-DWITH_SNDFILE)
+endif(WITH_SNDFILE)
+
+
 
 set(qicompcr_SRCS
     main.cpp
@@ -82,6 +90,10 @@ endif(WITH_PULSEAUDIO)
 if(WITH_ACARS)
     set(qicompcr_HDRS ${qicompcr_HDRS} CAcars.h)
 endif(WITH_ACARS)
+
+if(WITH_SNDFILE)
+    set(qicompcr_HDRS ${qicompcr_HDRS} CSoundFile.h)
+endif(WITH_SNDFILE)
 
 
 set(qicompcr_HDRS
@@ -255,10 +267,12 @@ if(WITH_PORTAUDIO)
     set(3RDPARTY ${3RDPARTY} portaudio)
 endif(WITH_PORTAUDIO)
 
+if(WITH_SNDFILE)
+    set(3RDPARTY ${3RDPARTY} sndfile)
+endif(WITH_SNDFILE)
+
 target_link_libraries(
       ${PROGNAME}
-      ${GDAL_LIBRARIES}
-      ${PROJ_LIBRARIES}
       ${QT_LIBRARIES}
       ${QT_QTNETWORK_LIBRARIES}
       ${QT_QTXML_LIBRARIES}
