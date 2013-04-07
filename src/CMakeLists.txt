@@ -186,6 +186,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/getopt
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc/generic
+  ${CMAKE_SOURCE_DIR}/3rdparty/dspfilters
   ${CMAKE_SOURCE_DIR}/3rdparty
   ${PROJ_INCLUDE_DIRS}
 )
@@ -236,7 +237,7 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE )
 endif(MSVC)
 
-set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc)
+set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc DspFilters)
 
 if(WITH_PULSEAUDIO)
     set(3RDPARTY ${3RDPARTY} pulse-simple pulse)

@@ -65,6 +65,7 @@ add_subdirectory(3rdparty/qwt)
 add_subdirectory(3rdparty/spuc)
 add_subdirectory(3rdparty/SerialPort)
 add_subdirectory(3rdparty/getopt)
+add_subdirectory(3rdparty/dspfilters)
 add_subdirectory(src)
 
 if (UNIX AND NOT WIN32 AND NOT APPLE)

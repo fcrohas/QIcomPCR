@@ -542,8 +542,8 @@ void CMainWindow::slotDecoderChange(int value)
     demodulator->slotSetDemodulator(value,channel,16384);
     // Connect Demodulator to debug windows
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
-    connect(mySpectrum, SIGNAL(frequency(int)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(int)));
-    myDecoder->setAxis(0,256,-10000,10000);
+    connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    myDecoder->setAxis(0,256,0.0,5.0);
 }
 
 void CMainWindow::slotChannelChange(int value)

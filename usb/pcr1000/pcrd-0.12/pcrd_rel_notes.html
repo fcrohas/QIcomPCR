@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Author" CONTENT="Carl D. Walker">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.07 [en] (X11; I; Linux 2.0.36 i586) [Netscape]">
+</HEAD>
+<BODY>
+
+<CENTER><B><FONT SIZE=+2>'pcrd' Revision and Release Data:</FONT></B></CENTER>
+
+<P><BR>
+<P>Updated to 0.12 by Steven Haigh
+<BR>http://www.crc.id.au/pcrd
+<BR>Changed some of the file around to compile with newer GCC versions.
+<BR>Should now compile on most modern linux distros.
+</P>
+</P>
+
+<P><BR>
+<P>RCS file: RCS/pcrd.c,v
+<BR>Working file: pcrd.c
+<BR>head: 1.15
+<BR>branch:
+<BR>locks: strict
+<BR>access list:
+<BR>symbolic names:
+<BR>keyword substitution: kv
+<BR>total revisions: 15;&nbsp;&nbsp;&nbsp; selected revisions: 15
+<BR>description:
+<BR>Initial version of pcrd, the PCR1000 control daemon / command line
+interface.
+<BR>----------------------------
+<BR>revision 1.15
+<BR>date: 1999/06/29 23:04:45;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +5 -5
+<BR>Added a usleep(50000) to the wait loop for the socket communications.
+<BR>This will keep the radio command buffer from filling up and taking
+<BR>a long time to reply to commands from the remote system. This should
+<BR>fix the latency problems that people were having when trying to
+<BR>write GUI interfaces to this program. It was dawg slow when the
+<BR>radio buffer had filled up.
+<BR>----------------------------
+<BR>revision 1.14
+<BR>date: 1999/03/15 21:52:57;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +157 -38
+<BR>Updated and changed the socket reporting for freq. offset, squelch
+<BR>state, signal, mode, and filter. This is more than likely the
+<BR>last major (or minor) update to pcrd. I will be changing the
+<BR>overall form of the program from a C based, single radio type
+<BR>program, to a C++ based, write a radio class and drop it in
+<BR>type of program, that will have support for the PCR-1000
+<BR>and the Kenwood TS-440 to start with (as these are the only
+<BR>two radios that I own that have serial port control).
+<P>Stay tuned.
+<BR>----------------------------
+<BR>revision 1.13
+<BR>date: 1999/01/31 21:03:21;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +28 -24
+<BR>Filter data if the reply packet to a query is 'bad'.
+<BR>Indicate uptime of the daemon.
+<BR>More minor cleanup.
+<BR>----------------------------
+<BR>revision 1.12
+<BR>date: 1999/01/29 01:39:40;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +94 -46
+<BR>Added a timeout so that the daemon will exit if communications
+<BR>are lost with the target radio.
+<P>Added some other minor refinements. Version to 0.07
+<P>This code seems stable and has had uptimes in excess of two days
+<BR>with the last revision. Now it will be time to add more features
+<BR>and muck things up a bit. :-)
+<BR>----------------------------
+<BR>revision 1.11
+<BR>date: 1999/01/27 02:00:24;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +34 -11
+<BR>Added reporting of remote connected host on the socket.
+<BR>----------------------------
+<BR>revision 1.10
+<BR>date: 1999/01/26 02:28:14;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +4 -3
+<BR>Don't do socket setup unless we are in
+<BR>daemon mode.
+<BR>----------------------------
+<BR>revision 1.9
+<BR>date: 1999/01/24 20:52:32;&nbsp; author: cwalker;&nbsp; state: Exp;&nbsp;
+lines: +47 -22
+<BR>Changed reporting so that f_offset will not be shown unless
+<BR>in nfm mode. Other minor code cleanup. Version to 0.05.
+<BR>----------------------------
+<BR>revision 1.8
+<BR>date: 1999/01/23 15:34:05;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +70 -7
+<BR>Fixed the problem where the newly connected socket from the remote
+system
+<BR>was not set to non blocking. Now it is, and the radio gets commands
+sent
+<BR>to it during the time that pcrd is waiting for a new command from the
+<BR>remote system. Cleaned up a spelling error or two.
+<BR>----------------------------
+<BR>revision 1.7
+<BR>date: 1999/01/23 02:27:49;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +378 -171
+<BR>Added uptime counter, displayed when connected to pcrd socket.
+<BR>Added polling of radio power status while waiting for a connected
+<BR>socket to deliver command data to pcrd. This allows infinite
+<BR>amounts of time to pass while typing in a command string into a
+<BR>telnet session without the radio timing itself out and turning
+<BR>off. There was no way to recover from this except to kill the
+<BR>daemon and restart it with the -i option. Silly me.
+<BR>----------------------------
+<BR>revision 1.6
+<BR>date: 1999/01/21 22:06:54;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +3 -0
+<BR>Fixed the bug that I added to socket command line parsing in the last
+clean up rev!
+<BR>----------------------------
+<BR>revision 1.5
+<BR>date: 1999/01/21 20:55:11;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +452 -444
+<BR>More cleanup, code style. Nothing major. This will be Release 0.03
+<BR>----------------------------
+<BR>revision 1.4
+<BR>date: 1999/01/20 23:51:41;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +159 -115
+<BR>Added PID reporting when the daemon mode starts. Added -X command to
+socket
+<BR>mode to make the daemon exit.
+<BR>----------------------------
+<BR>revision 1.3
+<BR>date: 1999/01/20 01:50:02;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +5 -1
+<BR>Fixed exiting on a signal, and reporting of child PID when entering
+daemon mode.
+<BR>----------------------------
+<BR>revision 1.2
+<BR>date: 1999/01/20 01:28:36;&nbsp; author: root;&nbsp; state: Exp;&nbsp;
+lines: +154 -57
+<BR>Added the daemon support, and signal support. Getting closer to initial
+release.
+<BR>----------------------------
+<BR>revision 1.1
+<BR>date: 1999/01/19 23:34:34;&nbsp; author: root;&nbsp; state: Exp;
+<BR>Initial revision
+<BR>=============================================================================
+<BR>&nbsp;
+</BODY>
+</HTML>

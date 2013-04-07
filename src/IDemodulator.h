@@ -20,7 +20,7 @@ signals:
     void sendData(QString data);
     
 public slots:
-    void slotFrequency(int value);
+    void slotFrequency(double value);
 };
 
 #endif // IDEMODULATOR_H

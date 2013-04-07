@@ -2,14 +2,90 @@
 #define CMORSE_H
 
 #include <QObject>
+#include <QHash>
 #include <IDemodulator.h>
 #include <math.h>
-#include "functions/window.h"
+#include "dspfilters/Dsp.h"
 
 // x is sample index and f frequency
 #define SAMPLERATE 22050
-#define FREQ_SPACE 10000
-#define FREQ_MARK  1000
+#define FREQ_SPACE 2500
+#define FREQ_MARK  500
+
+struct CW_TABLE {
+        char chr;       /* The character(s) represented */
+        const char *prt;        /* The printable representation of the character */
+        const char *rpr;        /* Dot-dash shape of the character */
+};
+
+
+static CW_TABLE cw_table[] = {
+        /* Prosigns */
+        {'=',   "<BT>",   "-...-"       }, // 0
+        {'~',   "<AA>",   ".-.-"        }, // 1
+        {'<',   "<AS>",   ".-..."       }, // 2
+        {'>',   "<AR>",   ".-.-."       }, // 3
+        {'%',   "<SK>",   "...-.-"      }, // 4
+        {'+',   "<KN>",   "-.--."       }, // 5
+        {'&',   "<INT>",  "..-.-"       }, // 6
+        {'{',   "<HM>",   "....--"      }, // 7
+        {'}',   "<VE>",   "...-."       }, // 8
+        /* ASCII 7bit letters */
+        {'A',   "A",    ".-"    },
+        {'B',   "B",    "-..."  },
+        {'C',   "C",    "-.-."  },
+        {'D',   "D",    "-.."   },
+        {'E',   "E",    "."             },
+        {'F',   "F",    "..-."  },
+        {'G',   "G",    "--."   },
+        {'H',   "H",    "...."  },
+        {'I',   "I",    ".."    },
+        {'J',   "J",    ".---"  },
+        {'K',   "K",    "-.-"   },
+        {'L',   "L",    ".-.."  },
+        {'M',   "M",    "--"    },
+        {'N',   "N",    "-."    },
+        {'O',   "O",    "---"   },
+        {'P',   "P",    ".--."  },
+        {'Q',   "Q",    "--.-"  },
+        {'R',   "R",    ".-."   },
+        {'S',   "S",    "..."   },
+        {'T',   "T",    "-"             },
+        {'U',   "U",    "..-"   },
+        {'V',   "V",    "...-"  },
+        {'W',   "W",    ".--"   },
+        {'X',   "X",    "-..-"  },
+        {'Y',   "Y",    "-.--"  },
+        {'Z',   "Z",    "--.."  },
+        /* Numerals */
+        {'0',   "0",    "-----" },
+        {'1',   "1",    ".----" },
+        {'2',   "2",    "..---" },
+        {'3',   "3",    "...--" },
+        {'4',   "4",    "....-" },
+        {'5',   "5",    "....." },
+        {'6',   "6",    "-...." },
+        {'7',   "7",    "--..." },
+        {'8',   "8",    "---.." },
+        {'9',   "9",    "----." },
+        /* Punctuation */
+        {'\\',  "\\",   ".-..-."        },
+        {'\'',  "'",    ".----."        },
+        {'$',   "$",    "...-..-"       },
+        {'(',   "(",    "-.--."         },
+        {')',   ")",    "-.--.-"        },
+        {',',   ",",    "--..--"        },
+        {'-',   "-",    "-....-"        },
+        {'.',   ".",    ".-.-.-"        },
+        {'/',   "/",    "-..-."         },
+        {':',   ":",    "---..."        },
+        {';',   ";",    "-.-.-."        },
+        {'?',   "?",    "..--.."        },
+        {'_',   "_",    "..--.-"        },
+        {'@',   "@",    ".--.-."        },
+        {'!',   "!",    "-.-.--"        },
+        {0, NULL, NULL}
+};
 
 
 class CMorse : public IDemodulator
@@ -25,20 +101,39 @@ public:
 signals:
     void dumpData(double*,double*,int);
 public slots:
-    void slotFrequency(int value);
+    void slotFrequency(double value);
 
 private:
-    double *space_i;
-    double *space_q;
+    float goertzel(int16_t *x, int N, double frequency, int samplerate);
+    // Decoding timing buffer
+    double *mark;
+    double *space;
+    // Correlation data
     double *mark_i;
     double *mark_q;
-    double *window;
+    // scope and signal data
     double *xval;
     double *yval;
+    // Correlation result
     double *corr;
+    // Correlation length
     int correlationLength;
+    //Channel select
     uint channel;
-    int frequency;
+    //Current frequency selected
+    double frequency;
+    // Filters
+    Dsp::Filter *fmorse;
+    // Audio channel buffer
+    double* audioData[1];
+    // Hash table for morse code
+    QHash<QString,int> code;
+    // Translate result
+    void translate(int position, int position2);
+    // Emit Letter or Word
+    void CheckLetterOrWord(int position, int position2);
+    // Symbol array
+    QString symbols;
 };
 
 #endif // CMORSE_H

@@ -42,11 +42,12 @@ void CSpectrumWidget::setupUi(QWidget *widget)
     hboxLayout->addWidget(qwtPlot);
     qwtPlot->setMouseTracking(true);
     qwtPlot->canvas()->setMouseTracking(true);
-    picker = new MyPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPicker::RectRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
-    picker->setStateMachine(new QwtPickerDragRectMachine());
+    picker = new MyPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPicker::CrossRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+    picker->setStateMachine(new QwtPickerClickPointMachine());
+    picker->setRubberBand(QwtPicker::CrossRubberBand);
     picker->setRubberBandPen(QPen(QColor(Qt::red)));
     picker->setTrackerPen(QColor(Qt::black));
-    connect(picker, SIGNAL(appended(QPoint)), this, SLOT(slotClicked(QPoint)));
+    connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
 
     //QMetaObject::connectSlotsByName(widget);
 }
@@ -59,7 +60,7 @@ void CSpectrumWidget::setAxis(int x1, int x2, int y1, int y2)
     qwtPlot->setAxisScale(QwtPlot::yLeft,y1,y2);
 }
 
-void CSpectrumWidget::slotClicked(QPoint point)
+void CSpectrumWidget::slotClicked(QPointF point)
 {
     qDebug() << "point=" << point;
     emit frequency(point.x());
