@@ -39,3 +39,8 @@ void ISound::selectOutputDevice(QString device)
 {
 
 }
+
+bool ISound::Load(QString &file)
+{
+    return false;
+}

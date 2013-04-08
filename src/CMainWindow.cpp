@@ -151,7 +151,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
     connect(remote,SIGNAL(sigInitialize()), this, SLOT(powerOn()));
     mySpectrum->setAxis(0,16384,0,256);
-#ifndef WIN32
+
     // Build menu settings
     // Add input list device
     QMenu *input = ui->menu_Settings->addMenu(tr("input"));
@@ -177,7 +177,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
         output->addAction(action);
         connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
     }
-#endif
+
+    // Connect load file
+    connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
+    connect(ui->pushStopPlay, SIGNAL(clicked()), this, SLOT(slotStopPlay()));
 }
 
 CMainWindow::~CMainWindow()
@@ -502,7 +505,7 @@ void CMainWindow::slotSwitchSound(bool value)
 {
     demodulator->initBuffer(32768);
 #ifndef WIN32
-    if (value) {
+    if (value == true) {
         sound->start();
     }
     else {
@@ -542,8 +545,8 @@ void CMainWindow::slotDecoderChange(int value)
     demodulator->slotSetDemodulator(value,channel,16384);
     // Connect Demodulator to debug windows
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
-    connect(mySpectrum, SIGNAL(frequency(int)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(int)));
-    myDecoder->setAxis(0,256,-10000,10000);
+    connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    myDecoder->setAxis(0,256,0.0,5.0);
 }
 
 void CMainWindow::slotChannelChange(int value)
@@ -571,14 +574,43 @@ void CMainWindow::slotRemoteData(QString &data)
 
 void CMainWindow::slotInputDevice()
 {
-#ifndef WIN32
     sound->selectInputDevice(QObject::sender()->objectName());
-#endif
 }
 
 void CMainWindow::slotOutputDevice()
 {
-#ifndef WIN32
     sound->selectOutputDevice(QObject::sender()->objectName());
+}
+
+void CMainWindow::slotLoadFile()
+{
+    // File dialog chooser
+    QString fileName = QFileDialog::getOpenFileName(this,
+         tr("Open Sound"), QDir::homePath(), tr("Sound Files (*.wav *.flac *.au *.voc *.ogg)"));
+    // Close sound card reader
+    sound->terminate();
+    delete sound;
+#ifdef WITH_SNDFILE
+    // Create new sound reader from file
+    sound = new CSoundFile(this);
+    sound->Load(fileName);
+    sound->SetDemodulator(demodulator);
+    sound->setRunning(true);
 #endif
+    slotSwitchSound(true);
+}
+
+void CMainWindow::slotStopPlay()
+{
+    sound->setRunning(false);
+    sleep(5);
+    sound->terminate();
+    delete sound;
+#ifdef WITH_PULSEAUDIO
+    sound  = new CPulseSound(this);
+#endif
+#ifdef WITH_PORTAUDIO
+    sound  = new CPortAudio(this);
+#endif
+    sound->SetDemodulator(demodulator);
 }

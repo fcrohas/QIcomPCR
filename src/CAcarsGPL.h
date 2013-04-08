@@ -28,7 +28,7 @@ public:
 signals:
     
 public slots:
-    void slotFrequency(int value);
+    void slotFrequency(double value);
 
 private:
     uint channel;

@@ -118,11 +118,11 @@ public:
     explicit CSpectrumWidget(QWidget *parent = 0);
     void setAxis(int x1, int x2, int y1, int y2);
 signals:
-    void frequency(int value);
+    void frequency(double value);
     
 public slots:
     void slotRawSamples(double *xval, double *yval,int size);
-    void slotClicked(QPoint point);
+    void slotClicked(QPointF point);
 private:
     void setupUi(QWidget *widget);
     QwtPlotCurve *spectro;

@@ -46,6 +46,7 @@ template <class Numeric> class iir_lpf
         	previous_in = previous_out = out = 0 ; }
 		void set_coeff(double A) { gain=A;}
 		//! Constructor reading coefficient from a file.
+        /*
 		iir_lpf(const char* file)
 		  {
 			FILE *iirf = fopen(file,"r"); 
@@ -55,9 +56,9 @@ template <class Numeric> class iir_lpf
 		  }             
 		//! Print out coefficients
 		void print() {
-			cout << "IIR B0 = " << a << ", ";
-			cout << "A0 = " << gain << "\n";
-		}
+            cout << "IIR B0 = " << a << ", ";
+            cout << "A0 = " << gain << "\n";
+        }*/
 		//! Input new sample and calculate output
 		Numeric clock(Numeric input) {
 		  // Shift previous outputs and calculate new output */

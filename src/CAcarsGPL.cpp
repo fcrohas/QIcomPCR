@@ -405,7 +405,7 @@ uint CAcarsGPL::getBufferSize()
 {
     return 16384;
 }
-void CAcarsGPL::slotFrequency(int value)
+void CAcarsGPL::slotFrequency(double value)
 {
 
 }

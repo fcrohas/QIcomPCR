@@ -20,7 +20,7 @@ public:
     virtual QHash<QString,int> getDeviceList();
     virtual void selectInputDevice(QString device);
     virtual void selectOutputDevice(QString device);
-
+    virtual bool Load(QString &file);
 
 signals:
     

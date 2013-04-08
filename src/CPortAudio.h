@@ -28,6 +28,7 @@ class CPortAudio : public ISound
 public:
     explicit CPortAudio(QObject *parent = 0);
     ~CPortAudio();
+    bool Load(QString &fileName);
     void setRunning(bool value) override;
     void DecodeBuffer(int16_t *buffer, int size);
     QHash<QString, int> getDeviceList();
@@ -44,7 +45,7 @@ private:
     void terminate();
     PaStreamParameters inputParameters;
     PaStreamParameters outputParameters;
-    PaStream *stream;
+    PaStream *stream = NULL;
     void *data;
     QHash<QString,int> deviceList;
     void selectInputDevice(QString device);

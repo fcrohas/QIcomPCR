@@ -23,12 +23,20 @@ CDemodulator::~CDemodulator()
 {
     //delete demodulator;
     delete fftw;
-    delete data8bitsl;
-    delete data16bitsl;
-    delete data8bitsr;
-    delete data16bitsr;
-    delete xval;
-    delete yval;
+    /*
+    if (data8bitsl)
+        delete data8bitsl;
+    if (data16bitsl)
+        delete data16bitsl;
+    if (data8bitsr)
+        delete data8bitsr;
+    if (data16bitsr)
+        delete data16bitsr;
+    if (xval)
+        delete xval;
+    if (yval)
+        delete yval;
+    */
 }
 
 void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
@@ -49,6 +57,7 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
     // Loop on each demodulator
     for (int i=1; i<list.count(); i++) {
         demodulator = (IDemodulator*)list.at(i);
+        if (!demodulator) return;
         channel    = demodulator->getChannel();
         bufferSize = demodulator->getBufferSize();
 

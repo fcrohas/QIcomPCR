@@ -35,6 +35,9 @@
 #ifdef WITH_PORTAUDIO
 #include "CPortAudio.h"
 #endif
+#ifdef WITH_SNDFILE
+#include "CSoundFile.h"
+#endif
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
 #include "CDemodulator.h"
@@ -103,6 +106,10 @@ class CMainWindow : public QMainWindow
         void slotInputDevice();
         // Output Device selection
         void slotOutputDevice();
+        // Load sound file
+        void slotLoadFile();
+        // Stop sound playing
+        void slotStopPlay();
 
     private:
         Ui::MainWindow *ui;

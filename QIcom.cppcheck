@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <root name="/home/fcr/projects/QIcomPCR"/>
+    <exclude>
+        <path name="/home/fcr/projects/QIcomPCR/3rdparty/"/>
+    </exclude>
+</project>
