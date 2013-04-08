@@ -15,6 +15,7 @@ public:
     bool Read(int16_t *data, int offset);
     void setRunning(bool value) override;
     void DecodeBuffer(int16_t *buffer, int size);
+    void Record(QString &filename, bool start);
 
 private:
     SNDFILE*	pFile;

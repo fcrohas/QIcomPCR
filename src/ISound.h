@@ -21,6 +21,7 @@ public:
     virtual void selectInputDevice(QString device);
     virtual void selectOutputDevice(QString device);
     virtual bool Load(QString &file);
+    virtual void Record(QString &filename, bool start);
 
 signals:
     

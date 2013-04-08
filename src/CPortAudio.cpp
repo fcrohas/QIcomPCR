@@ -38,6 +38,11 @@ CPortAudio::~CPortAudio()
     }
 }
 
+void CPortAudio::Record(QString &filename, bool start)
+{
+
+}
+
 void CPortAudio::run()
 {
     int error;

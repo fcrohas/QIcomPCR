@@ -32,6 +32,7 @@ public:
     void setRunning(bool value) override;
     void DecodeBuffer(int16_t *buffer, int size);
     QHash<QString, int> getDeviceList();
+    void Record(QString &filename, bool start);
 
 signals:
     

@@ -3,7 +3,7 @@
 
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
-  ,frequency(6000)
+  ,frequency(2831) // Just for Hello sample
   ,acclow(0)
   ,accup(0)
 {
@@ -18,7 +18,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     audioData[0] = new double[getBufferSize()];
 
     // Calculate correlation length
-    correlationLength = SAMPLERATE/frequency; // Default creation is 6Khz
+    correlationLength = SAMPLERATE/1200; // Default creation is 6Khz
 
     double freq = 0.0;
     // Generate Correlation for this frequency
@@ -30,7 +30,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
 
     //Init hash table with morse code
     for (int i=0; i < sizeof(cw_table)/sizeof(CW_TABLE)-1; i++) {
-        qDebug() << "init hash table with " << QString(cw_table[i].chr) << " symbol " << QString(cw_table[i].rpr);
+        //qDebug() << "init hash table with " << QString(cw_table[i].chr) << " symbol " << QString(cw_table[i].rpr);
         code.insert(QString(cw_table[i].rpr),cw_table[i].chr);
     }
     // Save local selected channel
@@ -80,7 +80,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     }
     // Now calculation of timing
     double agc = peak / 2.0; // average value per buffer size
-    if (agc<0.25) agc=0.25; // minimum detection signal is 0.5
+    if (agc<1.00) agc=1.0; // minimum detection signal is 1.0
     int marks = 0; // Count edge
     int spaces = 0; // count space
     // Detect High <-> low state and timing
@@ -115,6 +115,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                     mark[marks] = time;
                     // try to calculate new symbol only using high state
                     translate(marks,spaces); // Try to determine symbol of this position
+                    //qDebug() << "symbols = " << symbols;
                     marks++;
                     acclow++;
                 } else  { accup=0; acclow++; }
@@ -196,6 +197,7 @@ void CMorse::translate(int position, int position2)
         // Compute ratio between
         // high state timing
         double ratio = mark[position] / mark[position-1];
+        //qDebug() << "ratio " << ratio;
         if (ratio>2.5) // the two last symbol sequence are -.
         {
             // if already a symbol is here and is a jocker
@@ -230,8 +232,9 @@ void CMorse::translate(int position, int position2)
                 // use space / mark ratio to know if it is a dash or a point
                 double symRatio = 0.0;
                 if (position2>0) {
-                    symRatio = space[position2]/mark[position];
-                    if (symRatio < 0.85)
+                    symRatio = mark[position]/space[position2-1]; // we are in mark so space can only be before
+                    //qDebug() << "case mark " << mark[position] << " space " << space[position2-1] <<  " symratio " << symRatio;
+                    if (symRatio > 2.5)
                         symbols += QChar('-');
                     else
                         symbols += QChar('.');
@@ -253,8 +256,9 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         double ratio = space[position] / space[position-1];
         if (position2>0)
             ratiosym = space[position] / mark[position2-1];
-        emit sendData(QString("symbols %2").arg(symbols));
-        if ((ratio > 2.5) || (ratiosym > 2.5) || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.5) && (ratiosym>0.85)))) // a space between letter is detected
+        //emit sendData(QString("symbols %2").arg(symbols));
+        //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym;
+        if ((ratio > 2.5)  || (ratiosym > 2.5)) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
         {
             if (code.contains(symbols))
                 emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));

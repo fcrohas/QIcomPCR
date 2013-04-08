@@ -44,3 +44,8 @@ bool ISound::Load(QString &file)
 {
     return false;
 }
+
+void ISound::Record(QString &filename, bool start)
+{
+
+}

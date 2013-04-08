@@ -41,7 +41,7 @@ bool CSoundFile::Load(QString &fileName)
 
         // Init buffer size to read
         inputbuffer = new int16_t[frames];
-
+        memset(inputbuffer,0,BUFFER_SIZE);
         loaded=true;
     } else
             loaded = false;
@@ -52,19 +52,14 @@ bool CSoundFile::Load(QString &fileName)
 bool CSoundFile::Read(int16_t *data, int offset)
 {
     sf_count_t c;
-    if (blankCount == 0)
-        c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
-    if (loop) {
+    c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
+    if (c!=BUFFER_SIZE) {
         /* rewind */
         sf_seek(pFile, 0, SEEK_SET);
         // At end of file send an empty buffer before next
         c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
-        //memset(inputbuffer,0,BUFFER_SIZE);
-        blankCount++;
-        if (blankCount == 16) {
-            blankCount = 0;
-            loop = false;
-        }
+        // End of read
+        loop = true;
     }
     size_t oversample_factor = SAMPLERATE / samplerate;
     for (size_t i = 0; i < (BUFFER_SIZE)/oversample_factor; i++)
@@ -79,11 +74,7 @@ bool CSoundFile::Read(int16_t *data, int offset)
         }
     }
     this->DecodeBuffer(data,BUFFER_SIZE);
-#ifdef WIN32
-    msleep(50);
-#else
-    msleep(100); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
-#endif
+    msleep(50); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
     return true;
 }
 
@@ -101,15 +92,29 @@ void CSoundFile::run()
 {
     // Allocate data file for decoder
     int16_t *data = new int16_t[BUFFER_SIZE];
+    blankCount = 0;
     while(running) {
         // Split reading into chunk of buffer size
         // to simulate sound card reading
         // and better
-        for(int i=0; i< frames; i+=BUFFER_SIZE)
-        {
-            Read(data,i);
+        int i=0;
+        // Read all buffer
+        Read(data,i);
+
+        // If reach end of buffer, do some blank before next loop
+        while (loop) {
+            memset(inputbuffer,0,BUFFER_SIZE);
+            blankCount++;
+            if (blankCount ==16) {
+                loop=false;
+                blankCount = 0;
+            }
+            this->DecodeBuffer(data,BUFFER_SIZE);
+            msleep(50);
+
         }
-        loop=true;
+
+        //running=false;
     }
 }
 
@@ -120,5 +125,10 @@ void CSoundFile::terminate()
         return;
     sf_close(pFile);
     pFile = NULL;
+
+}
+
+void CSoundFile::Record(QString &filename, bool start)
+{
 
 }
