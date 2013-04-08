@@ -180,6 +180,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
+    connect(ui->pushStopPlay, SIGNAL(clicked()), this, SLOT(slotStopPlay()));
 }
 
 CMainWindow::~CMainWindow()
@@ -597,4 +598,19 @@ void CMainWindow::slotLoadFile()
     sound->setRunning(true);
 #endif
     slotSwitchSound(true);
+}
+
+void CMainWindow::slotStopPlay()
+{
+    sound->setRunning(false);
+    sleep(5);
+    sound->terminate();
+    delete sound;
+#ifdef WITH_PULSEAUDIO
+    sound  = new CPulseSound(this);
+#endif
+#ifdef WITH_PORTAUDIO
+    sound  = new CPortAudio(this);
+#endif
+    sound->SetDemodulator(demodulator);
 }

@@ -108,6 +108,8 @@ class CMainWindow : public QMainWindow
         void slotOutputDevice();
         // Load sound file
         void slotLoadFile();
+        // Stop sound playing
+        void slotStopPlay();
 
     private:
         Ui::MainWindow *ui;

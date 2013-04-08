@@ -77,7 +77,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
     // Now calculation of timing
-    double agc = peak / 2; // average value per buffer size
+    double agc = peak / 2.0; // average value per buffer size
     if (agc<0.25) agc=0.25; // minimum detection signal is 0.5
     int accup = 0; // accumulator sample high state
     int acclow = 0; // accumulator sample low state
@@ -90,8 +90,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             // Start to coutn time in sample
             if (acclow > 0) {
                 double time = acclow * 1000.0 /22050.0;
-                if (time > 10) {// only accept if impulse is > 5ms
-                    //emit sendData(QString("low state for %1 ms").arg(time)); // print in millisecond result
+                if (time > 2) {// only accept if impulse is > 5ms
+                    emit sendData(QString("space state for %1 ms").arg(time)); // print in millisecond result
                     acclow = 0;
                     space[spaces] = time;
                     // try to calculate new symbol
@@ -108,8 +108,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             // How much milliseconds ?
             if (accup >0 ) {
                 double time = accup * 1000.0 /22050.0;
-                if (time > 10) {// only accept if impulse is > 5ms
-                    //emit sendData(QString("high state for %1 ms").arg(time)); // print in millisecond result
+                if (time > 2) {// only accept if impulse is > 5ms
+                    emit sendData(QString("mark state for %1 ms").arg(time)); // print in millisecond result
                     // reset acc
                     accup = 0;
                     mark[marks] = time;
@@ -142,7 +142,7 @@ uint CMorse::getChannel()
 uint CMorse::getBufferSize()
 {
     // Buffer size
-    return 1024;
+    return 16384;
 }
 
 void CMorse::slotFrequency(double value)
@@ -196,19 +196,7 @@ void CMorse::translate(int position, int position2)
         // Compute ratio between
         // high state timing
         double ratio = mark[position] / mark[position-1];
-        if (ratio>1.2) // the two last symbol sequence are -.
-        {
-            // if already a symbol is here and is a jocker
-            if ((symbols.length()>0) && (symbols.at(symbols.length()-1)) == QChar('*'))
-            {
-                // replace it
-                symbols[symbols.length()-1] = QChar('-');
-                symbols += QChar('.');
-            }
-            else
-                symbols += QChar('.');
-        }
-        else if (ratio < 0.12) // the two last symbol sequence are .-
+        if (ratio>2.5) // the two last symbol sequence are -.
         {
             // if already a symbol is here and is a jocker
             if ((symbols.length()>0) && (symbols.at(symbols.length()-1)) == QChar('*'))
@@ -219,7 +207,21 @@ void CMorse::translate(int position, int position2)
             }
             else
                 symbols += QChar('-');
-        } else // no one match then symbol is same as previous
+        }
+        else if ((ratio > 0.25) && (ratio < 0.85)) // the two last symbol sequence are .-
+        {
+            // if already a symbol is here and is a jocker
+            if ((symbols.length()>0) && (symbols.at(symbols.length()-1)) == QChar('*'))
+            {
+                // replace it
+                symbols[symbols.length()-1] = QChar('-');
+                symbols += QChar('.');
+            }
+            else {
+                symbols += QChar('.');
+            }
+        }
+        else // no one match then symbol is same as previous
         {
             if (symbols.length()>0) // same as previous symbol
                 symbols += QChar(symbols.at(symbols.length()-1));
@@ -239,7 +241,7 @@ void CMorse::translate(int position, int position2)
             }
         }
 
-    } else symbols += QChar('*');
+    } else symbols += QChar('.');
 }
 
 void CMorse::CheckLetterOrWord(int position, int position2)
@@ -247,8 +249,12 @@ void CMorse::CheckLetterOrWord(int position, int position2)
     if (position > 0) {
         // Compute ratio between
         // high state timing
+        double ratiosym  = 0.0;
         double ratio = space[position] / space[position-1];
-        if (ratio > 2.0) // a space between letter is detected
+        if (position2>0)
+            ratiosym = space[position] / mark[position2-1];
+        emit sendData(QString("symbols %2").arg(symbols));
+        if ((ratio > 2.5) || (ratiosym > 2.5) || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.5) && (ratiosym>0.85)))) // a space between letter is detected
         {
             if (code.contains(symbols))
                 emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
