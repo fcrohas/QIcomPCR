@@ -6,7 +6,8 @@ CSoundFile::CSoundFile(QObject *parent) :
     channels(0),
     frames(0),
     running(false),
-    loop(false)
+    loop(false),
+    blankCount(0)
 {
 }
 
@@ -50,12 +51,20 @@ bool CSoundFile::Load(QString &fileName)
 
 bool CSoundFile::Read(int16_t *data, int offset)
 {
-    sf_count_t c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
+    sf_count_t c;
+    if (blankCount == 0)
+        c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
     if (loop) {
         /* rewind */
         sf_seek(pFile, 0, SEEK_SET);
+        // At end of file send an empty buffer before next
         c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
-        loop = false;
+        //memset(inputbuffer,0,BUFFER_SIZE);
+        blankCount++;
+        if (blankCount == 16) {
+            blankCount = 0;
+            loop = false;
+        }
     }
     size_t oversample_factor = SAMPLERATE / samplerate;
     for (size_t i = 0; i < (BUFFER_SIZE)/oversample_factor; i++)
@@ -70,7 +79,11 @@ bool CSoundFile::Read(int16_t *data, int offset)
         }
     }
     this->DecodeBuffer(data,BUFFER_SIZE);
+#ifdef WIN32
+    msleep(50);
+#else
     msleep(100); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+#endif
     return true;
 }
 

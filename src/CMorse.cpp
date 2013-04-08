@@ -4,6 +4,8 @@
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
   ,frequency(6000)
+  ,acclow(0)
+  ,accup(0)
 {
     // On creation allocate all buffer at maximum decoder size
     mark_i = new double[getBufferSize()];
@@ -79,8 +81,6 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     // Now calculation of timing
     double agc = peak / 2.0; // average value per buffer size
     if (agc<0.25) agc=0.25; // minimum detection signal is 0.5
-    int accup = 0; // accumulator sample high state
-    int acclow = 0; // accumulator sample low state
     int marks = 0; // Count edge
     int spaces = 0; // count space
     // Detect High <-> low state and timing
@@ -91,7 +91,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             if (acclow > 0) {
                 double time = acclow * 1000.0 /22050.0;
                 if (time > 2) {// only accept if impulse is > 5ms
-                    emit sendData(QString("space state for %1 ms").arg(time)); // print in millisecond result
+                    //emit sendData(QString("space state for %1 ms").arg(time)); // print in millisecond result
                     acclow = 0;
                     space[spaces] = time;
                     // try to calculate new symbol
@@ -109,7 +109,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             if (accup >0 ) {
                 double time = accup * 1000.0 /22050.0;
                 if (time > 2) {// only accept if impulse is > 5ms
-                    emit sendData(QString("mark state for %1 ms").arg(time)); // print in millisecond result
+                    //emit sendData(QString("mark state for %1 ms").arg(time)); // print in millisecond result
                     // reset acc
                     accup = 0;
                     mark[marks] = time;
@@ -199,7 +199,7 @@ void CMorse::translate(int position, int position2)
         if (ratio>2.5) // the two last symbol sequence are -.
         {
             // if already a symbol is here and is a jocker
-            if ((symbols.length()>0) && (symbols.at(symbols.length()-1)) == QChar('*'))
+            if ((symbols.length()>0)) // && (symbols.at(symbols.length()-1)) == QChar('*'))
             {
                 // replace it
                 symbols[symbols.length()-1] = QChar('.');
@@ -211,7 +211,7 @@ void CMorse::translate(int position, int position2)
         else if ((ratio > 0.25) && (ratio < 0.85)) // the two last symbol sequence are .-
         {
             // if already a symbol is here and is a jocker
-            if ((symbols.length()>0) && (symbols.at(symbols.length()-1)) == QChar('*'))
+            if ((symbols.length()>0)) // && (symbols.at(symbols.length()-1)) == QChar('*'))
             {
                 // replace it
                 symbols[symbols.length()-1] = QChar('-');
@@ -231,7 +231,7 @@ void CMorse::translate(int position, int position2)
                 double symRatio = 0.0;
                 if (position2>0) {
                     symRatio = space[position2]/mark[position];
-                    if (symRatio < 0.0)
+                    if (symRatio < 0.85)
                         symbols += QChar('-');
                     else
                         symbols += QChar('.');

@@ -26,6 +26,7 @@ private:
     void terminate();
     bool running;
     bool loop;
+    int blankCount;
 
 };
 

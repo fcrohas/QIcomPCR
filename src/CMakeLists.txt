@@ -1,10 +1,10 @@
 project(qicompcr-binary)
 
 option(WITH_OPENGL "Build OPENGL" ON)
-option(WITH_ACARS "Build with licensed ACARS Library" ON)
+option(WITH_ACARS "Build with licensed ACARS Library" OFF)
 option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
 option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
-option(WITH_PORTAUDIO "Build with PortAudio support" ON)
+option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
 option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
 
 find_package(Qt4 REQUIRED)
@@ -200,7 +200,8 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc/generic
   ${CMAKE_SOURCE_DIR}/3rdparty/dspfilters
   ${CMAKE_SOURCE_DIR}/3rdparty
-  ${PROJ_INCLUDE_DIRS}
+  C:/Progra~2/Mega-Nerd/libsndfile/include
+  D:/usr/fcr/QIcomPCR/3rdparty/fftw3
 )
 
 set(qicompcr_ALLINP
@@ -260,7 +261,12 @@ if(WITH_ACARS)
 endif(WITH_ACARS)
 
 if(WITH_FFTW)
+if(UNIX)
     set(3RDPARTY ${3RDPARTY} fftw3)
+endif(UNIX)
+if(WIN32)
+    set(3RDPARTY ${3RDPARTY} D:/usr/fcr/QIcomPCR/3rdparty/fftw3/libfftw3-3.lib)
+endif(WIN32)
 endif(WITH_FFTW)
 
 if(WITH_PORTAUDIO)
@@ -268,7 +274,12 @@ if(WITH_PORTAUDIO)
 endif(WITH_PORTAUDIO)
 
 if(WITH_SNDFILE)
+if(UNIX)
     set(3RDPARTY ${3RDPARTY} sndfile)
+endif(UNIX)
+if(WIN32)
+    set(3RDPARTY ${3RDPARTY} C:/Progra~2/Mega-Nerd/libsndfile/lib/libsndfile-1.lib)
+endif(WIN32)
 endif(WITH_SNDFILE)
 
 target_link_libraries(

@@ -134,6 +134,10 @@ private:
     void CheckLetterOrWord(int position, int position2);
     // Symbol array
     QString symbols;
+    // Set accumulator to class
+    // So timing can continue on next buffer
+    int accup; // accumulator sample high state
+    int acclow; // accumulator sample low state
 };
 
 #endif // CMORSE_H

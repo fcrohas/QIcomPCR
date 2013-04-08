@@ -125,7 +125,7 @@ class CMainWindow : public QMainWindow
 
         //Widgets
         CLcdWidget *lcd;
-#ifndef WIN32
+#ifdef WITH_SNDFILE || WITH_PORTAUDIO || WITH_PULSEAUDIO
         ISound *sound;
 #endif
         CStatusWidget *status;
