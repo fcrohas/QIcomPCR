@@ -151,7 +151,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
     connect(remote,SIGNAL(sigInitialize()), this, SLOT(powerOn()));
     mySpectrum->setAxis(0,16384,0,256);
-
+#ifndef WIN32
     // Build menu settings
     // Add input list device
     QMenu *input = ui->menu_Settings->addMenu(tr("input"));
@@ -177,7 +177,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
         output->addAction(action);
         connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
     }
-
+#endif
 }
 
 CMainWindow::~CMainWindow()
@@ -571,10 +571,14 @@ void CMainWindow::slotRemoteData(QString &data)
 
 void CMainWindow::slotInputDevice()
 {
+#ifndef WIN32
     sound->selectInputDevice(QObject::sender()->objectName());
+#endif
 }
 
 void CMainWindow::slotOutputDevice()
 {
+#ifndef WIN32
     sound->selectOutputDevice(QObject::sender()->objectName());
+#endif
 }

@@ -27,7 +27,7 @@ void ISound::setRunning(bool value)
 
 QHash<QString, int> ISound::getDeviceList()
 {
-
+    return QHash<QString, int>();
 }
 
 void ISound::selectInputDevice(QString device)

@@ -1,10 +1,10 @@
 project(qicompcr-binary)
 
 option(WITH_OPENGL "Build OPENGL" ON)
-option(WITH_ACARS "Build with licensed ACARS Library" ON)
-option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
+option(WITH_ACARS "Build with licensed ACARS Library" OFF)
+option(WITH_FFTW "Build with Fast Fourrier Transform Library" OFF)
 option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
-option(WITH_PORTAUDIO "Build with PortAudio support" ON)
+option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)

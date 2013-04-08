@@ -126,7 +126,9 @@ namespace SPUC {
 //! \author Tony Kirke,  Copyright(c) 2001 
 #ifndef MYINCLUDE
 #define MYINCLUDE
+#ifndef WIN32
 #define MAXINT	32767
+#endif
 #define MXLONG 4294967295
 #define BIG	72057594037927936.		// Maximum precision of DOUBLE */
 #define HUGED	1.701411733192644270e38 	// Largest DOUBLE */

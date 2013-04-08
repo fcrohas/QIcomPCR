@@ -35,12 +35,11 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
 
         // Compute correlation for frequency
         for (int j=0; j<correlationLength; j++) {
-            corr[i] = buffer[i] * space_i[j] + buffer[i] * space_q[j];
+            corr[i] += sqrt(pow(buffer[i]*1.0/32768 * space_i[j],2) + pow(buffer[i]*1.0/32768 * space_q[j],2));
             //qDebug() << "correlation " << abs(corr[i]);
-            yval[i] = corr[i] * 1.0;
-            xval[i] = i;
-
         }
+        yval[i] = corr[i] * 1.0;
+        xval[i] = i;
     }
     emit dumpData(xval,yval,256);
 }

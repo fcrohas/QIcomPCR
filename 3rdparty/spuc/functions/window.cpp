@@ -29,6 +29,9 @@ namespace SPUC {
   \author Tony Kirke,  Copyright(c) 2001 
   
 */
+
+double coshin(double x) { return(log(x+sqrt(x*x-1.))); }
+
 //!
 //!:
 //! \ingroup fir

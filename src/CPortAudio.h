@@ -2,7 +2,10 @@
 #define CPORTAUDIO_H
 
 #include "ISound.h"
+#ifdef WITH_PORTAUDIO
 #include <portaudio.h>
+#endif
+
 
 #define SAMPLERATE 22050
 #define BUFFER_SIZE 256
