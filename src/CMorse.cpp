@@ -299,11 +299,11 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         }
         if ((ratio>5.0) || (ratiosym > 5.0))
         {
-            symbols += QChar(' '); // this is end of word
             if (code.contains(symbols))
                 emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
             else
                 emit sendData(QString("Unknown char %1").arg(symbols));
+            emit sendData(QString("Space detected"));
             symbols = QString("");
         }
     }
