@@ -142,6 +142,8 @@ private:
     int spaces; // count space
     // Save timming of mark dash
     double markdash;
+    // Word container
+    QString word;
 };
 
 #endif // CMORSE_H

@@ -9,6 +9,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
   ,marks(0)
   ,spaces(0)
   ,markdash(0)
+  ,word("")
 {
     // On creation allocate all buffer at maximum decoder size
     mark_i = new double[getBufferSize()];
@@ -21,7 +22,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     audioData[0] = new double[getBufferSize()];
 
     // Calculate correlation length
-    correlationLength = SAMPLERATE/1200; // Default creation is 6Khz
+    correlationLength = SAMPLERATE/401; // Default creation is 6Khz
 
     double freq = 0.0;
     // Generate Correlation for this frequency
@@ -61,7 +62,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     fmorse->process(getBufferSize(), audioData);
 
     // Correlation of with selected frequency
-    for(int i=0; i < size-correlationLength; i++) {
+    for(int i=0; i < size-correlationLength; i++) { //
         // Init correlation value
         corr[i] = 0.0;
         // Correlate en shift over correlation length
@@ -83,7 +84,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     }
     // Now calculation of timing
     double agc = peak / 2.0; // average value per buffer size
-    if (agc<1.00) agc=1.0; // minimum detection signal is 1.0
+    if (agc<5.00) agc=5.0; // minimum detection signal is 1.0
     // Detect High <-> low state and timing
     for (int i=0; i<size-(int)correlationLength; i++) {
         // if > then it is mark
@@ -166,8 +167,8 @@ void CMorse::slotFrequency(double value)
     // only half samplerate is available and FFT is set to 128 per channel
     frequency = value * SAMPLERATE / 2 / 128; // SAMPLERATE / 128 usable bin per channel
     // New correlation length as frequency selected has changed
-    correlationLength = SAMPLERATE/1200;
-
+    correlationLength = SAMPLERATE/301;
+    markdash = 0.0;
     // Generate Correlation for this frequency
     double freq = 0.0;
     for (int i=0; i< correlationLength;i++) {
@@ -291,19 +292,27 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym;
         if (((ratio > 2.5) && (ratio < 5.0)) || ((ratiosym > 2.5) && (ratiosym < 5.0))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
         {
-            if (code.contains(symbols))
-                emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
-            else
-                emit sendData(QString("Unknown char %1").arg(symbols));
+            if (code.contains(symbols)) {
+                word += code.value(symbols);
+                //emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
+            }
+            else {
+                //emit sendData(QString("Unknown char %1").arg(symbols));
+            }
             symbols = QString("");
         }
         if ((ratio>5.0) || (ratiosym > 5.0))
         {
-            if (code.contains(symbols))
-                emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
-            else
-                emit sendData(QString("Unknown char %1").arg(symbols));
-            emit sendData(QString("Space detected"));
+            if (code.contains(symbols)) {
+                word += code.value(symbols);
+                emit sendData(word);
+                word = "";
+                //emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
+            }
+            else {
+                //emit sendData(QString("Unknown char %1").arg(symbols));
+            }
+            //emit sendData(QString("Space detected"));
             symbols = QString("");
         }
     }
