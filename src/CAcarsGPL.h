@@ -26,7 +26,7 @@ public:
     uint getBufferSize();
     
 signals:
-    
+    void dumpData(double*,double*,int);
 public slots:
     void slotFrequency(double value);
 

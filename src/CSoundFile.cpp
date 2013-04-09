@@ -113,8 +113,6 @@ void CSoundFile::run()
             msleep(50);
 
         }
-
-        //running=false;
     }
 }
 

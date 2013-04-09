@@ -3,9 +3,12 @@
 
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
-  ,frequency(2831) // Just for Hello sample
+  ,frequency(3905) // Just for Hello sample
   ,acclow(0)
   ,accup(0)
+  ,marks(0)
+  ,spaces(0)
+  ,markdash(0)
 {
     // On creation allocate all buffer at maximum decoder size
     mark_i = new double[getBufferSize()];
@@ -81,8 +84,6 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     // Now calculation of timing
     double agc = peak / 2.0; // average value per buffer size
     if (agc<1.00) agc=1.0; // minimum detection signal is 1.0
-    int marks = 0; // Count edge
-    int spaces = 0; // count space
     // Detect High <-> low state and timing
     for (int i=0; i<size-(int)correlationLength; i++) {
         // if > then it is mark
@@ -123,6 +124,19 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                 acclow++;
         }
     }
+    // Copy back last timing
+    //todo
+    // A high state is still running
+    if (accup > 0) {
+        // so copy space at first position for next buffer
+        space[0] = space[spaces-1];
+        spaces = 1;
+    }
+    if (acclow > 0) {
+        mark[0] = mark[marks-1];
+        marks = 1;
+    }
+
     // Send correlated signal to scope
     emit dumpData(xval,yval,getBufferSize());
 }
@@ -200,6 +214,9 @@ void CMorse::translate(int position, int position2)
         //qDebug() << "ratio " << ratio;
         if (ratio>2.5) // the two last symbol sequence are -.
         {
+            // This is a dash
+            // Save the timming as referece
+            markdash = mark[position];
             // if already a symbol is here and is a jocker
             if ((symbols.length()>0)) // && (symbols.at(symbols.length()-1)) == QChar('*'))
             {
@@ -229,6 +246,7 @@ void CMorse::translate(int position, int position2)
                 symbols += QChar(symbols.at(symbols.length()-1));
             else // set a jocker
             {
+                // This case is when ratio is 1.0 and symbol is empty
                 // use space / mark ratio to know if it is a dash or a point
                 double symRatio = 0.0;
                 if (position2>0) {
@@ -256,14 +274,36 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         double ratio = space[position] / space[position-1];
         if (position2>0)
             ratiosym = space[position] / mark[position2-1];
+        // Special case when dash symbol is alone
+        // Check ratio
+        if (markdash> 0.0) // we know dash timming here
+        {
+            double dashcmp = markdash/space[position];
+            if (( dashcmp < 1.75) && (dashcmp>0.75))
+            {
+                //qDebug() << "check ratio mark/space " << markdash/space[position];
+                // This is a space
+                //emit sendData(QString("space detected"));
+                ratio = 3.0;
+            }
+        }
         //emit sendData(QString("symbols %2").arg(symbols));
         //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym;
-        if ((ratio > 2.5)  || (ratiosym > 2.5)) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
+        if (((ratio > 2.5) && (ratio < 5.0)) || ((ratiosym > 2.5) && (ratiosym < 5.0))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
         {
             if (code.contains(symbols))
                 emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
             else
-                emit sendData(QString("Unknown char"));
+                emit sendData(QString("Unknown char %1").arg(symbols));
+            symbols = QString("");
+        }
+        if ((ratio>5.0) || (ratiosym > 5.0))
+        {
+            symbols += QChar(' '); // this is end of word
+            if (code.contains(symbols))
+                emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
+            else
+                emit sendData(QString("Unknown char %1").arg(symbols));
             symbols = QString("");
         }
     }

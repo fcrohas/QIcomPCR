@@ -50,7 +50,7 @@ static CW_TABLE cw_table[] = {
         {'Q',   "Q",    "--.-"  },
         {'R',   "R",    ".-."   },
         {'S',   "S",    "..."   },
-        {'T',   "T",    "-"             },
+        {'T',   "T",    "-"     },
         {'U',   "U",    "..-"   },
         {'V',   "V",    "...-"  },
         {'W',   "W",    ".--"   },
@@ -138,6 +138,10 @@ private:
     // So timing can continue on next buffer
     int accup; // accumulator sample high state
     int acclow; // accumulator sample low state
+    int marks; // Count edge
+    int spaces; // count space
+    // Save timming of mark dash
+    double markdash;
 };
 
 #endif // CMORSE_H
