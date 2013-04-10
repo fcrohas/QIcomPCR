@@ -120,6 +120,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     // Connect Demodulator to debug windows
     connect(demodulator,SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
 
+    // Set threshold
+    connect(ui->threshold, SIGNAL(valueChanged(int)), demodulator, SLOT(slotThreshold(int)));
+    connect(ui->correlationLength,SIGNAL(sliderMoved(int)), demodulator, SLOT(slotSetCorrelationLength(int)));
+
     // Connect Decoder
     connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
 

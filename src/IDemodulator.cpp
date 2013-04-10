@@ -34,3 +34,13 @@ void IDemodulator::slotFrequency(double value)
 {
     return;
 }
+
+void IDemodulator::setThreshold(int value)
+{
+
+}
+
+void IDemodulator::setCorrelationLength(int value)
+{
+
+}

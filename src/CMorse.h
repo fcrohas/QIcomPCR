@@ -97,6 +97,8 @@ public:
     uint getDataSize();
     uint getChannel();
     uint getBufferSize();
+    void setThreshold(int value) override;
+    void setCorrelationLength(int value) override;
     
 signals:
     void dumpData(double*,double*,int);
@@ -104,7 +106,10 @@ public slots:
     void slotFrequency(double value);
 
 private:
+    // Goertzel filter
     float goertzel(int16_t *x, int N, double frequency, int samplerate);
+    // Correlation generator
+    void GenerateCorrelation(int length);
     // Decoding timing buffer
     double *mark;
     double *space;
@@ -144,6 +149,8 @@ private:
     double markdash;
     // Word container
     QString word;
+    // Threashold value
+    int agc;
 };
 
 #endif // CMORSE_H

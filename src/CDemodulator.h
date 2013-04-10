@@ -33,6 +33,9 @@ public slots:
     void slotDataBuffer(int16_t *buffer, int size);
     void slotSendData(QString data);
     void slotSetDemodulator(uint demod, uint channel, uint bufferSize);
+    void slotThreshold(int value);
+    void slotSetCorrelationLength(int value);
+
 private:
     QList<IDemodulator*> list;
     double *xval;

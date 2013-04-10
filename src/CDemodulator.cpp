@@ -171,3 +171,13 @@ IDemodulator *CDemodulator::getDemodulatorFromChannel(int channel)
     else
         return NULL;
 }
+
+void CDemodulator::slotThreshold(int value)
+{
+    getDemodulatorFromChannel(1)->setThreshold(value);
+}
+
+void CDemodulator::slotSetCorrelationLength(int value)
+{
+    getDemodulatorFromChannel(1)->setCorrelationLength(value);
+}

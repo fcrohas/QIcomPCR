@@ -10,6 +10,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
   ,spaces(0)
   ,markdash(0)
   ,word("")
+  ,agc(5)
 {
     // On creation allocate all buffer at maximum decoder size
     mark_i = new double[getBufferSize()];
@@ -22,7 +23,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     audioData[0] = new double[getBufferSize()];
 
     // Calculate correlation length
-    correlationLength = SAMPLERATE/401; // Default creation is 6Khz
+    correlationLength = 50; //SAMPLERATE/401; // Default creation is 6Khz
 
     double freq = 0.0;
     // Generate Correlation for this frequency
@@ -45,7 +46,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     paramsMorse[0] = SAMPLERATE;
     paramsMorse[1] = 4; // order
     paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = 200; // band width
+    paramsMorse[3] = 120; // band width
     fmorse->setParams(paramsMorse);
 
 }
@@ -83,8 +84,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
     // Now calculation of timing
-    double agc = peak / 2.0; // average value per buffer size
-    if (agc<5.00) agc=5.0; // minimum detection signal is 1.0
+    //double agc = peak / 2.0; // average value per buffer size
+    //if (agc<5.00) agc=5.0; // minimum detection signal is 1.0
     // Detect High <-> low state and timing
     for (int i=0; i<size-(int)correlationLength; i++) {
         // if > then it is mark
@@ -92,7 +93,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             // Start to coutn time in sample
             if (acclow > 0) {
                 double time = acclow * 1000.0 /22050.0;
-                if (time > 2) {// only accept if impulse is > 5ms
+                if (time > 1) {// only accept if impulse is > 5ms
                     //emit sendData(QString("space state for %1 ms").arg(time)); // print in millisecond result
                     acclow = 0;
                     space[spaces] = time;
@@ -110,7 +111,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             // How much milliseconds ?
             if (accup >0 ) {
                 double time = accup * 1000.0 /22050.0;
-                if (time > 2) {// only accept if impulse is > 5ms
+                if (time > 1) {// only accept if impulse is > 5ms
                     //emit sendData(QString("mark state for %1 ms").arg(time)); // print in millisecond result
                     // reset acc
                     accup = 0;
@@ -167,7 +168,7 @@ void CMorse::slotFrequency(double value)
     // only half samplerate is available and FFT is set to 128 per channel
     frequency = value * SAMPLERATE / 2 / 128; // SAMPLERATE / 128 usable bin per channel
     // New correlation length as frequency selected has changed
-    correlationLength = SAMPLERATE/301;
+    correlationLength = 50; //SAMPLERATE/201;
     markdash = 0.0;
     // Generate Correlation for this frequency
     double freq = 0.0;
@@ -182,7 +183,7 @@ void CMorse::slotFrequency(double value)
     paramsMorse[0] = SAMPLERATE;
     paramsMorse[1] = 4; // order
     paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = 200; // band width
+    paramsMorse[3] = 120; // band width
     fmorse->setParams(paramsMorse);
 
     qDebug() << "Correlation generated for frequency " << frequency << " hz";
@@ -218,6 +219,8 @@ void CMorse::translate(int position, int position2)
             // This is a dash
             // Save the timming as referece
             markdash = mark[position];
+            //calculate new correlation length
+            //GenerateCorrelation(markdash);
             // if already a symbol is here and is a jocker
             if ((symbols.length()>0)) // && (symbols.at(symbols.length()-1)) == QChar('*'))
             {
@@ -333,4 +336,28 @@ void CMorse::CheckLetterOrWord(int position, int position2)
     }
 
 
+}
+
+void CMorse::GenerateCorrelation(int length)
+{
+    double freq = 0.0;
+    correlationLength = length;
+    for (int i=0; i< correlationLength;i++) {
+        mark_i[i] = cos(freq);
+        mark_q[i] = sin(freq);
+        freq += 2.0*M_PI*frequency/SAMPLERATE;
+    }
+
+}
+
+void CMorse::setThreshold(int value)
+{
+    agc = value;
+    emit sendData(QString("Adjust threshold %1").arg(agc));
+}
+
+void CMorse::setCorrelationLength(int value)
+{
+    GenerateCorrelation(value);
+    emit sendData(QString("Adjust correlation %1").arg(value));
 }
