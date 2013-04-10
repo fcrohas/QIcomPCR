@@ -23,20 +23,19 @@ CDemodulator::~CDemodulator()
 {
     //delete demodulator;
     delete fftw;
-    /*
     if (data8bitsl)
-        delete data8bitsl;
+        delete [] data8bitsl;
     if (data16bitsl)
-        delete data16bitsl;
+        delete [] data16bitsl;
     if (data8bitsr)
-        delete data8bitsr;
+        delete [] data8bitsr;
     if (data16bitsr)
-        delete data16bitsr;
+        delete [] data16bitsr;
     if (xval)
-        delete xval;
+        delete [] xval;
     if (yval)
-        delete yval;
-    */
+        delete [] yval;
+
 }
 
 void CDemodulator::slotDataBuffer(int16_t *buffer, int size)

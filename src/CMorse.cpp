@@ -249,17 +249,32 @@ void CMorse::translate(int position, int position2)
             {
                 // This case is when ratio is 1.0 and symbol is empty
                 // use space / mark ratio to know if it is a dash or a point
-                double symRatio = 0.0;
-                if (position2>0) {
-                    symRatio = mark[position]/space[position2-1]; // we are in mark so space can only be before
-                    //qDebug() << "case mark " << mark[position] << " space " << space[position2-1] <<  " symratio " << symRatio;
-                    if (symRatio > 2.5)
-                        symbols += QChar('-');
-                    else
-                        symbols += QChar('.');
-                }
-                else
-                    symbols += QChar('*');
+//                double symRatio = 0.0;
+//                if (position2>0) {
+//                    symRatio = mark[position]/space[position2-1]; // we are in mark so space can only be before
+//                    //qDebug() << "case mark " << mark[position] << " space " << space[position2-1] <<  " symratio " << symRatio;
+//                    if (symRatio > 2.5)
+//                        symbols += QChar('-');
+//                    else if (symRatio < 0.85)
+//                    {
+//                        symbols += QChar('.');
+//                    } else
+//                    {
+                        // Compare is still around 1.0
+                        // So check with markdash timing
+                        if (markdash > 0.0)
+                        {
+                            double symRatio = markdash / mark[position];
+                            if (symRatio > 2.5)
+                                symbols += QChar('.');
+                            else
+                                symbols += QChar('-');
+                        } else
+                            symbols += QChar('*');
+//                    }
+//                }
+//                else
+//                    symbols += QChar('*');
             }
         }
 
@@ -280,7 +295,7 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         if (markdash> 0.0) // we know dash timming here
         {
             double dashcmp = markdash/space[position];
-            if (( dashcmp < 1.75) && (dashcmp>0.75))
+            if (( dashcmp < 2.5) && (dashcmp>0.85))
             {
                 //qDebug() << "check ratio mark/space " << markdash/space[position];
                 // This is a space

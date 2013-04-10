@@ -594,7 +594,6 @@ void CMainWindow::slotLoadFile()
     // Close sound card reader
 #ifndef WIN32
     sound->terminate();
-    delete sound;
 #endif
 #ifdef WITH_SNDFILE
     // Create new sound reader from file
