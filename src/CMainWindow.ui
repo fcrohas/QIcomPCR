@@ -706,6 +706,27 @@
            </layout>
           </item>
           <item>
+           <widget class="QLabel" name="markDot">
+            <property name="text">
+             <string>Mark dot</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="markDash">
+            <property name="text">
+             <string>Mark dash</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="letterSpace">
+            <property name="text">
+             <string>letter space</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QTextBrowser" name="decoderText"/>
           </item>
          </layout>

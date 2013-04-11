@@ -23,7 +23,8 @@ CSpectrumWidget::CSpectrumWidget(QWidget *parent) :
 void CSpectrumWidget::slotRawSamples(double *xval, double *yval,int size)
 {
     // Update X axis if size is !=
-    if (x2 != size) qwtPlot->setAxisScale(QwtPlot::xBottom,0,size);
+    if (x2 != size)
+        qwtPlot->setAxisScale(QwtPlot::xBottom,0,size);
     spectro->setRawSamples(xval,yval,size);
     qwtPlot->replot();
 }

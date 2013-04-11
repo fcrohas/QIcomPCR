@@ -99,8 +99,8 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
         // Do FFT
         if (scope == fft) {
             // Do it on stereo channel
-            fftw->decode(buffer,512, xval, yval); // Shift to correct buffer start, do FFT on 512 bins
-            emit sigRawSamples(xval, yval, 256); // Only 256 usable so 128 per channel
+            fftw->decode(buffer, size, xval, yval); // Shift to correct buffer start, do FFT on 512 bins
+            emit sigRawSamples(xval, yval, size); // Only 256 usable so 128 per channel
         }
         // fill back spectrum buffer
         //if (((bufferBlock * channelSize + channelSize) % bufferSize == 0) && (demodulator->getDataSize()!=0)) {

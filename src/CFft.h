@@ -19,6 +19,8 @@ public:
     explicit CFFT(QObject *parent = 0, int size=2048);
     ~CFFT();
     void decode(int16_t *buffer, int size, double *xval, double *yval);
+    void initBuffer(int size);
+    void initFFT(int size);
 signals:
     void sigRawSamples(double *xval, double *yval, int size);
     

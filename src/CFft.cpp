@@ -3,27 +3,16 @@
 CFFT::CFFT(QObject *parent, int size) :
     QObject(parent)
 {
-#ifdef FFTW
-    in1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (size/2));
-    in2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (size/2));
-    out1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (size/2));
-    out2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (size/2));
-    // Describe plan
-    ch1 = fftw_plan_dft_1d( size/2, in1, out1, FFTW_FORWARD, FFTW_ESTIMATE );
-    ch2 = fftw_plan_dft_1d( size/2, in2, out2, FFTW_FORWARD, FFTW_ESTIMATE );
-#else
-    in1 = new SPUC::complex<double>[size];
-    in2 = new SPUC::complex<double>[size];
-#endif
     xval = new double[size];
     yval = new double[size];
-
+    initBuffer(size);
+    initFFT(size);
 }
 
 CFFT::~CFFT()
 {
-    delete xval;
-    delete yval;
+    delete [] xval;
+    delete [] yval;
 #ifdef FFTW
     fftw_destroy_plan(ch1);
     fftw_destroy_plan(ch2);
@@ -32,9 +21,30 @@ CFFT::~CFFT()
     fftw_free(in1);
     fftw_free(in2);
 #else
-    delete in1;
-    delete in2;
+    delete [] in1;
+    delete [] in2;
 #endif
+}
+
+void CFFT::initBuffer(int size)
+{
+#ifdef FFTW
+    in1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    in2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    out1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+    out2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * size);
+#else
+    in1 = new SPUC::complex<double>[size];
+    in2 = new SPUC::complex<double>[size];
+#endif
+
+}
+
+void CFFT::initFFT(int size)
+{
+    // Describe plan
+    ch1 = fftw_plan_dft_1d( size, in1, out1, FFTW_FORWARD, FFTW_ESTIMATE );
+    ch2 = fftw_plan_dft_1d( size, in2, out2, FFTW_FORWARD, FFTW_ESTIMATE );
 }
 
 void CFFT::decode(int16_t *buffer, int size, double *xval, double *yval)
@@ -64,16 +74,16 @@ void CFFT::decode(int16_t *buffer, int size, double *xval, double *yval)
 #endif
 
     // fill back spectrum buffer
-    for (int i=0; i < size/4; i++) {
+    for (int i=0; i < size/2; i++) {
 #ifdef FFTW
         yval[i] = pow(out1[i][0],2) + pow(out1[i][1],2); // Channel antenna 1
-        yval[i+size/4] = pow(out2[i][0],2) + pow(out2[i][1],2); // Channel antenna 2
+        yval[i+size/2] = pow(out2[i][0],2) + pow(out2[i][1],2); // Channel antenna 2
 #else
         yval[i] = SPUC::magsq(in1[i]);
         yval[i+size/4] = SPUC::magsq(in2[i]);
 #endif
         xval[i] = i;
-        xval[i+size/4] = i+size/4;
+        xval[i+size/2] = i+size/2;
     }
 }
 
@@ -104,17 +114,17 @@ void CFFT::slotDataBuffer(int16_t *buffer, int size)
 #endif
 
     // fill back spectrum buffer
-    for (int i=0; i < size/4; i++) {
+    for (int i=0; i < size/2; i++) {
 #ifdef FFTW
         yval[i] = pow(out1[i][0],2) + pow(out1[i][1],2); // Channel antenna 1
-        yval[i+size/4] = pow(out2[i][0],2) + pow(out2[i][1],2); // Channel antenna 2
+        yval[i+size/2] = pow(out2[i][0],2) + pow(out2[i][1],2); // Channel antenna 2
 #else
         yval[i] = SPUC::magsq(in1[i]);
         yval[i+size/4] = SPUC::magsq(in2[i]);
 #endif
         xval[i] = i;
-        xval[i+size/4] = i+size/4;
+        xval[i+size/2] = i+size/2;
     }
 
-    emit sigRawSamples(xval, yval, size/2);
+    emit sigRawSamples(xval, yval, size);
 }
