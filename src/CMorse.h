@@ -150,7 +150,8 @@ private:
     // Word container
     QString word;
     // Threashold value
-    int agc;
+    double agc;
+    double agclimit;
 };
 
 #endif // CMORSE_H

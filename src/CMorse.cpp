@@ -85,7 +85,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     }
     // Now calculation of timing
     agc = peak / 2.0; // average value per buffer size
-    if (agc<3.0) agc=3.0; // minimum detection signal is 1.0
+    if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
     // Detect High <-> low state and timing
     for (int i=0; i<size-(int)correlationLength; i++) {
         // if > then it is mark
@@ -93,8 +93,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             // Start to coutn time in sample
             if (acclow > 0) {
                 double time = acclow * 1000.0 /22050.0;
-                if (time > 3) {// only accept if impulse is > 5ms
-                    qDebug() << QString("space state for %1 ms").arg(time); // print in millisecond result
+                if (time > 5) {// only accept if impulse is > 5ms
+                    //qDebug() << QString("space state for %1 ms").arg(time); // print in millisecond result
                     acclow = 0;
                     space[spaces] = time;
                     // try to calculate new symbol
@@ -105,7 +105,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                 } else { acclow=0; accup++; }
             } else {
                 // Try to find new agc value
-                peak = yval[i];
+                if (yval[i] > peak)
+                    peak = yval[i];
                 accup++;
             }
         }
@@ -114,8 +115,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             // How much milliseconds ?
             if (accup >0 ) {
                 double time = accup * 1000.0 /22050.0;
-                if (time > 3) {// only accept if impulse is > 5ms
-                    qDebug() << QString("mark state for %1 ms").arg(time); // print in millisecond result
+                if (time > 5) {// only accept if impulse is > 5ms
+                    //qDebug() << QString("mark state for %1 ms").arg(time); // print in millisecond result
                     // reset acc
                     accup = 0;
                     mark[marks] = time;
@@ -125,8 +126,9 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                     marks++;
                     acclow++;
                     // Register new agc value now
-                    agc = peak / 2;
-                    if (agc<3.0) agc=3.0; // minimum detection signal is 1.0
+                    agc = peak / 2.0;
+                    //qDebug() << "agc value is " << agc;
+                    if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
                 } else  { accup=0; acclow++; }
             } else
                 acclow++;
@@ -224,7 +226,8 @@ void CMorse::translate(int position, int position2)
         {
             // This is a dash
             // Save the timming as referece
-            markdash = mark[position];
+            if (mark[position]> markdash)
+                markdash = mark[position];
             //calculate new correlation length
             //GenerateCorrelation(markdash);
             // if already a symbol is here and is a jocker
@@ -243,6 +246,7 @@ void CMorse::translate(int position, int position2)
             if ((symbols.length()>0)) // && (symbols.at(symbols.length()-1)) == QChar('*'))
             {
                 // replace it
+                markdash = mark[position-1];
                 symbols[symbols.length()-1] = QChar('-');
                 symbols += QChar('.');
             }
@@ -314,7 +318,7 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         }
         //emit sendData(QString("symbols %2").arg(symbols));
         //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym;
-        if (((ratio > 2.0) && (ratio < 5.0)) || ((ratiosym > 2.0) && (ratiosym < 5.0))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
+        if (((ratio > 2.0) && (ratio < 3.5)) || ((ratiosym > 2.0) && (ratiosym < 3.5))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
         {
             if (code.contains(symbols)) {
                 word += code.value(symbols);
@@ -325,7 +329,7 @@ void CMorse::CheckLetterOrWord(int position, int position2)
             }
             symbols = QString("");
         }
-        if ((ratio>5.0) || (ratiosym > 5.0))
+        if ((ratio>4.0) || (ratiosym > 4.0))
         {
             if (code.contains(symbols)) {
                 word += code.value(symbols);
@@ -358,8 +362,8 @@ void CMorse::GenerateCorrelation(int length)
 
 void CMorse::setThreshold(int value)
 {
-    agc = value;
-    emit sendData(QString("Adjust threshold %1").arg(agc));
+    agclimit = value * 1.0;
+    emit sendData(QString("Adjust threshold %1").arg(agclimit));
 }
 
 void CMorse::setCorrelationLength(int value)
