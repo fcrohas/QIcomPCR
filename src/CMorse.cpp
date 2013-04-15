@@ -317,7 +317,7 @@ void CMorse::CheckLetterOrWord(int position, int position2)
             }
         }
         //emit sendData(QString("symbols %2").arg(symbols));
-        //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym;
+        //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym << " word is " << word;
         if (((ratio > 2.0) && (ratio < 3.5)) || ((ratiosym > 2.0) && (ratiosym < 3.5))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
         {
             if (code.contains(symbols)) {
@@ -329,15 +329,19 @@ void CMorse::CheckLetterOrWord(int position, int position2)
             }
             symbols = QString("");
         }
-        if ((ratio>4.0) || (ratiosym > 4.0))
+        if ((ratio>3.5) || (ratiosym > 3.5))
         {
             if (code.contains(symbols)) {
                 word += code.value(symbols);
+                word += " ";
                 emit sendData(word);
                 word = "";
                 //emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
             }
             else {
+                word += " ";
+                emit sendData(word);
+                word = "";
                 //emit sendData(QString("Unknown char %1").arg(symbols));
             }
             //emit sendData(QString("Space detected"));
