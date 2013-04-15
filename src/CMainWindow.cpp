@@ -537,7 +537,8 @@ void CMainWindow::slotVSC(bool value)
 
 void CMainWindow::slotDemodulatorData(QString data)
 {
-    ui->decoderText->append(data);
+    ui->decoderText->setPlainText(ui->decoderText->toPlainText()+data);
+    //ui->decoderText->append(data);
     QScrollBar *sb = ui->decoderText->verticalScrollBar();
     sb->setValue(sb->maximum());
 }
