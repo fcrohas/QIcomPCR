@@ -154,6 +154,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigModulation(uint)), cmd, SLOT(setModulation(uint)));
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
     connect(remote,SIGNAL(sigInitialize()), this, SLOT(powerOn()));
+    connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     mySpectrum->setAxis(0,16384,0,256);
 #ifndef WIN32
     // Build menu settings

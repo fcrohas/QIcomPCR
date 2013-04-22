@@ -66,6 +66,7 @@
 	  <div id="signal"></div>
 	  <div id="frequency"></div>	  
 	  <div id="frequencystep"></div>
+	  <div id="scope"></div>
 	  <!-- audio controls src="http://localhost:8000/"></audio -->
 	</div>
 	<div class="tab-pane" id="demod">...</div>
@@ -89,6 +90,7 @@
     <script src="/js/jshashtable.js"></script><!-- Debug Window widget -->
     <script src="/js/jquery.numberformatter-1.2.3.min.js"></script><!-- Downloaded numberformatter -->
     <script src="/js/jquery.flipCounter.1.2.pack.js"></script><!-- Downloaded flipCounter -->
+    <script src="/js/processing-1.4.1.min.js"></script><!-- Downloaded processingjs -->
     <script src="/js/knob/transform.js"></script>
     <script src="/js/knob/knobKnob.jquery.js"></script>
     
@@ -100,6 +102,7 @@
     <script src="/js/views/radio.js"></script><!-- Debug Window widget -->    
     <script src="/js/views/frequency.js"></script><!-- Debug Window widget -->
     <script src="/js/views/frequencystep.js"></script><!-- Debug Window widget -->
+    <script src="/js/views/viewer.js"></script><!-- Scope widget -->
 
     <script src="/js/main.js"></script>
     
@@ -149,6 +152,12 @@
       <div>
 	<div id="digits"></div>
 	<div id="control"></div>
+      </div>
+    </script>
+    <script type="text/template" id="viewerTemplate">
+      <div>
+	  <button type="button" class="btn" data-toggle="button">Start</button>
+	  <p><canvas id="canvas" width="256" height="400"></canvas></p>
       </div>
     </script>
 </body>

@@ -19,11 +19,22 @@ class CRemoteControl: public QObject
       void acceptConnection();
       void startRead();
       void sendData(QString value);
+      void controledRate(double *xval, double *yval, int size);
 
     private:
       QTcpServer server;
       QTcpSocket* client;
+      QTime time;
       bool connected;
+
+      typedef struct datastream_t {
+          datastream_t() : refreshRate(0.0), enabled(false), low(0), high(0) {}
+          double refreshRate;
+          bool enabled;
+          int low;
+          int high;
+      };
+      datastream_t datastream;
 
     signals:
       void command(QString &value);

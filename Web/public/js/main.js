@@ -4,14 +4,14 @@ $(function () {
       $(this).tab('show');
     })    
 })
-  
+
 $(document).ready(function(){
 
     lastcmd = $('#lastcmd');
 
     // Build remote control 
     remote = new RemoteControl();
-
+    
     //Build Frequency Table maangement
     freqTable = new FrequencyTable();
     
@@ -29,8 +29,10 @@ $(document).ready(function(){
     
     // Bind frequency
     frequency = new FrequencyView({ el: '#frequency', frequencytable:freqTable, model:remote });
-
     frequencystep = new FrequencyStepView({ el: '#frequencystep', frequencytable:freqTable, model:remote });
+
+    // Viewer
+    viewer = new ViewerView({ el : '#scope', model:remote});
     
     // Connect remote to device
     remote.connect();

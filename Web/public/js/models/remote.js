@@ -7,7 +7,8 @@ var RemoteControl = Backbone.Model.extend({
       power   : false,
       frequency: 106500000,
       ifshift  : 128,
-      modulation: "FM"
+      modulation: "FM",
+      data: "0"
     },
     initialize: function() { 
   
@@ -44,6 +45,9 @@ var RemoteControl = Backbone.Model.extend({
       if (msg.substring(0,5) == 'PWRON') {
 	this.model.set('power', true);
       }
+      if (msg.substring(0,2) == 'WT') {
+	this.model.set('data', msg.substring(2));
+      }
     },
     // Remote controller event
     togglePower: function() {
@@ -69,5 +73,9 @@ var RemoteControl = Backbone.Model.extend({
     setFilter: function(value) {
       console.log('FILTER'+value);
       this.socket.send('FILTER'+value);
+    },
+    setScope: function(value) {
+      console.log('WT'+value);
+      this.socket.send('WT1');
     }
 });

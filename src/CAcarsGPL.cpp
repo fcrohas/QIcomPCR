@@ -50,7 +50,7 @@ int CAcarsGPL::getbit(short sample, unsigned char *outbits, int ch)
     bt = 0;
     st = &bstat[ch];
 
-    in = (float) sample;
+    in = (float) sample * 1.0 / 32768.0; // set between -1.0 and 1.0
     st->lin = 0.003 * fabs(in) + 0.997 * st->lin;
     in /= st->lin;
     in2 = in * in;
@@ -232,6 +232,7 @@ int CAcarsGPL::getmesg(unsigned char r, msg_t * msg, int ch)
     struct mstat_s *st;
 
     st = &(mstat[ch]);
+    qDebug() << "State " << st->state;
 
     do {
         switch (st->state) {
@@ -358,21 +359,21 @@ void CAcarsGPL::decode(int16_t *data, int size, int offset)
     msg_t msgl, msgr;
     int nbch = 1;
 
-    for (ind = 0; ind < size;) {
+    for (ind = 0; ind < size;ind++) {
 
         if(el) {
         nbitl += getbit(data[ind], &rl, 0);
 
-        if (nbitl >= nrbitl) {
-            nrbitl = getmesg(rl, &msgl, 0);
-            nbitl = 0;
-            if (nrbitl == 0) {
-                print_mesg(&msgl);
-                nrbitl = 8;
+            if (nbitl >= nrbitl) {
+                nrbitl = getmesg(rl, &msgl, 0);
+                nbitl = 0;
+                if (nrbitl == 0) {
+                    print_mesg(&msgl);
+                    nrbitl = 8;
+                }
             }
         }
-        }
-        ind++;
+
 
         if (nbch >= 2) {
             if(er) {
@@ -407,5 +408,5 @@ uint CAcarsGPL::getBufferSize()
 }
 void CAcarsGPL::slotFrequency(double value)
 {
-
+    qDebug() << "Frequency " << value / 2.0 * 22050 / 256.0; // SAMPLERATE / 512 and displaying graph is 0 to 128
 }

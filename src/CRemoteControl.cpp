@@ -88,6 +88,22 @@ void CRemoteControl::decode(char *buffer)
     if (decodedString.startsWith("NBOFF")) {
         emit sigNoiseBlanker(true);
     } else
+    if (decodedString.startsWith("WT")) {
+        QString params = decodedString.replace("WT","");
+        if (params == "OFF") {
+            datastream.enabled = false;
+        }
+        else {
+            bool ok = false;
+            datastream.enabled = true;
+            datastream.refreshRate = params.toDouble(&ok) * 1000;
+            qDebug() << "receive WT on with refresh " << datastream.refreshRate << " ms";
+            if (!ok) {
+                datastream.enabled = false;
+            } else time.start();
+
+        }
+    } else
     {
         client->write("UNK");
         return;
@@ -101,4 +117,21 @@ void CRemoteControl::sendData(QString value)
 {
     if (connected)
         client->write(value.toLocal8Bit());
+}
+
+void CRemoteControl::controledRate(double *xval, double *yval, int size)
+{
+
+    if ((datastream.enabled) && (time.elapsed()>datastream.refreshRate)) {
+        // Maybe normalize data between datastream_t.low and high
+        QString data;
+        for (int i=0; i< size; i++) {
+            data += QString("%1").arg((int)yval[i], 2, 16, QChar('0'));
+        }
+        data = data.prepend("WT%1").arg(size, 4, 16, QChar('0'));
+        qDebug() << "Scope " << data;
+        sendData(data);
+        // Restart timer
+        time.restart();
+    }
 }
