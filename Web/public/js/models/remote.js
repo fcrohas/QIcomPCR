@@ -76,6 +76,6 @@ var RemoteControl = Backbone.Model.extend({
     },
     setScope: function(value) {
       console.log('WT'+value);
-      this.socket.send('WT1');
+      this.socket.send('WT0.02');
     }
 });
