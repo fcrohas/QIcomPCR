@@ -129,7 +129,7 @@ void CRemoteControl::controledRate(double *xval, double *yval, int size)
             data += QString("%1").arg((int)yval[i], 2, 16, QChar('0'));
         }
         data = data.prepend("WT%1").arg(size, 4, 16, QChar('0'));
-        qDebug() << "Scope " << data;
+        //qDebug() << "Scope " << data;
         sendData(data);
         // Restart timer
         time.restart();

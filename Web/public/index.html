@@ -24,7 +24,14 @@
 	      overflow:hidden;
 	      /*position:relative;*/
 	      background-color:#f00;
-      }      
+      }
+      #scope1 {
+	border:1px solid #000;
+        background-color:#000;
+	-webkit-border-radius: 25px;
+	-moz-border-radius: 25px;
+	border-radius: 25px;        
+      }
     </style>
     <link href="/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/bootstrap-responsive.min.css" type="text/css" rel="stylesheet" media="screen"></link>
@@ -155,9 +162,30 @@
       </div>
     </script>
     <script type="text/template" id="viewerTemplate">
-      <div>
-	  <button type="button" class="btn" data-toggle="button">Start</button>
+      <div class="container">
+	<div class="row">
+	 <div class="span3">
+	  <div class="span1">
+	    <button type="button" class="btn btn-primary start" data-toggle="button">Start</button>
+	  </div>  
+	  <div class="span1">
+	      <div class="btn-group">
+		<button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+		  Refresh
+		  <span class="caret"></span>
+		</button>
+		<ul class="dropdown-menu">
+		  <li><a href="#">1 s</a></li>
+		  <li><a href="#">0.5 s</a></li>
+		  <li><a href="#">0.2 s</a></li>
+		  <li><a href="#">0.1 s</a></li>
+		  <li><a href="#">0.05 s</a></li>
+		</ul>
+	      </div>	 
+	    </div>
 	  <p><canvas id="canvas" width="256" height="400"></canvas></p>
+	 </div>   
+	</div>  
       </div>
     </script>
 </body>

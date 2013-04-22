@@ -8,7 +8,8 @@ var RemoteControl = Backbone.Model.extend({
       frequency: 106500000,
       ifshift  : 128,
       modulation: "FM",
-      data: "0"
+      data: "0",
+      scopeRate: "1"
     },
     initialize: function() { 
   
@@ -20,6 +21,7 @@ var RemoteControl = Backbone.Model.extend({
 	this.socket.on('connect', this.onConnect);
 	this.socket.on('message', this.onMessage);
 	this.on('change:frequency', this.setFrequency);
+	this.on('change:scopeRate', this.setScopeRate);
     },
     onConnect: function() {
       //console.log(this.model);
@@ -71,11 +73,15 @@ var RemoteControl = Backbone.Model.extend({
       this.socket.send('IF'+value);
     },
     setFilter: function(value) {
-      console.log('FILTER'+value);
       this.socket.send('FILTER'+value);
     },
     setScope: function(value) {
-      console.log('WT'+value);
-      this.socket.send('WT0.02');
+      if (value == true)
+	this.socket.send('WT'+this.get("scopeRate"));
+      else
+	this.socket.send('WTOFF');
+    },
+    setScopeRate: function(model) {
+	this.socket.send('WT'+model.get("scopeRate"));
     }
 });

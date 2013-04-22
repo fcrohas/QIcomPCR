@@ -14,10 +14,13 @@ var ViewerView = Backbone.View.extend({
     this.p.setup = this.setup;
     this.p.draw = this.setData;
     this.p.setup();
+    this.power = false;
     return this;
   },
   events: {
-            "click button": "toggleScope"
+            "click button.start": "powertoggle",
+	    "click ul li a": "refresh"
+	    
   },
   getData: function()
   {
@@ -40,9 +43,9 @@ var ViewerView = Backbone.View.extend({
 			for (var i=0; i< this.width; i++) 
 			{
 				var value = this.datas[j*this.width+i];
-				if (value < 85)
+				if (value < 135)
 					this.stroke(0 , 0, value);
-				if ((value > 85) && (value < 170))
+				if ((value > 135) && (value < 170))
 					this.stroke(255, value, 0);
 				if (value > 170)
 					this.stroke(value, 0, 0);
@@ -56,9 +59,9 @@ var ViewerView = Backbone.View.extend({
 	
 	for(var i=0; i<length; i++) {
 		var value = parseInt(data.substr(4+i*2,2),16);
-		if (value < 85)
+		if (value < 135)
 			this.stroke(0 , 0, value);
-		if ((value > 85) && (value < 170))
+		if ((value > 135) && (value < 170))
 			this.stroke(255, value, 0);
 		if (value > 170)
 			this.stroke(value, 0, 0);
@@ -68,19 +71,35 @@ var ViewerView = Backbone.View.extend({
 	}
 	this.line = this.line + 1;
   },
-  toggleScope: function()
+  powertoggle: function()
   {
-    this.model.setScope(true);
+    if (this.power == true) {
+      this.model.setScope(false);
+      this.p.background(0);
+      this.p.noLoop();
+      this.power = false;
+    } else {
+      this.model.setScope(true);
+      this.power = true;
+      this.p.loop();
+    }
   },
   setupData: function (processing) {	
   },
   setup : function() {
 	this.size(256, 200);
-	this.frameRate(50);
+	this.frameRate(5);
 	this.datas = new Array(this.height*this.width);
 	//this.img = this.createImage(256,400,this.RGB);
 	//this.img = this.loadImage("img/flipCounter-medium.png");
-	this.background(255);
+	this.background(0);
 	this.line = 0;
+  },
+  refresh: function(e) {
+    var element = $(e.target);
+    var rate = element.text().replace(/[^0-9.]+/g,'');
+    this.model.set("scopeRate",rate); // here it is milliseconds
+    this.p.frameRate(1/rate); // Here it is frequency
+    
   }
 });
