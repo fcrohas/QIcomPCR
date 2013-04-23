@@ -66,7 +66,7 @@ void CRemoteControl::decode(char *buffer)
     } else
     if (decodedString.startsWith("FREQ")) {
         QString frequency = decodedString.replace("FREQ","");
-        qDebug() << "frequency remote " << frequency.toUInt();
+        //qDebug() << "frequency remote " << frequency.toUInt();
         emit sigFrequency(frequency.toUInt());
     } else
     if (decodedString.startsWith("IF")) {
@@ -97,7 +97,7 @@ void CRemoteControl::decode(char *buffer)
             bool ok = false;
             datastream.enabled = true;
             datastream.refreshRate = params.toDouble(&ok) * 1000;
-            qDebug() << "receive WT on with refresh " << datastream.refreshRate << " ms";
+            //qDebug() << "receive WT on with refresh " << datastream.refreshRate << " ms";
             if (!ok) {
                 datastream.enabled = false;
             } else time.start();

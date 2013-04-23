@@ -36,6 +36,7 @@
     <link href="/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/bootstrap-responsive.min.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/knobKnob.css" type="text/css" rel="stylesheet" media="screen"></link>
+    <link href="/stylesheets/slider.css" type="text/css" rel="stylesheet" media="screen"></link>
 </head>
 <body>
 
@@ -100,6 +101,7 @@
     <script src="/js/processing-1.4.1.min.js"></script><!-- Downloaded processingjs -->
     <script src="/js/knob/transform.js"></script>
     <script src="/js/knob/knobKnob.jquery.js"></script>
+    <script src="/js/bootstrap-slider.js"></script>
     
     <script src="/js/models/remote.js"></script><!-- Remote model controller -->
     <script src="/js/models/frequencytable.js"></script><!-- Remote model controller -->
@@ -182,10 +184,13 @@
 		  <li><a href="#">0.05 s</a></li>
 		</ul>
 	      </div>	 
-	    </div>
+	  </div>
 	  <p><canvas id="canvas" width="256" height="400"></canvas></p>
-	 </div>   
 	</div>  
+	<div class="span3">
+	    <input type="text" class="span2 slider" value="" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="50" data-slider-orientation="vertical" data-slider-selection="after" data-slider-tooltip="show">
+	</div>
+       </div>
       </div>
     </script>
 </body>

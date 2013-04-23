@@ -565,7 +565,7 @@ void CMainWindow::slotScopeChanged(bool value)
 {
     if (value) {
         demodulator->setScopeType(1);
-        mySpectrum->setAxis(0,256,0,256);
+        mySpectrum->setAxis(0,256,0,50);
     }
     else {
         demodulator->setScopeType(0);
@@ -602,11 +602,13 @@ void CMainWindow::slotLoadFile()
     sound->terminate();
 #endif
 #ifdef WITH_SNDFILE
-    // Create new sound reader from file
-    sound = new CSoundFile(this);
-    sound->Load(fileName);
-    sound->SetDemodulator(demodulator);
-    sound->setRunning(true);
+    if (!fileName.isEmpty()) {
+        // Create new sound reader from file
+        sound = new CSoundFile(this);
+        sound->Load(fileName);
+        sound->SetDemodulator(demodulator);
+        sound->setRunning(true);
+    }
 #endif
     slotSwitchSound(true);
 }

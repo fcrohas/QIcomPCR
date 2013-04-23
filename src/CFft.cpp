@@ -76,8 +76,8 @@ void CFFT::decode(int16_t *buffer, int size, double *xval, double *yval)
     // fill back spectrum buffer
     for (int i=0; i < size/2; i++) {
 #ifdef FFTW
-        yval[i] = pow(out1[i][0],2) + pow(out1[i][1],2); // Channel antenna 1
-        yval[i+size/2] = pow(out2[i][0],2) + pow(out2[i][1],2); // Channel antenna 2
+        yval[i] = sqrt(pow(out1[i][0],2) + pow(out1[i][1],2)); // Channel antenna 1
+        yval[i+size/2] = sqrt(pow(out2[i][0],2) + pow(out2[i][1],2)); // Channel antenna 2
 #else
         yval[i] = SPUC::magsq(in1[i]);
         yval[i+size/4] = SPUC::magsq(in2[i]);
@@ -116,8 +116,8 @@ void CFFT::slotDataBuffer(int16_t *buffer, int size)
     // fill back spectrum buffer
     for (int i=0; i < size/2; i++) {
 #ifdef FFTW
-        yval[i] = pow(out1[i][0],2) + pow(out1[i][1],2); // Channel antenna 1
-        yval[i+size/2] = pow(out2[i][0],2) + pow(out2[i][1],2); // Channel antenna 2
+        yval[i] = sqrt(pow(out1[i][0],2) + pow(out1[i][1],2)); // Channel antenna 1
+        yval[i+size/2] = sqrt(pow(out2[i][0],2) + pow(out2[i][1],2)); // Channel antenna 2
 #else
         yval[i] = SPUC::magsq(in1[i]);
         yval[i+size/4] = SPUC::magsq(in2[i]);

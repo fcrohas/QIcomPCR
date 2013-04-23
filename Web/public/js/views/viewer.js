@@ -8,6 +8,8 @@ var ViewerView = Backbone.View.extend({
     this.template = _.template($("#viewerTemplate").html(), this.model);
     this.$el.html(this.template);
     var canvas = $(this.$el).find("canvas");
+    this.colorOffset = 50;
+    $(this.el).find('.slider').slider().on('slide',this.changeColor);
     // Processing.Js
     this.p = new Processing(canvas[0], this.setupData);    
     this.p.view = this;
@@ -28,9 +30,13 @@ var ViewerView = Backbone.View.extend({
     //console.log("receive data = "+this.p.data);
     
   },
+  changeColor: function(e) {
+    this.colorOffset = e.value;
+  },
   setData: function()
   {
 	var data = this.view.model.get("data");
+	
 	var length = parseInt(data.substring(0,4),16); // this is the length of array
 	var pixel = "00";
 	this.noStroke();
@@ -43,12 +49,12 @@ var ViewerView = Backbone.View.extend({
 			for (var i=0; i< this.width; i++) 
 			{
 				var value = this.datas[j*this.width+i];
-				if (value < 135)
-					this.stroke(0 , 0, value);
-				if ((value > 135) && (value < 170))
-					this.stroke(255, value, 0);
-				if (value > 170)
-					this.stroke(value, 0, 0);
+				if (value <= 20)
+					this.stroke(0 , 0, 20+value);
+				if ((value > 20) && (value < 40))
+					this.stroke(60, value+20, 0);
+				if (value >= 40)
+					this.stroke(value+20, 0, 0);
 				this.point(i, j );
 				//store value before end
 				this.datas[(j-lines)*this.width+i] = value;
@@ -59,12 +65,12 @@ var ViewerView = Backbone.View.extend({
 	
 	for(var i=0; i<length; i++) {
 		var value = parseInt(data.substr(4+i*2,2),16);
-		if (value < 135)
-			this.stroke(0 , 0, value);
-		if ((value > 135) && (value < 170))
-			this.stroke(255, value, 0);
-		if (value > 170)
-			this.stroke(value, 0, 0);
+		if (value <= 20)
+			this.stroke(0 , 0, 20+value);
+		if ((value > 20) && (value < 40))
+			this.stroke(60, value+20, 0);
+		if (value >= 40)
+			this.stroke(value+20, 0, 0);
 		this.point(i, this.line);
 		//store value before end
 		this.datas[this.line*this.width + i] = value;
