@@ -40,7 +40,7 @@ void CFFT::initBuffer(int size)
     in1 = new SPUC::complex<double>[size];
     in2 = new SPUC::complex<double>[size];
 #endif
-
+    setWindow(CFFT::Blackman, size);
 }
 
 void CFFT::initFFT(int size)
@@ -48,7 +48,6 @@ void CFFT::initFFT(int size)
     // Describe plan
     ch1 = fftw_plan_dft_1d( size, in1, out1, FFTW_FORWARD, FFTW_ESTIMATE );
     ch2 = fftw_plan_dft_1d( size, in2, out2, FFTW_FORWARD, FFTW_ESTIMATE );
-    blackman(size);
 }
 
 void CFFT::decode(int16_t *buffer, int size, double *xval, double *yval)
@@ -133,39 +132,69 @@ void CFFT::slotDataBuffer(int16_t *buffer, int size)
     emit sigRawSamples(xval, yval, size);
 }
 
-void CFFT::hamming(int size)
+void CFFT::hamming(int size, double *&win)
 {
-    if (window == NULL)
-        window = new double[size];
+    if (win == NULL)
+        win = new double[size];
+    else {
+        delete [] win;
+        win = new double[size];
+    }
     for (int i = 0; i < size; i++) {
-        window[i] = 0.54 - 0.46 * cos(2*PI*i/(size-1));
+        win[i] = 0.54 - 0.46 * cos(2*PI*i/(size-1));
     }
 }
 
 
-void CFFT::hann(int size)
+void CFFT::hann(int size, double *&win)
 {
-    if (window == NULL)
-        window = new double[size];
+    if (win == NULL)
+        win = new double[size];
+    else {
+        delete [] win;
+        win = new double[size];
+    }
+
     for (int i = 0; i < size; i++) {
-        window[i] = 0.5 * (1 - cos(2*PI*i/(size-1)));
+        win[i] = 0.5 * (1 - cos(2*PI*i/(size-1)));
     }
 }
 
-void CFFT::blackman(int size)
+void CFFT::blackman(int size, double *&win)
 {
-    if (window == NULL)
-        window = new double[size];
+    if (win == NULL)
+        win = new double[size];
+    else {
+        delete [] win;
+        win = new double[size];
+    }
+
     for (int i = 0; i < size; i++) {
-        window[i] = 0.426591 - 0.496561*cos(2*PI*i/(size-1)) +0.076848*cos(4*PI*i/(size-1));
+        win[i] = 0.426591 - 0.496561*cos(2*PI*i/(size-1)) +0.076848*cos(4*PI*i/(size-1));
     }
 }
 
-void CFFT::rect(int size)
+void CFFT::rect(int size, double *&win)
 {
-    if (window == NULL)
-        window = new double[size];
+    if (win == NULL)
+        win = new double[size];
+    else {
+        delete [] win;
+        win = new double[size];
+    }
+
     for (int i = 0; i < size; i++) {
-        window[i] = 1.0;
+        win[i] = 1.0;
+    }
+}
+
+void CFFT::setWindow(windowFunction fct, int size)
+{
+    switch(fct) {
+        case Blackman  : blackman(size, window); break;
+        case Hann      : hann(size, window); break;
+        case Hamming   : hamming(size, window); break;
+        case Rectangle : rect(size, window); break;
+        default        : rect(size, window); break;
     }
 }

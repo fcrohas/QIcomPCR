@@ -35,6 +35,7 @@ public slots:
     void slotSetDemodulator(uint demod, uint channel, uint bufferSize);
     void slotThreshold(int value);
     void slotSetCorrelationLength(int value);
+    void slotChangeWindowFunction(CFFT::windowFunction fct);
 
 private:
     QList<IDemodulator*> list;

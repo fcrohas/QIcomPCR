@@ -16,11 +16,15 @@ class CFFT : public QObject
 {
     Q_OBJECT
 public:
-    explicit CFFT(QObject *parent = 0, int size=2048);
+    explicit CFFT(QObject *parent = 0, int size=512);
     ~CFFT();
     void decode(int16_t *buffer, int size, double *xval, double *yval);
     void initBuffer(int size);
     void initFFT(int size);
+    // Available Window function for FFT
+    enum windowFunction {Rectangle=1, Blackman=2, Hann=3, Hamming=4};
+    void setWindow(windowFunction fct, int size);
+
 signals:
     void sigRawSamples(double *xval, double *yval, int size);
     
@@ -28,10 +32,10 @@ public slots:
      void slotDataBuffer(int16_t *buffer, int size);
 
 private:
-     void hann(int size);
-     void hamming(int size);
-     void blackman(int size);
-     void rect(int size);
+     void hann(int size, double *&win);
+     void hamming(int size, double *&win);
+     void blackman(int size, double *&win);
+     void rect(int size, double *&win);
      double *xval;
      double *yval;
      double *window;

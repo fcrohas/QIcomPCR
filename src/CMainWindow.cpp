@@ -132,6 +132,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     // Connect Scope type
     connect(ui->FFT, SIGNAL(clicked(bool)), this,SLOT(slotScopeChanged(bool)));
+    connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
@@ -552,7 +553,7 @@ void CMainWindow::slotDecoderChange(int value)
     // Connect Demodulator to debug windows
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
     connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    myDecoder->setAxis(0,256,0.0,30.0);
+    myDecoder->setAxis(0,512,0.0,30.0);
 }
 
 void CMainWindow::slotChannelChange(int value)
@@ -565,7 +566,7 @@ void CMainWindow::slotScopeChanged(bool value)
 {
     if (value) {
         demodulator->setScopeType(1);
-        mySpectrum->setAxis(0,256,0,50);
+        mySpectrum->setAxis(0,512,0,50);
     }
     else {
         demodulator->setScopeType(0);
@@ -626,4 +627,12 @@ void CMainWindow::slotStopPlay()
     sound  = new CPortAudio(this);
 #endif
     sound->SetDemodulator(demodulator);
+}
+
+void CMainWindow::slotWindowFunction(QString value)
+{
+    if(value == "Blackman") demodulator->slotChangeWindowFunction(CFFT::Blackman);
+    if(value == "Hann") demodulator->slotChangeWindowFunction(CFFT::Hann);
+    if(value == "Hamming") demodulator->slotChangeWindowFunction(CFFT::Hamming);
+    if(value == "Rectangle") demodulator->slotChangeWindowFunction(CFFT::Rectangle);
 }

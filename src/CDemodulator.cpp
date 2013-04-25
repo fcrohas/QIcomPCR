@@ -10,7 +10,6 @@
 CDemodulator::CDemodulator(QObject *parent) :
     QObject(parent)
 {
-    // create acarsd
     fftw = new CFFT(this,512);
     list.append(new IDemodulator()); // 0 just dummy
     list.append(new IDemodulator()); // 1 Channel
@@ -180,4 +179,9 @@ void CDemodulator::slotThreshold(int value)
 void CDemodulator::slotSetCorrelationLength(int value)
 {
     getDemodulatorFromChannel(1)->setCorrelationLength(value);
+}
+
+void CDemodulator::slotChangeWindowFunction(CFFT::windowFunction fct)
+{
+    fftw->setWindow(fct,512);
 }

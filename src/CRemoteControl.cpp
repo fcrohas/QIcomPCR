@@ -141,6 +141,8 @@ void CRemoteControl::controledRate(double *xval, double *yval, int size)
         // Restart timer
         time.restart();
     } else {
+        // Average value in time
+        // this gave a smoother waterfall
         for (int i=0; i < size; i++ ) {
             avg[i] = (yval[i] + avg[i]) / 2.0;
         }

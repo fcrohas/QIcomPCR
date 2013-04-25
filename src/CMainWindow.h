@@ -110,6 +110,8 @@ class CMainWindow : public QMainWindow
         void slotLoadFile();
         // Stop sound playing
         void slotStopPlay();
+        // Window FFT function
+        void slotWindowFunction(QString value);
 
     private:
         Ui::MainWindow *ui;
