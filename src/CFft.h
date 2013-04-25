@@ -28,8 +28,13 @@ public slots:
      void slotDataBuffer(int16_t *buffer, int size);
 
 private:
+     void hann(int size);
+     void hamming(int size);
+     void blackman(int size);
+     void rect(int size);
      double *xval;
      double *yval;
+     double *window;
 #ifdef FFTW
     fftw_complex *in1, *in2;
     fftw_complex *out1, *out2;

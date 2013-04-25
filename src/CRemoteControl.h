@@ -26,6 +26,7 @@ class CRemoteControl: public QObject
       QTcpSocket* client;
       QTime time;
       bool connected;
+      double *avg;
 
       typedef struct datastream_t {
           datastream_t() : refreshRate(0.0), enabled(false), low(0), high(0) {}

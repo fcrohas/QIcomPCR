@@ -1,7 +1,7 @@
 project(qicompcr-binary)
 
 option(WITH_OPENGL "Build OPENGL" ON)
-option(WITH_ACARS "Build with licensed ACARS Library" OFF)
+option(WITH_ACARS "Build with licensed ACARS Library" ON)
 option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
 option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
 option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
@@ -202,6 +202,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty
   C:/Progra~2/Mega-Nerd/libsndfile/include
   D:/usr/fcr/QIcomPCR/3rdparty/fftw3
+  D:/usr/fcr/QIcomPCR/3rdparty/acarsd
 )
 
 set(qicompcr_ALLINP
@@ -257,7 +258,12 @@ if(WITH_PULSEAUDIO)
 endif(WITH_PULSEAUDIO)
 
 if(WITH_ACARS)
+if(UNIX)
     set(3RDPARTY ${3RDPARTY} acarsd)
+endif(UNIX)
+if(WIN32)
+    set(3RDPARTY ${3RDPARTY} D:/usr/fcr/QIcomPCR/3rdparty/acarsd/libacarsd.lib)
+endif(WIN32)
 endif(WITH_ACARS)
 
 if(WITH_FFTW)

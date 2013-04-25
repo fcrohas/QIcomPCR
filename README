@@ -5,5 +5,19 @@ First release
 Description :
 
   This become to be a Qt interface for ICOM PCR xxxx devices. I can only test on PCR2500 without any accessories.
+  There is a Qt GUI and also a Web Interface through nodejs to control remotely the ICOM in realtime.
+  
+  Actually the Web Interface and QT Interface are just proof of concept, in the Web interface i miss the sound feedback.
 
+Dependancies :
+
+	* For sound system Pulseaudio or PortAudio
+	* If you want Acars, you can install libacarsd
+	* If FFTW3 is provided it will be used
+  
+How to build :
+
+	Using CMAKE for the Qt build part
+
+	
 Contact me if you want to help fcrohas@gmail.com

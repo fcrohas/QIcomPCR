@@ -61,7 +61,7 @@ public:
             r.setTop( yMap.transform( i ) );
             painter->fillRect( r, c );
 
-            c = c.dark( 110 );
+            c = c.dark( 25 );
         }
     }
 };

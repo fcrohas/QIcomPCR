@@ -3,6 +3,7 @@
 #include <iostream>
 
 CRemoteControl::CRemoteControl(QObject* parent): QObject(parent)
+  , avg(NULL)
 {
   connect(&server, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
 
@@ -121,17 +122,27 @@ void CRemoteControl::sendData(QString value)
 
 void CRemoteControl::controledRate(double *xval, double *yval, int size)
 {
+    if (avg == NULL) {
+        avg = new double[size];
+        for (int i=0; i < size; i++ ) {
+            avg[i] = 0.0;
+        }
+    }
 
     if ((datastream.enabled) && (time.elapsed()>datastream.refreshRate)) {
         // Maybe normalize data between datastream_t.low and high
         QString data;
         for (int i=0; i< size; i++) {
-            data += QString("%1").arg((int)yval[i], 2, 16, QChar('0'));
+            data += QString("%1").arg((int)avg[i], 2, 16, QChar('0'));
         }
         data = data.prepend("WT%1").arg(size, 4, 16, QChar('0'));
         //qDebug() << "Scope " << data;
         sendData(data);
         // Restart timer
         time.restart();
+    } else {
+        for (int i=0; i < size; i++ ) {
+            avg[i] = (yval[i] + avg[i]) / 2.0;
+        }
     }
 }
