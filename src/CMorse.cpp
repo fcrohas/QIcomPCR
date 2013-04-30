@@ -23,7 +23,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     audioData[0] = new double[getBufferSize()];
 
     // Calculate correlation length
-    correlationLength = SAMPLERATE/201; // Default creation is 6Khz
+    correlationLength = 50; //SAMPLERATE/201; // Default creation is 6Khz
 
     double freq = 0.0;
     // Generate Correlation for this frequency
@@ -83,6 +83,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         yval[(size-(int)correlationLength)+i] = 0.0;
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
+    // Do low pass filtering
     // Now calculation of timing
     agc = peak / 2.0; // average value per buffer size
     if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
@@ -174,9 +175,9 @@ void CMorse::slotFrequency(double value)
 {
     // Calculate frequency value from selected FFT bin
     // only half samplerate is available and FFT is set to 128 per channel
-    frequency = value / 2 * SAMPLERATE / 256; // SAMPLERATE / 512 and displaying graph is 0 to 128
+    frequency = (value-1) * SAMPLERATE / 512; // SAMPLERATE / 512 and displaying graph is 0 to 128
     // New correlation length as frequency selected has changed
-    correlationLength = 50; //SAMPLERATE/201;
+    correlationLength = 50;
     markdash = 0.0;
     // Generate Correlation for this frequency
     double freq = 0.0;

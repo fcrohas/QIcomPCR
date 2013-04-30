@@ -34,13 +34,14 @@ bool CSoundFile::Load(QString &fileName)
         channels = sfinfo.channels;
         samplerate = sfinfo.samplerate;
         frames = sfinfo.frames;
+        qDebug() << "Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames;
         int oversample_factor = SAMPLERATE / samplerate;
         /* we can only cope with integer submultiples */
         if(SAMPLERATE != oversample_factor*samplerate)
             qDebug() << "unsupported sample rate in input file";
 
         // Init buffer size to read
-        inputbuffer = new int16_t[frames];
+        inputbuffer = new int16_t[BUFFER_SIZE];
         memset(inputbuffer,0,BUFFER_SIZE);
         loaded=true;
     } else
@@ -52,27 +53,39 @@ bool CSoundFile::Load(QString &fileName)
 bool CSoundFile::Read(int16_t *data, int offset)
 {
     sf_count_t c;
-    c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
-    if (c!=BUFFER_SIZE) {
+    c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE/channels);
+    if (c!=BUFFER_SIZE/channels) {
         /* rewind */
         sf_seek(pFile, 0, SEEK_SET);
         // At end of file send an empty buffer before next
-        c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE);
+        c = sf_readf_short(pFile, inputbuffer, BUFFER_SIZE/channels);
         // End of read
         loop = true;
     }
     size_t oversample_factor = SAMPLERATE / samplerate;
-    for (size_t i = 0; i < (BUFFER_SIZE)/oversample_factor; i++)
+    if(channels==2)
     {
-        for (size_t j = 0; j < oversample_factor; j++)
+        for (size_t i = 0; i < BUFFER_SIZE/oversample_factor; i++)
         {
-            data[2*i+j] = inputbuffer[2*i];
-            if (channels == 2)
-                data[2*i+1+j] = inputbuffer[2*i+1];
-            else
-                data[2*i+1+j] = inputbuffer[i];
+            for (size_t j = 0; j < oversample_factor; j++)
+            {
+                data[i+j] = inputbuffer[i];
+                data[i+1+j] = inputbuffer[i+1];
+            }
         }
     }
+    else
+    {
+        for (size_t i = 0; i < BUFFER_SIZE/oversample_factor; i++)
+        {
+            for (size_t j = 0; j < oversample_factor; j++)
+            {
+                data[i+j] = inputbuffer[i];
+                data[i+1+j] = inputbuffer[i];
+            }
+        }
+    }
+
     this->DecodeBuffer(data,BUFFER_SIZE);
     msleep(50); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
     return true;

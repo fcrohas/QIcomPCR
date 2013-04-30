@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <sndfile.h>
 #include "CDemodulator.h"
 
 class ISound : public QThread
@@ -29,7 +30,8 @@ public slots:
 
 private:
     CDemodulator *demod;
-
+    SNDFILE*	pFile;
+    QString data;
 };
 
 #endif // ISOUND_H

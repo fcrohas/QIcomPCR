@@ -39,6 +39,7 @@ CMainWindow *theMainWindow = 0;
 CMainWindow::CMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
+    ,sound(NULL)
 {
     theMainWindow = this;
     ui->setupUi(this);
@@ -186,7 +187,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
 #endif
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
-    connect(ui->pushStopPlay, SIGNAL(clicked()), this, SLOT(slotStopPlay()));
+    connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
+    connect(ui->pushRecord, SIGNAL(clicked(bool)), this, SLOT(slotRecordAudio(bool)));
 }
 
 CMainWindow::~CMainWindow()
@@ -509,14 +511,27 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound(bool value)
 {
-    demodulator->initBuffer(32768);
 #ifdef WITH_SNDFILE || WITH_PORTAUDIO || WITH_PULSEAUDIO
     if (value == true) {
+        if (sound == NULL) {
+#ifdef WITH_PULSEAUDIO
+            sound  = new CPulseSound(this);
+#endif
+#ifdef WITH_PORTAUDIO
+            sound  = new CPortAudio(this);
+#endif
+        }
+        sound->SetDemodulator(demodulator);
+
+        demodulator->initBuffer(32768);
+        sound->setRunning(true);
         sound->start();
     }
     else {
         sound->setRunning(false);
         sound->terminate();
+        delete sound;
+        sound = NULL;
     }
 #endif
 }
@@ -614,19 +629,23 @@ void CMainWindow::slotLoadFile()
     slotSwitchSound(true);
 }
 
-void CMainWindow::slotStopPlay()
+void CMainWindow::slotStopPlay(bool value)
 {
-    sound->setRunning(false);
-    sleep(5);
-    sound->terminate();
-    delete sound;
+    if (value == true) {
 #ifdef WITH_PULSEAUDIO
-    sound  = new CPulseSound(this);
+        sound  = new CPulseSound(this);
 #endif
 #ifdef WITH_PORTAUDIO
-    sound  = new CPortAudio(this);
+        sound  = new CPortAudio(this);
 #endif
-    sound->SetDemodulator(demodulator);
+        sound->SetDemodulator(demodulator);
+    } else {
+        sound->setRunning(false);
+        sleep(5);
+        sound->terminate();
+        delete sound;
+        sound = NULL;
+    }
 }
 
 void CMainWindow::slotWindowFunction(QString value)
@@ -635,4 +654,22 @@ void CMainWindow::slotWindowFunction(QString value)
     if(value == "Hann") demodulator->slotChangeWindowFunction(CFFT::Hann);
     if(value == "Hamming") demodulator->slotChangeWindowFunction(CFFT::Hamming);
     if(value == "Rectangle") demodulator->slotChangeWindowFunction(CFFT::Rectangle);
+}
+
+void CMainWindow::slotRecordAudio(bool value)
+{
+    if (sound != NULL)  {
+        if (value == true) {
+            // File dialog chooser
+            QString fileName = QFileDialog::getSaveFileName(this,
+                 tr("Record Sound"), QDir::homePath(), tr("Sound Files (*.wav)"));
+            if (!fileName.isEmpty()) {
+                fileName = fileName.append(".wav");
+                sound->Record(fileName, true);
+            }
+        } else {
+            QString fileName("");
+            sound->Record(fileName, false);
+        }
+    }
 }

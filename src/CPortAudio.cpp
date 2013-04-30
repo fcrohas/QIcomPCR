@@ -4,12 +4,12 @@ extern "C" {
     static int recordCallback(const void* inputBuffer, void* outputBuffer, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
     {
         /* Cast data passed through stream to our structure. */
-        //int16_t *out = (int16_t*)outputBuffer;
-        //int16_t *in = (int16_t*)inputBuffer;
         CPortAudio *This = (CPortAudio *) userData;
         (void) outputBuffer;		/* Prevent unused variable warning. */
-        //out = in;
-        This->DecodeBuffer((int16_t*)inputBuffer, BUFFER_SIZE);
+        long bytes = frameCount*2; // 256 Frames * 2 channels
+        long avail = PaUtil_GetRingBufferWriteAvailable(&This->ringBuffer);
+        PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
+        //This->DecodeBuffer((int16_t*)inputBuffer, frameCount);
         return paContinue;
     }
 }
@@ -17,6 +17,7 @@ extern "C" {
 
 CPortAudio::CPortAudio(QObject *parent) :
     ISound(parent)
+  ,ringBufferData(NULL)
 {
     running = true;
     int error = Pa_Initialize();
@@ -36,14 +37,16 @@ CPortAudio::~CPortAudio()
         if( error != paNoError )
            qDebug() <<   QString("PortAudio Pa_Terminate error: %1\n").arg(Pa_GetErrorText( error ) );
     }
+    if (ringBufferData)
+        delete [] ringBufferData;
 }
 
 void CPortAudio::Record(QString &filename, bool start)
 {
-
+    ISound::Record(filename, start);
 }
 
-void CPortAudio::run()
+void CPortAudio::Initialize()
 {
     int error;
     qDebug() << "Portaudio Thread run()";
@@ -61,12 +64,35 @@ void CPortAudio::run()
     error = Pa_IsFormatSupported( NULL, &outputParameters, SAMPLERATE );
     if( error != paNoError )
         qDebug() <<   QString("PortAudio Pa_IsFormatSupported outputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
-    error = Pa_OpenStream(&stream, &inputParameters, NULL, SAMPLERATE, BUFFER_SIZE, paNoFlag, recordCallback, (void *) this);
+    error = Pa_OpenStream(&stream, &inputParameters, NULL, SAMPLERATE, FRAME_SIZE, paNoFlag, recordCallback, (void *) this);
     if( error != paNoError )
        qDebug() <<   QString("PortAudio Pa_OpenStream error: %1\n").arg(Pa_GetErrorText( error ) );
+
+    if (ringBufferData)
+        delete[] ringBufferData;
+    ringBufferData = new int16_t[524288];
+    PaUtil_InitializeRingBuffer(&ringBuffer, sizeof(int16_t) , 524288, ringBufferData);
+
     error = Pa_StartStream(stream);
     if( error != paNoError )
        qDebug() <<   QString("PortAudio Pa_StartStream error: %1\n").arg(Pa_GetErrorText( error ) );
+}
+
+void CPortAudio::run()
+{
+    Initialize();
+    // Work on RingBuffer until end
+    int16_t *data = new int16_t[BUFFER_SIZE];
+    memset(data,0,BUFFER_SIZE);
+    while(running) {
+        while(PaUtil_GetRingBufferReadAvailable(&ringBuffer)<BUFFER_SIZE) { Pa_Sleep(10); }
+        int readCount = PaUtil_ReadRingBuffer(&ringBuffer,data,BUFFER_SIZE);
+        //qDebug() << "Read byte available = " << PaUtil_GetRingBufferReadAvailable(&ringBuffer);
+        DecodeBuffer(data,BUFFER_SIZE);
+        //memset(data,0,BUFFER_SIZE);
+    }
+    delete [] data;
+    terminate();
 }
 
 void CPortAudio::terminate()

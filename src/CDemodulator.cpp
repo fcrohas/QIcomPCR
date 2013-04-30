@@ -39,11 +39,12 @@ CDemodulator::~CDemodulator()
 
 void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
 {
-    //qDebug() << "size=" << size << " bufferBlock=" << bufferBlock;
+
     int channel=0, bufferSize=0, channelSize=size/2;
     // fill complex
     for (int i=0, j=0; i < size; i+=2,j++) {
         // Data buffer left
+        //qDebug() << "size=" << size << " bufferBlock=" << bufferBlock << " channelSize=" << 127.0 + (buffer[i]/32768.0)*127.0;
         //qDebug() << "copy channel position " << i << " to buffer position " << j + bufferBlock * channelSize ;
         data8bitsl[j + bufferBlock * channelSize ]  = 127.0 + (buffer[i]/32768.0)*127.0; // acars buffer on 8 bits for first channel
         data16bitsl[j + bufferBlock * channelSize ] = buffer[i]; // acars buffer on 8 bits for first channel
@@ -82,12 +83,12 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
                 //qDebug() << "Demodulator(" << i << ") channel=" << channel << " dataSize=" << demodulator->getDataSize() << " Buffersize=" << bufferSize;//bufferBlock * channelSize + channelSize;
                 if (demodulator->getDataSize() !=0 )
                 {
-                    for (int i=0; i < bufferSize ; i++) {
-                        xval[i] = i;
+                    for (int j=0; j < bufferSize ; j++) {
+                        xval[j] = j;
                         if (channel == 1)
-                            yval[i] = data8bitsl[i];
+                            yval[j] = data8bitsl[j];
                         if (channel == 2)
-                            yval[i] = data8bitsr[i];
+                            yval[j] = data8bitsr[j];
                     }
                     emit sigRawSamples(xval, yval, bufferSize);
                 }

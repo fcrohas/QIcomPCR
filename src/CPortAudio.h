@@ -4,12 +4,13 @@
 #include "ISound.h"
 #ifdef WITH_PORTAUDIO
 #include <portaudio.h>
+#include <pa_ringbuffer.h>
 #endif
 
 
 #define SAMPLERATE 22050
-#define BUFFER_SIZE 512
-
+#define FRAME_SIZE 256
+#define BUFFER_SIZE FRAME_SIZE*2
 
 extern "C" {
     typedef struct{
@@ -33,6 +34,7 @@ public:
     void DecodeBuffer(int16_t *buffer, int size);
     QHash<QString, int> getDeviceList();
     void Record(QString &filename, bool start);
+    PaUtilRingBuffer ringBuffer;
 
 signals:
     
@@ -51,6 +53,8 @@ private:
     QHash<QString,int> deviceList;
     void selectInputDevice(QString device);
     void selectOutputDevice(QString device);
+    void Initialize();
+    int16_t *ringBufferData;
 };
 
 #endif // CPORTAUDIO_H

@@ -109,7 +109,9 @@ class CMainWindow : public QMainWindow
         // Load sound file
         void slotLoadFile();
         // Stop sound playing
-        void slotStopPlay();
+        void slotStopPlay(bool value);
+        // Record audio
+        void slotRecordAudio(bool value);
         // Window FFT function
         void slotWindowFunction(QString value);
 

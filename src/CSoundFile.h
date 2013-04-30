@@ -3,7 +3,8 @@
 
 #include "ISound.h"
 #include <sndfile.h>
-#define BUFFER_SIZE 512
+#define FRAME_SIZE 256
+#define BUFFER_SIZE FRAME_SIZE*2
 
 class CSoundFile : public ISound
 {

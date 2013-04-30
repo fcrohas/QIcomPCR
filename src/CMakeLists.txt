@@ -30,7 +30,7 @@ if(WITH_PULSEAUDIO)
 endif(WITH_PULSEAUDIO)
 
 if(WITH_PORTAUDIO)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CPortAudio.cpp)
+    set(qicompcr_SRCS ${qicompcr_SRCS} CPortAudio.cpp ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/pa_ringbuffer.c)
     add_definitions(-DWITH_PORTAUDIO)
 endif(WITH_PORTAUDIO)
 
@@ -200,6 +200,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc/generic
   ${CMAKE_SOURCE_DIR}/3rdparty/dspfilters
   ${CMAKE_SOURCE_DIR}/3rdparty
+  ${CMAKE_SOURCE_DIR}/3rdparty/portaudio
   C:/Progra~2/Mega-Nerd/libsndfile/include
   D:/usr/fcr/QIcomPCR/3rdparty/fftw3
   D:/usr/fcr/QIcomPCR/3rdparty/acarsd

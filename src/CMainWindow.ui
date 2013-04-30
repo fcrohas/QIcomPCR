@@ -92,9 +92,22 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushRecord">
+            <property name="text">
+             <string>Record</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushStopPlay">
             <property name="text">
-             <string>Stop Play</string>
+             <string>Play</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -813,7 +826,7 @@
      <x>0</x>
      <y>0</y>
      <width>1196</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
