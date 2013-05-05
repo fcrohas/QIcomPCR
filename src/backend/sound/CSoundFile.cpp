@@ -45,9 +45,8 @@ bool CSoundFile::Load(QString &fileName)
         channels = sfinfo.channels;
         samplerate = sfinfo.samplerate;
         frames = sfinfo.frames;
-        qDebug() << "Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames;
         double oversample_factor = SAMPLERATE / samplerate;
-
+        qDebug() << "Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames << " oversample ratio " << ceil(oversample_factor);
         // Init sample rate converter
         int error = 0;
         converter =  src_new( SRC_SINC_BEST_QUALITY , channels, &error);
@@ -67,10 +66,10 @@ bool CSoundFile::Load(QString &fileName)
         dataconv.data_out = outputbufferf;
         dataconv.src_ratio = oversample_factor;
         if (channels == 1) {
-            dataconv.input_frames = BUFFER_SIZE;
+            dataconv.input_frames = BUFFER_SIZE/ceil(oversample_factor);
             dataconv.output_frames = BUFFER_SIZE;
         } else {
-            dataconv.input_frames = FRAME_SIZE;
+            dataconv.input_frames = FRAME_SIZE/ceil(oversample_factor);
             dataconv.output_frames = FRAME_SIZE;
         }
         dataconv.end_of_input = 0;
@@ -120,12 +119,12 @@ bool CSoundFile::Read(int16_t *data, int offset)
 bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
 {
         sf_count_t c;
-        c = sf_readf_float(pFile, inputbufferf, BUFFER_SIZE/channels);
-        if (c!=BUFFER_SIZE/channels) {
+        c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/ratio)/channels);
+        if (c!=(BUFFER_SIZE/ratio)/channels) {
             /* rewind */
             sf_seek(pFile, 0, SEEK_SET);
             // At end of file send an empty buffer before next
-            c = sf_readf_float(pFile, inputbufferf, BUFFER_SIZE/channels);
+            c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/ratio)/channels);
             // End of read
             loop = true;
         }
