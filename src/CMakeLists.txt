@@ -6,6 +6,7 @@ option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
 option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
 option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
 option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
+option(WITH_SAMPLERATE "Build with resample capabilities support" OFF)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -20,23 +21,26 @@ if(WIN32)
 endif(WIN32)
 
 if(UNIX)
-    set(qicompcr_SRCS ${qicompcr_SRCS} ctype.c)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/decoder/ctype.c)
 endif(UNIX)
 
+if(WITH_SAMPLERATE)
+    add_definitions(-DWITH_SAMPLERATE)
+endif(WITH_SAMPLERATE)
 
 if(WITH_PULSEAUDIO)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CPulseSound.cpp)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPulseSound.cpp)
     add_definitions(-DWITH_PULSEAUDIO)
 endif(WITH_PULSEAUDIO)
 
 if(WITH_PORTAUDIO)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CPortAudio.cpp ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/pa_ringbuffer.c)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.cpp ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/pa_ringbuffer.c)
     add_definitions(-DWITH_PORTAUDIO)
 endif(WITH_PORTAUDIO)
 
 
 if(WITH_ACARS)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CAcars.cpp)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/decoder/CAcars.cpp)
     add_definitions(-DWITH_ACARS)
 endif(WITH_ACARS)
 
@@ -45,7 +49,7 @@ if(WITH_FFTW)
 endif(WITH_FFTW)
 
 if(WITH_SNDFILE)
-    set(qicompcr_SRCS ${qicompcr_SRCS} CSoundFile.cpp)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundFile.cpp)
     add_definitions(-DWITH_SNDFILE)
 endif(WITH_SNDFILE)
 
@@ -53,24 +57,24 @@ endif(WITH_SNDFILE)
 
 set(qicompcr_SRCS
     main.cpp
-    CAcarsGPL.cpp
     CApplication.cpp
-    CCommand.cpp
-    CDebugWindow.cpp
-    CDemodulator.cpp
-    CDevicePCR2500.cpp
-    CFft.cpp
-    CLcdWidget.cpp
-    CMainWindow.cpp
-    CMorse.cpp
-    CPogsag.cpp
-    CRemoteControl.cpp
-    CSound.cpp
-    CSpectrumWidget.cpp
-    CStatusWidget.cpp
-    IDevice.cpp
-    IDemodulator.cpp
-    ISound.cpp
+    ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.cpp
+    ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.cpp
+    ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/IDevice.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/ISound.cpp
     ${qicompcr_SRCS}
 )
 
@@ -79,49 +83,49 @@ if (WIN32)
 endif (WIN32)
 
 if(WITH_PORTAUDIO)
-    set(qicompcr_HDRS ${qicompcr_HDRS} CPortAudio.h)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.h)
 endif(WITH_PORTAUDIO)
 
 
 if(WITH_PULSEAUDIO)
-    set(qicompcr_HDRS ${qicompcr_HDRS} CPulseSound.h)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPulseSound.h)
 endif(WITH_PULSEAUDIO)
 
 if(WITH_ACARS)
-    set(qicompcr_HDRS ${qicompcr_HDRS} CAcars.h)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/decoder/CAcars.h)
 endif(WITH_ACARS)
 
 if(WITH_SNDFILE)
-    set(qicompcr_HDRS ${qicompcr_HDRS} CSoundFile.h)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundFile.h)
 endif(WITH_SNDFILE)
 
 
 set(qicompcr_HDRS
-    CAcarsGPL.h
+    ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.h
+    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.h
+    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.h
+    ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.h
+    ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.h
+    ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.h
+    ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.h
+    ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.h
+    ${CMAKE_SOURCE_DIR}/src/backend/IDevice.h
+    ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.h
+    ${CMAKE_SOURCE_DIR}/src/backend/ISound.h
     CApplication.h
-    CCommand.h
-    CDebugWindow.h
-    CDemodulator.h
-    CDevicePCR2500.h
-    CFft.h
-    CLcdWidget.h
-    CMainWindow.h
-    CMorse.h
-    CPogsag.h
-    CRemoteControl.h
-    CSound.h
-    CSpectrumWidget.h
-    CStatusWidget.h
     version.h
-    IDevice.h
-    IDemodulator.h
-    ISound.h
     ${qicompcr_HDRS}
 )
 
 
 SET(qicompcr_UIS
-    CMainWindow.ui
+    ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.ui
 )
 
 SET(qicompcr_RCS
@@ -181,6 +185,13 @@ if(UNIX)
 endif(UNIX)
 
 include_directories(
+  ${CMAKE_SOURCE_DIR}/src/backend
+  ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500
+  ${CMAKE_SOURCE_DIR}/src/backend/sound
+  ${CMAKE_SOURCE_DIR}/src/backend/demodulator
+  ${CMAKE_SOURCE_DIR}/src/gui
+  ${CMAKE_SOURCE_DIR}/src/gui/widget
+  ${CMAKE_SOURCE_DIR}/src/decoder
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${QT_QTXML_INCLUDE_DIR}
@@ -201,9 +212,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/dspfilters
   ${CMAKE_SOURCE_DIR}/3rdparty
   ${CMAKE_SOURCE_DIR}/3rdparty/portaudio
-  C:/Progra~2/Mega-Nerd/libsndfile/include
-  D:/usr/fcr/QIcomPCR/3rdparty/fftw3
-  D:/usr/fcr/QIcomPCR/3rdparty/acarsd
+  ${CMAKE_SOURCE_DIR}/3rdparty/libsndfile/include
+  ${CMAKE_SOURCE_DIR}/3rdparty/fftw3
+  ${CMAKE_SOURCE_DIR}/3rdparty/acarsd
 )
 
 set(qicompcr_ALLINP
@@ -263,7 +274,7 @@ if(UNIX)
     set(3RDPARTY ${3RDPARTY} acarsd)
 endif(UNIX)
 if(WIN32)
-    set(3RDPARTY ${3RDPARTY} D:/usr/fcr/QIcomPCR/3rdparty/acarsd/libacarsd.lib)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/acarsd/libacarsd.lib)
 endif(WIN32)
 endif(WITH_ACARS)
 
@@ -272,7 +283,7 @@ if(UNIX)
     set(3RDPARTY ${3RDPARTY} fftw3)
 endif(UNIX)
 if(WIN32)
-    set(3RDPARTY ${3RDPARTY} D:/usr/fcr/QIcomPCR/3rdparty/fftw3/libfftw3-3.lib)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/fftw3/libfftw3-3.lib)
 endif(WIN32)
 endif(WITH_FFTW)
 
@@ -285,9 +296,19 @@ if(UNIX)
     set(3RDPARTY ${3RDPARTY} sndfile)
 endif(UNIX)
 if(WIN32)
-    set(3RDPARTY ${3RDPARTY} C:/Progra~2/Mega-Nerd/libsndfile/lib/libsndfile-1.lib)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/libsndfile/lib/libsndfile-1.lib)
 endif(WIN32)
 endif(WITH_SNDFILE)
+
+if(WITH_SAMPLERATE)
+if(UNIX)
+    set(3RDPARTY ${3RDPARTY} samplerate)
+endif(UNIX)
+if(WIN32)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/lib/libsamplerate.lib)
+endif(WIN32)
+endif(WITH_SAMPLERATE)
+
 
 target_link_libraries(
       ${PROGNAME}

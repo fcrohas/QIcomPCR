@@ -50,16 +50,6 @@ static void usage(std::ostream &s)
 }
 
 
-static const QString text = QObject::tr(
-        "There is a problem with your Proj4 library and localization. The key issue is "
-        "that the floating point definition in your localization is different from what "
-        "Proj4 uses for it's correction tables ('1.2' vs '1,2'). That might cause an "
-        "offset when using raster maps. Vector maps are not affected, as they use a "
-        "projection that works without a textual table. "
-
-        "");
-
-
 static void myMessageOutput(QtMsgType type, const char *msg)
 {
     switch (type)
@@ -159,17 +149,14 @@ int main(int argc, char ** argv)
 #endif
 
 #ifdef WIN32
-	// setup environment variables for GDAL/Proj4
+    // setup environment variables
 	QString apppath = QCoreApplication::applicationDirPath();
 	apppath = apppath.replace("/", "\\");
 
 	QString env_path = qgetenv("PATH");
-	env_path += QString(";%1;%1\\proj\\apps;%1\\gdal\\apps;%1\\curl;").arg(apppath);
+    env_path += QString(";%1;").arg(apppath);
 	qputenv("PATH", env_path.toUtf8());
 
-	qputenv("GDAL_DATA", QString("%1\\gdal-data").arg(apppath).toUtf8());
-	qputenv("GDAL_DRIVER_PATH", QString("%1\\gdal\\plugins;").arg(apppath).toUtf8());	
-	qputenv("PROJ_LIB", QString("%1\\proj\\SHARE").arg(apppath).toUtf8());
 #endif
 
 

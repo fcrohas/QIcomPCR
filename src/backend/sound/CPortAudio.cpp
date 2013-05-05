@@ -5,12 +5,32 @@ extern "C" {
     {
         /* Cast data passed through stream to our structure. */
         CPortAudio *This = (CPortAudio *) userData;
-        (void) outputBuffer;		/* Prevent unused variable warning. */
+        //(void) outputBuffer;		/* Prevent unused variable warning. */
         long bytes = frameCount*2; // 256 Frames * 2 channels
         long avail = PaUtil_GetRingBufferWriteAvailable(&This->ringBuffer);
         PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
         //This->DecodeBuffer((int16_t*)inputBuffer, frameCount);
+        /*
+        int16_t *out = (int16_t*)outputBuffer;
+        const int16_t *in = (const int16_t*)inputBuffer;
+        //memset(out, 0, bytes);
+        for (int i=0 ; i < frameCount; i++) {
+            *out++ = *in++;
+            *out++ = *in++;
+        }*/
         return paContinue;
+    }
+
+    static int playbackCallback(const void* inputBuffer, void* outputBuffer, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
+    {
+        CPortAudio *This = (CPortAudio *) userData;
+        int16_t *out = (int16_t*)outputBuffer;
+        long bytes = frameCount*2;
+        memset(out, 0, bytes);
+        (void) inputBuffer;		/* Prevent unused variable warning. */
+        int avail = PaUtil_GetRingBufferReadAvailable(&This->ringBuffer);
+        PaUtil_ReadRingBuffer(&This->ringBuffer,out,(avail<bytes)?avail:bytes);
+        This->DecodeBuffer((int16_t*)out, bytes);
     }
 }
 
@@ -52,7 +72,7 @@ void CPortAudio::Initialize()
     qDebug() << "Portaudio Thread run()";
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paInt16;
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultHighOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
     inputParameters.channelCount = 2;
     inputParameters.sampleFormat = paInt16;
@@ -65,9 +85,18 @@ void CPortAudio::Initialize()
     if( error != paNoError )
         qDebug() <<   QString("PortAudio Pa_IsFormatSupported outputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
     error = Pa_OpenStream(&stream, &inputParameters, NULL, SAMPLERATE, FRAME_SIZE, paNoFlag, recordCallback, (void *) this);
+    if( error != paNoError ) {
+        qDebug() <<   QString("PortAudio Pa_OpenStream input & output error: %1\n").arg(Pa_GetErrorText( error ) );
+        // Open for record only
+        error = Pa_OpenStream(&stream, &inputParameters, NULL, SAMPLERATE, FRAME_SIZE, paNoFlag, recordCallback, (void *) this);
+        if( error != paNoError )
+            qDebug() <<   QString("PortAudio Pa_OpenStream input error: %1\n").arg(Pa_GetErrorText( error ) );
+    }
+/*
+    error = Pa_OpenStream(&stream, NULL, &outputParameters, SAMPLERATE, FRAME_SIZE, paNoFlag, playbackCallback, (void *) this);
     if( error != paNoError )
-       qDebug() <<   QString("PortAudio Pa_OpenStream error: %1\n").arg(Pa_GetErrorText( error ) );
-
+       qDebug() <<   QString("PortAudio Pa_OpenStream output error: %1\n").arg(Pa_GetErrorText( error ) );
+*/
     if (ringBufferData)
         delete[] ringBufferData;
     ringBufferData = new int16_t[524288];

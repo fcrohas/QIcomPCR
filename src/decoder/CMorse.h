@@ -9,8 +9,6 @@
 
 // x is sample index and f frequency
 #define SAMPLERATE 22050
-#define FREQ_SPACE 2500
-#define FREQ_MARK  500
 
 struct CW_TABLE {
         char chr;       /* The character(s) represented */
@@ -104,6 +102,7 @@ signals:
     void dumpData(double*,double*,int);
 public slots:
     void slotFrequency(double value);
+    void slotBandwidth(int value);
 
 private:
     // Goertzel filter
@@ -121,6 +120,8 @@ private:
     double *yval;
     // Correlation result
     double *corr;
+    // Correlation average
+    double *avgcorr;
     // Correlation length
     int correlationLength;
     //Channel select
@@ -129,6 +130,7 @@ private:
     double frequency;
     // Filters
     Dsp::Filter *fmorse;
+    Dsp::Filter *flowpass;
     // Audio channel buffer
     double* audioData[1];
     // Hash table for morse code
@@ -152,6 +154,7 @@ private:
     // Threashold value
     double agc;
     double agclimit;
+    int bandwidth;
 };
 
 #endif // CMORSE_H

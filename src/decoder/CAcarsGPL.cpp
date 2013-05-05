@@ -232,7 +232,7 @@ int CAcarsGPL::getmesg(unsigned char r, msg_t * msg, int ch)
     struct mstat_s *st;
 
     st = &(mstat[ch]);
-    qDebug() << "State " << st->state;
+    //qDebug() << "State " << st->state;
 
     do {
         switch (st->state) {
@@ -334,15 +334,16 @@ void CAcarsGPL::print_mesg(msg_t * msg)
     struct tm *tmp;
     char pos[128];
 
-    emit sendData(QString("ACARS mode: %1").arg(msg->mode));
-    qDebug() << QString("ACARS mode: %1").arg(msg->mode);
-    qDebug() << QString(" Aircraft reg: %1").arg( (int)msg->addr);
-    qDebug() << QString("Message label: %1").arg((int)msg->label);
-    qDebug() << QString(" Block id: %1").arg(msg->bid);
-    qDebug() << QString(" Msg. no: %1").arg((int)msg->no);
-    qDebug() << QString("Flight id: %1").arg((int)msg->fid);
-    emit sendData(QString("Message content:-\n%1").arg(msg->txt));
-    qDebug() << QString("Message content:-\n%1").arg(msg->txt);
+    emit sendData(QString("ACARS mode: %1\r\n").arg(msg->mode));
+    emit sendData(QString(" Aircraft reg: %1\r\n").arg( QString((char*)msg->addr)));
+    emit sendData(QString("Message label: %1\r\n").arg(QString((char*)msg->label)));
+    emit sendData(QString(" Block id: %1\r\n").arg(msg->bid));
+    emit sendData(QString(" Msg. no: %1\r\n").arg(QString((char*)msg->no)));
+    emit sendData(QString("Flight id: %1\r\n").arg(QString((char*)msg->fid)));
+    emit sendData(QString("Message content:-\n%1\r\n").arg(QString((char*)msg->txt)));
+    if (posconv(msg->txt, msg->label, pos)==0)
+        emit sendData(QString("APRS Position: %1\r\n").arg(QString((char*)pos)));
+    //qDebug() << QString("Message content:-\n%1\r\n").arg(msg->txt);
 
     //if (posconv(msg->txt, msg->label, pos)==0)
     //    qDebug() << QString("APRS : Addr:%1 Fid:%2 Lbl:%3 pos:%4\n").arg(msg->addr).arg(msg->fid).arg(msg->label).arg(pos);
@@ -409,4 +410,192 @@ uint CAcarsGPL::getBufferSize()
 void CAcarsGPL::slotFrequency(double value)
 {
     qDebug() << "Frequency " << value / 2.0 * 22050 / 256.0; // SAMPLERATE / 512 and displaying graph is 0 to 128
+}
+
+/* convert ACARS position reports to APRS position */
+void CAcarsGPL::toaprs(int la, char lac, int ln, char lnc, int prec, char *out)
+{
+    int lad, lnd;
+    float lam, lnm;
+
+    lad = la / 10000;
+    lnd = ln / 10000;
+    lam = (float) (la - (lad * 10000)) * 60.0 / 10000.0;
+    lnm = (float) (ln - (lnd * 10000)) * 60.0 / 10000.0;
+
+    switch (prec) {
+        case 0:
+                sprintf(out, "%02d%02.0f.  %c/%03d%02.0f.  %c^", lad, lam, lac, lnd, lnm, lnc);
+                break;
+        case 1:
+                sprintf(out, "%02d%04.1f %c/%03d%04.1f %c^", lad, lam, lac, lnd, lnm, lnc);
+                break;
+        case 2:
+        default:
+                sprintf(out, "%02d%05.2f%c/%03d%05.2f%c^", lad, lam, lac, lnd, lnm, lnc);
+                break;
+    }
+}
+
+
+int CAcarsGPL::posconv(char *txt, unsigned char *label, char *pos)
+{
+    char lac, lnc;
+    int la, ln;
+    char las[7], lns[7];
+    int n;
+    char *p;
+
+/*try different heuristics */
+
+    n = sscanf(txt, "#M1BPOS%c%05d%c%063d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+    n = sscanf(txt, "#M1AAEP%c%06d%c%07d", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    toaprs(la, lac, ln, lnc, 2, pos);
+    return 0;;
+    }
+
+    if (strncmp(txt, "#M1B", 4) == 0) {
+    if ((p = strstr(txt, "/FPO")) != NULL) {
+        n = sscanf(p, "/FPO%c%05d%c%06d", &lac, &la, &lnc, &ln);
+        if (n == 4 && (lac == 'N' || lac == 'S')
+        && (lnc == 'E' || lnc == 'W')) {
+        la *= 10;
+        ln *= 10;
+        toaprs(la, lac, ln, lnc, 1, pos);
+        return 0;;
+        }
+    }
+    if ((p = strstr(txt, "/PS")) != NULL) {
+        n = sscanf(p, "/PS%c%05d%c%06d", &lac, &la, &lnc, &ln);
+        if (n == 4 && (lac == 'N' || lac == 'S')
+        && (lnc == 'E' || lnc == 'W')) {
+        la *= 10;
+        ln *= 10;
+        toaprs(la, lac, ln, lnc, 1, pos);
+        return 0;;
+        }
+    }
+    }
+
+    n = sscanf(txt, "FST01%*8s%c%06d%c%07d", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    toaprs(la, lac, ln, lnc, 2, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "(2%c%5c%c%6c", &lac, las, &lnc, lns);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    las[5] = 0;
+    lns[6] = 0;
+    la = 10 * atoi(las);
+    ln = 10 * atoi(lns);
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "(:2%c%5c%c%6c", &lac, las, &lnc, lns);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    las[5] = 0;
+    lns[6] = 0;
+    la = 10 * atoi(las);
+    ln = 10 * atoi(lns);
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+
+    n = sscanf(txt, "(2%*4s%c%5c%c%6c", &lac, las, &lnc, lns);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    las[5] = 0;
+    lns[6] = 0;
+    la = 10 * atoi(las);
+    ln = 10 * atoi(lns);
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "LAT %c%3c.%3c/LON %c%3c.%3c", &lac, las, &(las[3]),
+           &lnc, lns, &(lns[3]));
+    if (n == 6 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    las[6] = 0;
+    lns[6] = 0;
+    la = 10 * atoi(las);
+    ln = 10 * atoi(lns);
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+
+    n = sscanf(txt, "#DFB(POS-%*6s-%04d%c%05d%c/", &la, &lac, &ln, &lnc);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 100;
+    ln *= 100;
+    toaprs(la, lac, ln, lnc, 0, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "#DFB*POS\a%*8s%c%04d%c%05d/", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 100;
+    ln *= 100;
+    toaprs(la, lac, ln, lnc, 0, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "POS%c%05d%c%06d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "POS%*2s,%c%05d%c%06d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "RCL%*2s,%c%05d%c%06d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "TWX%*2s,%c%05d%c%06d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "CLA%*2s,%c%05d%c%06d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    n = sscanf(txt, "%c%05d/%c%06d,", &lac, &la, &lnc, &ln);
+    if (n == 4 && (lac == 'N' || lac == 'S') && (lnc == 'E' || lnc == 'W')) {
+    la *= 10;
+    ln *= 10;
+    toaprs(la, lac, ln, lnc, 1, pos);
+    return 0;;
+    }
+
+    return 1;
 }

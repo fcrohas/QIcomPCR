@@ -35,6 +35,11 @@ void IDemodulator::slotFrequency(double value)
     return;
 }
 
+void IDemodulator::slotBandwidth(int value)
+{
+    return;
+}
+
 void IDemodulator::setThreshold(int value)
 {
 

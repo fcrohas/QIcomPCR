@@ -81,6 +81,8 @@ private:
     void resetbits(int ch);
     void init_bits(void);
     void print_mesg(msg_t * msg);
+    int posconv(char *txt, unsigned char *label, char *pos);
+    void toaprs(int la, char lac, int ln, char lnc, int prec, char *out);
 };
 
 #endif // CACARSGPL_H

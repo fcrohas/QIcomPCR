@@ -10,7 +10,8 @@ CMorse::CMorse(QObject *parent, uint channel) :
   ,spaces(0)
   ,markdash(0)
   ,word("")
-  ,agc(5)
+  ,agclimit(2)
+  ,bandwidth(120)
 {
     // On creation allocate all buffer at maximum decoder size
     mark_i = new double[getBufferSize()];
@@ -20,6 +21,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     corr = new double[getBufferSize()];
     mark = new double[getBufferSize()];
     space = new double[getBufferSize()];
+    avgcorr = new double[getBufferSize()];
     audioData[0] = new double[getBufferSize()];
 
     // Calculate correlation length
@@ -46,9 +48,15 @@ CMorse::CMorse(QObject *parent, uint channel) :
     paramsMorse[0] = SAMPLERATE;
     paramsMorse[1] = 4; // order
     paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = 120; // band width
+    paramsMorse[3] = bandwidth; // band width
     fmorse->setParams(paramsMorse);
-
+    // Low pass Filter to keep only orig signal
+    flowpass = new Dsp::SmoothedFilterDesign<Dsp::RBJ::Design::LowPass, 1>(1024);
+    Dsp::Params params;
+    params[0] = 22050; // sample rate
+    params[1] = 80; // cutoff frequency
+    params[2] = 1.25; // Q
+    flowpass->setParams (params);
 }
 
 void CMorse::decode(int16_t *buffer, int size, int offset)
@@ -70,8 +78,11 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         for (int j=0; j<correlationLength; j++) {
             corr[i] += sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
         }
-        // Detect maximum correlation peak
-        if (corr[i]>peak) peak = corr[i]; // this is max value after correlation
+        if (corr[i]>peak) peak=corr[i];
+        // Calculate average
+        avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;
+        // Average result of correlation
+        if (i>0) corr[i] = (corr[i-1]+corr[i])/2.0; // this is max value after correlation
         // Save to result buffer
         yval[i] = corr[i];
         xval[i] = i;
@@ -83,6 +94,10 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         yval[(size-(int)correlationLength)+i] = 0.0;
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
+    // Low pass filter for orig CW signal
+    //audioData[0] = yval;
+    //flowpass->process(getBufferSize(), audioData);
+    //yval = audioData[0];
     // Do low pass filtering
     // Now calculation of timing
     agc = peak / 2.0; // average value per buffer size
@@ -106,8 +121,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                 } else { acclow=0; accup++; }
             } else {
                 // Try to find new agc value
-                if (yval[i] > peak)
-                    peak = yval[i];
+                //if (yval[i] > peak)
+                //peak = yval[i];
                 accup++;
             }
         }
@@ -127,9 +142,9 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                     marks++;
                     acclow++;
                     // Register new agc value now
-                    agc = peak / 2.0;
+                    //agc = peak / 2.0;
                     //qDebug() << "agc value is " << agc;
-                    if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
+                    //if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
                 } else  { accup=0; acclow++; }
             } else
                 acclow++;
@@ -175,10 +190,12 @@ void CMorse::slotFrequency(double value)
 {
     // Calculate frequency value from selected FFT bin
     // only half samplerate is available and FFT is set to 128 per channel
-    frequency = (value-1) * SAMPLERATE / 512; // SAMPLERATE / 512 and displaying graph is 0 to 128
+    frequency = (value) * SAMPLERATE / 512; // SAMPLERATE / 512 and displaying graph is 0 to 128
     // New correlation length as frequency selected has changed
-    correlationLength = 50;
+
+    //correlationLength = 50;
     markdash = 0.0;
+
     // Generate Correlation for this frequency
     double freq = 0.0;
     for (int i=0; i< correlationLength;i++) {
@@ -186,16 +203,13 @@ void CMorse::slotFrequency(double value)
         mark_q[i] = sin(freq);
         freq += 2.0*M_PI*frequency/SAMPLERATE;
     }
-
-    // New Bandpass filter params
+    qDebug() << "Correlation generated for frequency " << frequency << " hz";
     Dsp::Params paramsMorse;
     paramsMorse[0] = SAMPLERATE;
     paramsMorse[1] = 4; // order
     paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = 120; // band width
+    paramsMorse[3] = bandwidth; // band width
     fmorse->setParams(paramsMorse);
-
-    qDebug() << "Correlation generated for frequency " << frequency << " hz";
 
 }
 
@@ -227,7 +241,7 @@ void CMorse::translate(int position, int position2)
         {
             // This is a dash
             // Save the timming as referece
-            if (mark[position]> markdash)
+            //if (mark[position]> markdash)
                 markdash = mark[position];
             //calculate new correlation length
             //GenerateCorrelation(markdash);
@@ -375,4 +389,17 @@ void CMorse::setCorrelationLength(int value)
 {
     GenerateCorrelation(value);
     emit sendData(QString("Adjust correlation %1").arg(value));
+}
+
+void CMorse::slotBandwidth(int value)
+{
+    bandwidth = value * SAMPLERATE / 512;
+    // New Bandpass filter params
+    Dsp::Params paramsMorse;
+    paramsMorse[0] = SAMPLERATE;
+    paramsMorse[1] = 4; // order
+    paramsMorse[2] = frequency; // center frequency
+    paramsMorse[3] = bandwidth; // band width
+    fmorse->setParams(paramsMorse);
+
 }
