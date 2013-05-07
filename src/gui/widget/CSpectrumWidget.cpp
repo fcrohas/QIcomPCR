@@ -43,8 +43,9 @@ void CSpectrumWidget::setupUi(QWidget *widget)
     qwtPlot = new QwtPlot(widget);
     qwtPlot->setSizePolicy(sizePolicy);
     qwtPlot->setAxisTitle(QwtPlot::yLeft, "Power [Db]");
-    qwtPlot->setAxisTitle(QwtPlot::xBottom, "Frequency [Hz]");
-    qwtPlot->setAxisScaleDraw( QwtPlot::xBottom, new TimeScaleDraw());
+    xScaleDraw = new TimeScaleDraw();
+    //qwtPlot->setAxisTitle(QwtPlot::xBottom, "Frequency [Hz]");
+    qwtPlot->setAxisScaleDraw( QwtPlot::xBottom, xScaleDraw);
     qwtPlot->setAxisScaleDraw( QwtPlot::yLeft, new PowerScaleDraw());
     qwtPlot->setAxisFont(QwtPlot::xBottom, QFont("Helvetica",8,3));
     qwtPlot->setAxisFont(QwtPlot::yLeft, QFont("Helvetica",8,3));
@@ -71,6 +72,11 @@ void CSpectrumWidget::setAxis(int x1, int x2, int y1, int y2)
     this->x2 = x2;
     qwtPlot->setAxisScale(QwtPlot::xBottom,x1,x2);
     qwtPlot->setAxisScale(QwtPlot::yLeft,y1,y2);
+}
+
+void CSpectrumWidget::setScaleType(uint type)
+{
+    xScaleDraw->setType(type);
 }
 
 void CSpectrumWidget::slotClicked(QPointF point)

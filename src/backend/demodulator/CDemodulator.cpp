@@ -8,7 +8,13 @@
 #include "CDemodulator.h"
 
 CDemodulator::CDemodulator(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    xval(NULL),
+    yval(NULL),
+    data8bitsl(NULL),
+    data8bitsr(NULL),
+    data16bitsl(NULL),
+    data16bitsr(NULL)
 {
     fftw = new CFFT(this,512);
     list.append(new IDemodulator()); // 0 just dummy
@@ -20,7 +26,6 @@ CDemodulator::CDemodulator(QObject *parent) :
 
 CDemodulator::~CDemodulator()
 {
-    //delete demodulator;
     delete fftw;
     if (data8bitsl)
         delete [] data8bitsl;
@@ -137,8 +142,8 @@ void CDemodulator::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
             list[channel] = new CAcarsGPL(this, channel); break;
         case CW :
             list[channel] = new CMorse(this, channel); break;
-        //case RTTY :
-            //demodulator = new CRtty(this);
+        case RTTY :
+            list[channel] = new CRtty(this, channel); break;
     }
     // Connect signals
     connect(list[channel],SIGNAL(sendData(QString)), this, SLOT(slotSendData(QString)));

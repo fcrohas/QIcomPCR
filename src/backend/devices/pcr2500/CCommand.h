@@ -2,6 +2,8 @@
 #define CCOMMAND_H
 
 #include <QObject>
+#include <CDevicePCR2500.h>
+#include <unistd.h>
 
 
 class CCommand : public QObject
@@ -37,9 +39,13 @@ public:
     enum agc {eAgcOff=0, eAgcOn=1};
     enum nb {eNBOff=0, eNBOn=1};
     enum vsc {eVSCOff=0, eVSCOn=1};
+    enum baudrate {b300=0,b1200=1,b4800=2,b9600=3,b19200=4,b38400=5,b57600=6,b115200=7};
+    enum updateMode {eUpdOff=0, eUpdOn=1, eUpdBinOn=2, eUpdBinOff=3};
 
 signals:
     void sendData(QString &value);
+    void dataChanged(QString value);
+
 public slots:
     // Power command
     void setPower(bool value);
@@ -78,6 +84,31 @@ public slots:
     // set Squelch
     void setSquelch(uint value);
 
+    // setBaud rate
+    void setBaudRate(uint value);
+
+    // Update Mode
+    void setUpdateMode(uint value);
+
+    // Initialize radio
+    void Initialize();
+
+    // Open radio connection
+    bool Open();
+
+    // Close radio connection
+    void Close();
+
+    // Write command
+    void write(QString &data);
+
+    // Data state
+    long getReadCount();
+    long getSendCount();
+
+private slots:
+    void slotReceivedData(QString value);
+
 private:
     // Radio currently working on
     uint radio; // enum radio
@@ -103,6 +134,10 @@ private:
 
     // Radiomode
     uint radiomode; // 0=both, 1=single, 2=diversity
+
+    // Device driver
+    CDevicePCR2500 * m_device;
+
 };
 
 #endif // CCOMMAND_H

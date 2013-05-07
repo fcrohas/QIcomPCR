@@ -8,6 +8,7 @@
 #endif
 #include "CAcarsGPL.h"
 #include "CMorse.h"
+#include "CRtty.h"
 #include "CFft.h"
 
 //#define FFTW // Use FFTW library for fourrier transform, else use SPUC

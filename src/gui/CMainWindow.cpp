@@ -68,14 +68,12 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->decoderText->setReadOnly(true);
     statusBar()->addPermanentWidget(status);
 
-    m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
-
     // Set Squelch max
     ui->knobSquelch->setRange(0.0,255.0,1.0);
     ui->knobIF->setRange(0.0,255.0,1.0);
 
-    connect(ui->pushPower, SIGNAL(clicked()), this, SLOT(powerOn()));
-    connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
+    connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
+    connect(ui->pushPower, SIGNAL(toggled(bool)), this, SLOT(powerOn(bool)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(ui->volume1, SIGNAL(valueChanged(int)), this,SLOT(slotVolume1(int)));
@@ -155,7 +153,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
     connect(remote,SIGNAL(sigModulation(uint)), cmd, SLOT(setModulation(uint)));
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
-    connect(remote,SIGNAL(sigInitialize()), this, SLOT(powerOn()));
+    connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     mySpectrum->setAxis(0,16384,0,256);
 #ifndef WIN32
@@ -195,129 +193,27 @@ CMainWindow::~CMainWindow()
 {
 }
 
-void CMainWindow::powerOn()
+void CMainWindow::powerOn(bool value)
 {
-    if (m_device->open())
-    {
-        qDebug() << "Connected";
+    if (value) {
+        if (cmd->Open()) {
+            cmd->Initialize();
+        }
+    } else {
+        cmd->Close();
     }
-
-    if (cmd->getPower()) {
-        cmd->setPower(false);
-        status->setState(cmd->getPower());
-        return;
-    }
-    cmd->setPower(false);
-    sleep(1);
-    cmd->setPower(true);
-    sleep(2);
-    // G105 ?
-    dbgWin->slotSendSerial("G105");
-    cmd->setRadio(0);
-    cmd->setSquelch(255);
-    cmd->setSoundVolume(0);
-    cmd->setRadio(1);
-    cmd->setSoundVolume(0);
-    cmd->setSquelch(255);
-
-    dbgWin->slotSendSerial("G2?");
-    dbgWin->slotSendSerial("G4?");
-    dbgWin->slotSendSerial("GE?");
-    dbgWin->slotSendSerial("GD?");
-    dbgWin->slotSendSerial("GA0?");
-    dbgWin->slotSendSerial("GA1?");
-    dbgWin->slotSendSerial("GA2?");
-    dbgWin->slotSendSerial("GF?");
-    sleep(1);
-    dbgWin->slotSendSerial("G301");
-/*  NOT NEEDED */
-    dbgWin->slotSendSerial("J730000");
-    dbgWin->slotSendSerial("J4600");
-    dbgWin->slotSendSerial("J6600");
-
-    // Init radio 0 Frequency;
-    cmd->setRadio(0);
-    slotModulationWFM();
-    slotFilter230k();
-    cmd->setFrequency(106500000);
-    cmd->setSquelch(0);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-    cmd->setIFShift(128);
-
-    // Init radio 1 Frequency
-    cmd->setRadio(1);
-    cmd->setModulation(CCommand::eFM);
-    cmd->setFilter(CCommand::e15k);
-    cmd->setFrequency(145425000);
-    cmd->setSquelch(0);
-    cmd->setSoundVolume(0);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-    cmd->setIFShift(128);
-
-/*  NOT NEEDED */
-    dbgWin->slotSendSerial("J4200");
-    dbgWin->slotSendSerial("J4700");
-    dbgWin->slotSendSerial("J6700");
-
-
-    dbgWin->slotSendSerial("JC400");
-    dbgWin->slotSendSerial("J7100");
-    dbgWin->slotSendSerial("J720000");
-    dbgWin->slotSendSerial("JC000");
-
-/* */
-    cmd->setRadio(0);
-    cmd->setSoundMute(true);
-    cmd->setSoundVolume(0);
-
-    dbgWin->slotSendSerial("J8001");
-    dbgWin->slotSendSerial("J8100");
-    dbgWin->slotSendSerial("J8200");
-    dbgWin->slotSendSerial("J8300");
-    dbgWin->slotSendSerial("JC500");
-
-    cmd->setRadio(0);
-    cmd->setSquelch(255);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-    cmd->setRadio(1);
-    cmd->setSquelch(255);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-
-    cmd->setRadio(0);
-    cmd->setSoundVolume(0);
-    cmd->setRadio(1);
-    cmd->setSoundVolume(0);
-    cmd->setSquelch(255);
-    cmd->setRadioMode(CCommand::eBoth);
-    //dbgWin->slotSendSerial("JB000");
-    cmd->setRadio(1);
-    cmd->setSquelch(255);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-
-    cmd->setRadio(0);
-    cmd->setSquelch(1);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-    cmd->setRadio(1);
-    cmd->setVoiceControl(CCommand::eVSCOff);
-    cmd->setSquelch(1);
-
-    cmd->setRadio(0);
-    cmd->setSoundVolume(60);
-    cmd->setSoundMute(false);
-    //dbgWin->slotSendSerial("ME0000101081401050000");
     status->setState(cmd->getPower());
-
 }
 
 void CMainWindow::slotSendData(QString &data)
 {
-    m_device->write(data);
+    cmd->write(data);
 }
 
 void CMainWindow::slotUpdateStatus()
 {
     QString data("Data sent %1 bytes and received %2 bytes");
-    status->slotUpdate(data.arg(m_device->log_t.dataSent).arg(m_device->log_t.dataReceive));
+    status->slotUpdate(data.arg(cmd->getSendCount()).arg(cmd->getReadCount()));
 }
 
 void CMainWindow::slotReceivedData(QString data)
@@ -365,8 +261,8 @@ void CMainWindow::slotReceivedData(QString data)
 
     // Update status bar
     QString info("Data sent %1 %3bytes and received %2 %4bytes");
-    int received = m_device->log_t.dataReceive;
-    int sent       = m_device->log_t.dataSent;
+    int received = cmd->getReadCount();
+    int sent       = cmd->getSendCount();
     QString receiveUnit("");
     QString sentUnit("");
     if (received > 9999)   { received = received / 1000.0; receiveUnit = "k"; }
@@ -569,6 +465,7 @@ void CMainWindow::slotDecoderChange(int value)
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
     connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
     connect(mySpectrum, SIGNAL(bandwidth(int)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(int)));
+    myDecoder->setScaleType(1);
     myDecoder->setAxis(0,512,0.0,30.0);
 }
 

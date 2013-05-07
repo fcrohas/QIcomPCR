@@ -59,6 +59,7 @@ set(qicompcr_SRCS
     main.cpp
     CApplication.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.cpp
+    ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.cpp
@@ -102,6 +103,7 @@ endif(WITH_SNDFILE)
 
 set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.h
+    ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.h
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.h
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.h
     ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.h

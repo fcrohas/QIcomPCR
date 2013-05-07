@@ -28,7 +28,7 @@ class CRemoteControl: public QObject
       bool connected;
       double *avg;
 
-      typedef struct datastream_t {
+      struct datastream_t {
           datastream_t() : refreshRate(0.0), enabled(false), low(0), high(0) {}
           double refreshRate;
           bool enabled;
@@ -41,7 +41,7 @@ class CRemoteControl: public QObject
       void command(QString &value);
 
       // Init device
-      void sigInitialize();
+      void sigInitialize(bool);
 
       // Power command
       void sigPower(bool value);

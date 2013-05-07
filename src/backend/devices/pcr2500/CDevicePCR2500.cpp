@@ -82,8 +82,6 @@ void CDevicePCR2500::slotWatchdog()
         return;
     }
 
-    //setLiveLog(false);
-
 }
 
 void CDevicePCR2500::write(QString &data)
@@ -91,13 +89,6 @@ void CDevicePCR2500::write(QString &data)
     QByteArray byteArray(data.toLocal8Bit());
     log_t.dataSent += byteArray.size();
     byteArray.append("\n");
-    /*QString hexa;
-    for (int i=0; i < byteArray.length(); i++) {
-        bool ok;
-        hexa+=" "+QString("0x%1").setNum(byteArray.at(i),16);
-
-    }*/
-    //qDebug() << "Command " << data;
     tty.sendData(byteArray);
 }
 
@@ -112,8 +103,7 @@ bool CDevicePCR2500::open()
             watchdog->start(10000);
             return true;
         }
-        else
-            return false;
+        return true;
     } else
         return false;
 

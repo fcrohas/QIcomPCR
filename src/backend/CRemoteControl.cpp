@@ -36,10 +36,10 @@ void CRemoteControl::decode(char *buffer)
     QString decodedString(buffer);
 
     if (decodedString.startsWith("INIT")) {
-        emit sigInitialize();
+        emit sigInitialize(true);
     } else
     if (decodedString.startsWith("PWRON")) {
-        emit sigInitialize();
+        emit sigInitialize(true);
         //emit sigPower(true);
     } else
     if (decodedString.startsWith("PWROFF")) {

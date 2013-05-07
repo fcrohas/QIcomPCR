@@ -105,8 +105,6 @@ public slots:
     void slotBandwidth(int value);
 
 private:
-    // Goertzel filter
-    float goertzel(int16_t *x, int N, double frequency, int samplerate);
     // Correlation generator
     void GenerateCorrelation(int length);
     // Decoding timing buffer
@@ -155,6 +153,9 @@ private:
     double agc;
     double agclimit;
     int bandwidth;
+    // Goertzel filter
+    double goertzel(double *x, int N, double frequency, int samplerate);
+
 };
 
 #endif // CMORSE_H

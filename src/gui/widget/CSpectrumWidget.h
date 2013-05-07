@@ -50,19 +50,37 @@ class MyZoomer : public QwtPlotZoomer
 class TimeScaleDraw: public QwtScaleDraw
 {
 public:
+
+    enum ScaleType {eFrequency=0, eTime=1};
+
     TimeScaleDraw()
     {
+        // Frequency graph by default
+        type=0;
     }
     virtual QwtText label( double v ) const
     {
-        double freq = 0.0;
-        if (v <257)
-            freq = ((int)v) * 22050.0/512.0;
-        else
-            freq = ((int)v-256) * 22050.0/512.0;
-        return QString(" %1 Hz").arg(freq);
+        double display = 0.0;
+        switch(type) {
+            case eFrequency:
+                if (v <257)
+                    display = ((int)v) * 22050.0/512.0;
+                else
+                    display = ((int)v-256) * 22050.0/512.0;
+            break;
+            case eTime:
+                display = v * 1000/22050;
+            break;
+        }
+        return QString(" %1 %2").arg(display).arg((type == eFrequency) ? "Hz" : "ms");
     }
+
+    void setType(uint value) {
+        type = value;
+    }
+
 private:
+    uint type;
 };
 
 class PowerScaleDraw: public QwtScaleDraw
@@ -218,6 +236,8 @@ class CSpectrumWidget : public QWidget
 public:
     explicit CSpectrumWidget(QWidget *parent = 0);
     void setAxis(int x1, int x2, int y1, int y2);
+    void setScaleType(uint type);
+
 signals:
     void frequency(double value);
     void bandwidth(int value);
@@ -233,6 +253,7 @@ private:
     QwtPlot *qwtPlot;
     MyPicker *picker;
     MyZoomer *zoomer;
+    TimeScaleDraw *xScaleDraw;
     int x1;
     int x2;
 

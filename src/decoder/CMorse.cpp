@@ -1,6 +1,8 @@
 #include "CMorse.h"
 #include <QDebug>
 
+//#define GOERTZEL
+
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
   ,frequency(3905) // Just for Hello sample
@@ -54,8 +56,8 @@ CMorse::CMorse(QObject *parent, uint channel) :
     flowpass = new Dsp::SmoothedFilterDesign<Dsp::RBJ::Design::LowPass, 1>(1024);
     Dsp::Params params;
     params[0] = 22050; // sample rate
-    params[1] = 80; // cutoff frequency
-    params[2] = 1.25; // Q
+    params[1] = 200; // cutoff frequency
+    params[2] = 1.15; // Q
     flowpass->setParams (params);
 }
 
@@ -74,10 +76,14 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     for(int i=0; i < size-correlationLength; i++) { //
         // Init correlation value
         corr[i] = 0.0;
+#ifdef GOERTZEL
         // Correlate en shift over correlation length
+        corr[i]  = sqrt(pow(goertzel(&audioData[0][i],correlationLength, frequency , SAMPLERATE),2));
+#else
         for (int j=0; j<correlationLength; j++) {
             corr[i] += sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
         }
+#endif
         if (corr[i]>peak) peak=corr[i];
         // Calculate average
         avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;
@@ -95,9 +101,11 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
     // Low pass filter for orig CW signal
-    //audioData[0] = yval;
-    //flowpass->process(getBufferSize(), audioData);
-    //yval = audioData[0];
+#ifdef GOERTZEL
+    audioData[0] = yval;
+    flowpass->process(getBufferSize(), audioData);
+    yval = audioData[0];
+#endif
     // Do low pass filtering
     // Now calculation of timing
     agc = peak / 2.0; // average value per buffer size
@@ -195,14 +203,8 @@ void CMorse::slotFrequency(double value)
 
     //correlationLength = 50;
     markdash = 0.0;
-
     // Generate Correlation for this frequency
-    double freq = 0.0;
-    for (int i=0; i< correlationLength;i++) {
-        mark_i[i] = cos(freq);
-        mark_q[i] = sin(freq);
-        freq += 2.0*M_PI*frequency/SAMPLERATE;
-    }
+    GenerateCorrelation(correlationLength);
     qDebug() << "Correlation generated for frequency " << frequency << " hz";
     Dsp::Params paramsMorse;
     paramsMorse[0] = SAMPLERATE;
@@ -211,22 +213,6 @@ void CMorse::slotFrequency(double value)
     paramsMorse[3] = bandwidth; // band width
     fmorse->setParams(paramsMorse);
 
-}
-
-float CMorse::goertzel(int16_t *x, int N, double freq, int samplerate)
-{
-    float Skn, Skn1, Skn2;
-    Skn = Skn1 = Skn2 = 0;
-
-    for (int i=0; i<N; i++) {
-    Skn2 = Skn1;
-    Skn1 = Skn;
-    Skn = 2*cos(2*M_PI*freq/samplerate)*Skn1 - Skn2 + x[i];
-    }
-
-    float WNk = exp(-2*M_PI*freq/samplerate); // this one ignores complex stuff
-    //float WNk = exp(-2*j*PI*k/N);
-    return (Skn - WNk*Skn1);
 }
 
 void CMorse::translate(int position, int position2)
@@ -402,4 +388,20 @@ void CMorse::slotBandwidth(int value)
     paramsMorse[3] = bandwidth; // band width
     fmorse->setParams(paramsMorse);
 
+}
+
+double CMorse::goertzel(double *x, int N, double freq, int samplerate)
+{
+    double Skn, Skn1, Skn2;
+    Skn = Skn1 = Skn2 = 0;
+
+    for (int i=0; i<N; i++) {
+        Skn2 = Skn1;
+        Skn1 = Skn;
+        Skn = 2*cos(2*M_PI*freq/samplerate)*Skn1 - Skn2 + x[i];
+    }
+
+    double WNk = exp(-2*M_PI*freq/samplerate); // this one ignores complex stuff
+    //float WNk = exp(-2*j*PI*k/N);
+    return (Skn - WNk*Skn1);
 }

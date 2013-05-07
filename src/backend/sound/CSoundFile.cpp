@@ -119,6 +119,7 @@ bool CSoundFile::Read(int16_t *data, int offset)
 bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
 {
         sf_count_t c;
+        // Read only small part of buffer to do over sampling
         c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/ratio)/channels);
         if (c!=(BUFFER_SIZE/ratio)/channels) {
             /* rewind */
@@ -173,7 +174,7 @@ void CSoundFile::run()
 
         // If reach end of buffer, do some blank before next loop
         while (loop) {
-            memset(inputbuffer,0,BUFFER_SIZE);
+            memset(data,0,BUFFER_SIZE);
             blankCount++;
             if (blankCount ==16) {
                 loop=false;

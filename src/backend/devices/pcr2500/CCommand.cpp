@@ -2,7 +2,8 @@
 #include <QtGui>
 
 CCommand::CCommand(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_device(NULL)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -11,6 +12,10 @@ CCommand::CCommand(QObject *parent) :
     radioList->append(new settings_t);
     radioList->append(new settings_t);
 
+    // Init serial connection object
+    m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
+    connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
+    connect(this, SIGNAL(sendData(QString&)), this, SLOT(write(QString&)));
 }
 
 void CCommand::setPower(bool value)
@@ -176,4 +181,183 @@ void CCommand::setSoundMute(bool value)
     data = QString("JA2%1").arg(!value, 2, 16, QChar('0')).toUpper();
     qDebug() << "Sound Mute " << data << "\n";
     emit sendData(data);
+}
+
+void CCommand::setBaudRate(uint value)
+{
+    QString data;
+    data = QString("G10%1").arg(value);
+    emit sendData(data);
+}
+
+void CCommand::setUpdateMode(uint value)
+{
+    QString data;
+    data = QString("G30%1").arg(value);
+    emit sendData(data);
+}
+
+bool CCommand::Open()
+{
+    // Device is initialized with 38400 baud conection
+    int retry = 0;
+    bool opened = false;
+    // If device open failed retry three times
+    while ((retry < 3) && (!opened))
+    {
+        if (m_device->open()) {
+            opened = true;
+            qDebug() << "Connected";
+        }
+        sleep(1);
+        retry++;
+    }
+    // If not opened cancel
+    qDebug() << "Opened ? " << opened;
+    if (opened == false) return false;
+
+    // Try to power it on
+    retry = 0;
+    while (retry < 3) {
+        // Try to power it on
+        setPower(true);
+        // If powered end loop
+        if (getPower()) {
+            setBaudRate(CCommand::b38400);
+            return true;
+        }
+        sleep(1);
+        retry++;
+    }
+    setPower(false);
+    return false;
+}
+
+void CCommand::Close()
+{
+    // Power it off
+    setPower(false);
+}
+
+void CCommand::Initialize()
+{
+    // Set Baud rate
+    setRadio(0);
+    setSquelch(255);
+    setSoundVolume(0);
+    setRadio(1);
+    setSoundVolume(0);
+    setSquelch(255);
+    /*
+    dbgWin->slotSendSerial("G2?");
+    dbgWin->slotSendSerial("G4?");
+    dbgWin->slotSendSerial("GE?");
+    dbgWin->slotSendSerial("GD?");
+    dbgWin->slotSendSerial("GA0?");
+    dbgWin->slotSendSerial("GA1?");
+    dbgWin->slotSendSerial("GA2?");
+    dbgWin->slotSendSerial("GF?");
+    */
+    sleep(1);
+    setUpdateMode(CCommand::eUpdOn);
+    /*  NOT NEEDED */
+    //dbgWin->slotSendSerial("J730000");
+    setRadio(0);
+    // Noise blanker is off
+    setNoiseBlanker(false);
+    setRadio(1);
+    setNoiseBlanker(false);
+
+    // Init radio 0 Frequency;
+    setRadio(0);
+    setModulation(CCommand::eWFM);
+    setFilter(CCommand::e230k);
+    setFrequency(106500000);
+    setSquelch(0);
+    setVoiceControl(CCommand::eVSCOff);
+    setIFShift(128);
+
+    // Init radio 1 Frequency
+    setRadio(1);
+    setModulation(CCommand::eFM);
+    setFilter(CCommand::e15k);
+    setFrequency(145425000);
+    setSquelch(0);
+    setSoundVolume(0);
+    setVoiceControl(CCommand::eVSCOff);
+    setIFShift(128);
+
+    /*  NOT NEEDED */
+
+    /* Unknown
+    dbgWin->slotSendSerial("J4200");
+    dbgWin->slotSendSerial("J4700");
+    dbgWin->slotSendSerial("J6700");
+
+
+    dbgWin->slotSendSerial("JC400");
+    dbgWin->slotSendSerial("J7100");
+    dbgWin->slotSendSerial("J720000");
+    dbgWin->slotSendSerial("JC000");
+    */
+    // Mute radio before restoring values
+    setRadio(0);
+    setSoundMute(true);
+    setSoundVolume(0);
+
+    /* Unknown
+    dbgWin->slotSendSerial("J8001");
+    dbgWin->slotSendSerial("J8100");
+    dbgWin->slotSendSerial("J8200");
+    dbgWin->slotSendSerial("J8300");
+    dbgWin->slotSendSerial("JC500");
+    */
+    setRadio(0);
+    setSquelch(255);
+    setVoiceControl(CCommand::eVSCOff);
+    setRadio(1);
+    setSquelch(255);
+    setVoiceControl(CCommand::eVSCOff);
+
+    setRadio(0);
+    setSoundVolume(0);
+    setRadio(1);
+    setSoundVolume(0);
+    setSquelch(255);
+    setRadioMode(CCommand::eBoth);
+    //dbgWin->slotSendSerial("JB000");
+    setRadio(1);
+    setSquelch(255);
+    setVoiceControl(CCommand::eVSCOff);
+
+    setRadio(0);
+    setSquelch(1);
+    setVoiceControl(CCommand::eVSCOff);
+    setRadio(1);
+    setVoiceControl(CCommand::eVSCOff);
+    setSquelch(1);
+
+    setRadio(0);
+    setSoundVolume(60);
+    setSoundMute(false);
+}
+
+void CCommand::slotReceivedData(QString value)
+{
+    emit dataChanged(value);
+}
+
+void CCommand::write(QString &data)
+{
+    m_device->write(data);
+}
+
+long CCommand::getReadCount()
+{
+    return m_device->log_t.dataReceive;
+}
+
+long CCommand::getSendCount()
+{
+    return m_device->log_t.dataSent;
 }

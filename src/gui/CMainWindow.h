@@ -63,7 +63,7 @@ class CMainWindow : public QMainWindow
     public slots:
 
     private slots:
-        void powerOn();
+        void powerOn(bool value);
         void slotSendData(QString &data);
         void slotReceivedData(QString data);
         void slotVolume1(int value);
@@ -120,9 +120,6 @@ class CMainWindow : public QMainWindow
 
         // CommandBuilder
         CCommand * cmd;
-
-        // Device driver
-        CDevicePCR2500 * m_device;
 
         // Windows
         CDebugWindow *dbgWin;
