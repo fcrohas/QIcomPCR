@@ -111,7 +111,7 @@ bool CSoundFile::Read(int16_t *data, int offset)
     }
 
     this->DecodeBuffer(data,BUFFER_SIZE);
-    msleep(15); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+    msleep(23); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
     return true;
 }
 
@@ -133,7 +133,7 @@ bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
         src_process(converter, &dataconv);
         src_float_to_short_array(outputbufferf,data,BUFFER_SIZE);
         this->DecodeBuffer(data,BUFFER_SIZE);
-        msleep(15); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+        msleep(23); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
         return true;
 }
 #endif

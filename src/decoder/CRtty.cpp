@@ -8,8 +8,8 @@ CRtty::CRtty(QObject *parent, uint channel) :
     bandwidth(1000),
     freqlow(4263),
     freqhigh(4651),
-    baudrate(45.45),
-    inverse(-1.0),
+    baudrate(50),
+    inverse(1.0),
     letter(""),
     bitcount(0),
     started(false)
@@ -38,7 +38,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     params[2] = 1.15; // Q
     flowpass->setParams (params);
 
-    bit = ((1/baudrate) * SAMPLERATE)/2; // We want it in sample unit
+    bit = ((1/baudrate) * SAMPLERATE); // We want it in sample unit
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
 }
 
@@ -114,6 +114,15 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             // this is a high state now
             if (accspace >0) { // do we come from low state ?
                 // is this a start bit ?
+                if (started)
+                {
+                    // how much bit at 0 ?
+                    int count = ceil(accspace / bit);
+                    bitcount += count; // Cut into number of bit
+                    qDebug() << "bits  space count "<< bitcount << "ceil("<< accspace <<" / bit)=" << count;
+                    letter.append(QString(" %1S").arg(count));
+                }
+
                 if ((abs(accspace - (bit*STARTBITS)) <50.0) && (!started)) // allow a margin of 50 samples
                 {
                     qDebug() << "start bit detected";
@@ -122,14 +131,6 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                     bitcount = 0;
                     letter = ""; //reset letter
                     started = true;
-                }
-                else if (started)
-                {
-                    // how much bit at 0 ?
-                    int count = ceil(accspace / bit);
-                    bitcount += count; // Cut into number of bit
-                    qDebug() << "bits  space count "<< bitcount << "ceil("<< accspace <<" / bit)=" << count;
-                    letter.append(QString(" %1S").arg(count));
                 }
                 accspace = 0;
             }
@@ -148,7 +149,7 @@ uint CRtty::getDataSize()
 
 uint CRtty::getBufferSize()
 {
-    return 16384;
+    return 4096;
 }
 
 
@@ -162,9 +163,9 @@ void CRtty::setThreshold(int value)
 
 }
 
-void CRtty::slotBandwidth(int value)
+void CRtty::slotBandwidth(double value)
 {
-    bandwidth = value * SAMPLERATE / 512;
+    bandwidth = value * SAMPLERATE / 512.0;
     // In rtty it is 400 Hz wide so
     freqlow = frequency - bandwidth/2;
     freqhigh = frequency + bandwidth/2;

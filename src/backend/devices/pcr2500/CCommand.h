@@ -106,6 +106,11 @@ public slots:
     long getReadCount();
     long getSendCount();
 
+    // Bandscope function
+    void setBandScope(radioA antenna,int refresh, bool power);
+    void setBandScopeWidth(int value);
+    void setBandScopeStep(int value);
+
 private slots:
     void slotReceivedData(QString value);
 
@@ -134,6 +139,13 @@ private:
 
     // Radiomode
     uint radiomode; // 0=both, 1=single, 2=diversity
+
+    // BandScope
+    int samplewidth;
+    int scopewidth;
+    int stepsize;
+    int scoperefresh;
+    bool scopepower;
 
     // Device driver
     CDevicePCR2500 * m_device;

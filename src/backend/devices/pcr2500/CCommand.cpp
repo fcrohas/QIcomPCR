@@ -3,7 +3,9 @@
 
 CCommand::CCommand(QObject *parent) :
     QObject(parent),
-    m_device(NULL)
+    m_device(NULL),
+    stepsize(12500),
+    scopewidth(1000000)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -16,6 +18,9 @@ CCommand::CCommand(QObject *parent) :
     m_device = new CDevicePCR2500("/dev/ttyUSB0", "38400", this);
     connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
     connect(this, SIGNAL(sendData(QString&)), this, SLOT(write(QString&)));
+
+    // Initialize sample width
+    samplewidth = scopewidth / stepsize;
 }
 
 void CCommand::setPower(bool value)
@@ -199,7 +204,7 @@ void CCommand::setUpdateMode(uint value)
 
 bool CCommand::Open()
 {
-    // Device is initialized with 38400 baud conection
+    // Device is initialized with 9600 bauds ??? conection
     int retry = 0;
     bool opened = false;
     // If device open failed retry three times
@@ -209,7 +214,8 @@ bool CCommand::Open()
             opened = true;
             qDebug() << "Connected";
         }
-        sleep(1);
+        sleep(5);
+
         retry++;
     }
     // If not opened cancel
@@ -226,7 +232,7 @@ bool CCommand::Open()
             setBaudRate(CCommand::b38400);
             return true;
         }
-        sleep(1);
+        sleep(3);
         retry++;
     }
     setPower(false);
@@ -344,6 +350,7 @@ void CCommand::Initialize()
 
 void CCommand::slotReceivedData(QString value)
 {
+    //qDebug() << "received";
     emit dataChanged(value);
 }
 
@@ -360,4 +367,27 @@ long CCommand::getReadCount()
 long CCommand::getSendCount()
 {
     return m_device->log_t.dataSent;
+}
+
+void CCommand::setBandScope(radioA antenna, int refresh, bool power)
+{
+    QString data("ME0000%1%2%3%4%5");
+    qDebug() << "Band scope change " << QString("%1").arg(samplewidth, 2, 16, QChar('0')) << " step size " << QString("%1").arg(stepsize, 8, 10, QChar('0'));
+    data = data.arg(antenna+1).arg(samplewidth, 2, 16, QChar('0')).arg(refresh, 2, 16, QChar('0')).arg(power, 2, 16, QChar('0')).arg(stepsize, 8, 10, QChar('0'));
+    scopepower = power;
+    scoperefresh = refresh;
+    emit sendData(data);
+}
+
+void CCommand::setBandScopeWidth(int value)
+{
+    scopewidth = value;
+    samplewidth = scopewidth / stepsize;
+    setBandScope((radioA)radio, scoperefresh, scopepower);
+}
+
+void CCommand::setBandScopeStep(int value)
+{
+    stepsize= value;
+    setBandScope((radioA)radio, scoperefresh, scopepower);
 }

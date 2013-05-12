@@ -102,7 +102,7 @@ signals:
     void dumpData(double*,double*,int);
 public slots:
     void slotFrequency(double value);
-    void slotBandwidth(int value);
+    void slotBandwidth(double value);
 
 private:
     // Correlation generator
@@ -155,6 +155,15 @@ private:
     int bandwidth;
     // Goertzel filter
     double goertzel(double *x, int N, double frequency, int samplerate);
+    // for kalman
+    double Pp = 0.0; // P previous value
+    //the noise in the system
+    double Q;
+    double R;
+    double K;
+    double P;
+    double lastestimation=0.0;
+
 
 };
 

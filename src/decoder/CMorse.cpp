@@ -14,6 +14,11 @@ CMorse::CMorse(QObject *parent, uint channel) :
   ,word("")
   ,agclimit(2)
   ,bandwidth(120)
+  ,Pp(0.0)
+  ,Q(0.022)
+  ,R(0.617)
+  ,lastestimation(0.0)
+
 {
     // On creation allocate all buffer at maximum decoder size
     mark_i = new double[getBufferSize()];
@@ -57,7 +62,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     Dsp::Params params;
     params[0] = 22050; // sample rate
     params[1] = 200; // cutoff frequency
-    params[2] = 1.15; // Q
+    params[2] = 1.05; // Q
     flowpass->setParams (params);
 }
 
@@ -84,6 +89,17 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             corr[i] += sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
         }
 #endif
+        // Kalman filter
+        double Pt = Pp + Q;
+        //calculate the Kalman gain
+        K = Pt * (1.0/(Pt + R));
+        //correct
+        corr[i] = lastestimation + K * (corr[i] - lastestimation);
+        P = (1- K) * Pt;
+        //update our last's
+        Pp = P;
+        lastestimation = corr[i];
+
         if (corr[i]>peak) peak=corr[i];
         // Calculate average
         avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;
@@ -173,6 +189,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
 
     // Send correlated signal to scope
     emit dumpData(xval,yval,getBufferSize());
+    //qDebug() << "Kalman Q=" << Q << " R=" << R << " T="<< -1.0*log(Q/R);
 }
 
 uint CMorse::getDataSize()
@@ -191,14 +208,14 @@ uint CMorse::getChannel()
 uint CMorse::getBufferSize()
 {
     // Buffer size
-    return 16384;
+    return 4096;
 }
 
 void CMorse::slotFrequency(double value)
 {
     // Calculate frequency value from selected FFT bin
     // only half samplerate is available and FFT is set to 128 per channel
-    frequency = (value) * SAMPLERATE / 512; // SAMPLERATE / 512 and displaying graph is 0 to 128
+    frequency = (value) * SAMPLERATE / 512.0; // SAMPLERATE / 512 and displaying graph is 0 to 128
     // New correlation length as frequency selected has changed
 
     //correlationLength = 50;
@@ -319,29 +336,33 @@ void CMorse::CheckLetterOrWord(int position, int position2)
         }
         //emit sendData(QString("symbols %2").arg(symbols));
         //qDebug() << "Check ratio space " << ratio << " ratiosym " << ratiosym << " word is " << word;
-        if (((ratio > 2.0) && (ratio < 4.5)) || ((ratiosym > 2.0) && (ratiosym < 4.5))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
+        if (((ratio > 2.0) && (ratio < 4.0)) || ((ratiosym > 2.0) && (ratiosym < 4.0))) // || ((symbols.at(symbols.length()-1)=='-') && ((ratiosym < 2.0) && (ratiosym>0.85)))) // a space between letter is detected
         {
             if (code.contains(symbols)) {
                 word += code.value(symbols);
+                emit sendData(QString(code.value(symbols)));
                 //emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
             }
             else {
+                emit sendData(QString("*"));
                 //emit sendData(QString("Unknown char %1").arg(symbols));
             }
             symbols = QString("");
         }
-        if ((ratio>4.5) || (ratiosym > 4.5))
+        if ((ratio>4.0) || (ratiosym > 4.0))
         {
             if (code.contains(symbols)) {
                 word += code.value(symbols);
                 word += " ";
-                emit sendData(word);
+                //emit sendData(word);
+                emit sendData(QString("%1 ").arg(QString(code.value(symbols))));
                 word = "";
                 //emit sendData(QString("Decoded char is %1 with symbols %2").arg(QChar(code.value(symbols))).arg(symbols));
             }
             else {
                 word += " ";
-                emit sendData(word);
+                emit sendData(QString(" "));
+                //emit sendData(word);
                 word = "";
                 //emit sendData(QString("Unknown char %1").arg(symbols));
             }
@@ -374,12 +395,15 @@ void CMorse::setThreshold(int value)
 void CMorse::setCorrelationLength(int value)
 {
     GenerateCorrelation(value);
-    emit sendData(QString("Adjust correlation %1").arg(value));
+    //emit sendData(QString("Adjust correlation %1").arg(value));
+    //frequency = frequency + value;
+    //qDebug() << "Fine tunning frequency " << frequency;
+    //GenerateCorrelation(50);
 }
 
-void CMorse::slotBandwidth(int value)
+void CMorse::slotBandwidth(double value)
 {
-    bandwidth = value * SAMPLERATE / 512;
+    bandwidth = value * SAMPLERATE / 512.0;
     // New Bandpass filter params
     Dsp::Params paramsMorse;
     paramsMorse[0] = SAMPLERATE;

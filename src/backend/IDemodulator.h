@@ -23,7 +23,7 @@ signals:
     
 public slots:
     void slotFrequency(double value);
-    void slotBandwidth(int value);
+    void slotBandwidth(double value);
 };
 
 #endif // IDEMODULATOR_H

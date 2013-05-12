@@ -8,7 +8,7 @@
 #include "dspfilters/Dsp.h"
 
 #define SAMPLERATE 22050
-#define STOPBITS 2
+#define STOPBITS 1.5
 #define STARTBITS 1
 
 class CRtty : public IDemodulator
@@ -28,7 +28,7 @@ signals:
 
 public slots:
     void slotFrequency(double value);
-    void slotBandwidth(int value);
+    void slotBandwidth(double value);
 
 private:
     int bandwidth;

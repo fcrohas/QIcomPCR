@@ -61,6 +61,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     mySpectrum = new CSpectrumWidget(this);
     ui->frequency1->addWidget(mySpectrum); // Widget channel 1
 
+    myBandScope = new CBandScope(this);
+    ui->bandscopeWidget->addWidget(myBandScope);
+
     // Add decoder view plotter
     myDecoder = new CSpectrumWidget(this);
     ui->DumpView->addWidget(myDecoder);
@@ -121,7 +124,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     // Set threshold
     connect(ui->threshold, SIGNAL(valueChanged(int)), demodulator, SLOT(slotThreshold(int)));
-    connect(ui->correlationLength,SIGNAL(sliderMoved(int)), demodulator, SLOT(slotSetCorrelationLength(int)));
+    connect(ui->correlationLength,SIGNAL(valueChanged(int)), demodulator, SLOT(slotSetCorrelationLength(int)));
 
     // Connect Decoder
     connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
@@ -130,13 +133,19 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->channel, SIGNAL(currentIndexChanged(int)), this, SLOT(slotChannelChange(int)));
 
     // Connect Scope type
-    connect(ui->FFT, SIGNAL(clicked(bool)), this,SLOT(slotScopeChanged(bool)));
+    //connect(ui->FFT, SIGNAL(clicked(bool)), this,SLOT(slotScopeChanged(bool)));
+    connect(ui->cbPlotterType , SIGNAL(currentIndexChanged(int)),this, SLOT(slotScopeChanged(int)));
+    connect(ui->refreshRate, SIGNAL(valueChanged(int)), this, SLOT(slotRefreshRate(int)));
     connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
 #endif
+    // Band Scope
+    connect(ui->pushBandscope,SIGNAL(clicked(bool)),this,SLOT(slotBandScope(bool)));
+    connect(ui->cbBandwidth, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeWidth(int)));
+    connect(ui->cbStepsize, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeStep(int)));
 
     // Connect remote to event
     connect(remote,SIGNAL(sigAutomaticGainControl(bool)), cmd, SLOT(setAutomaticGainControl(bool)));
@@ -187,6 +196,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
     connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
     connect(ui->pushRecord, SIGNAL(clicked(bool)), this, SLOT(slotRecordAudio(bool)));
+    dock = addToolBar("File");
+    dock->addAction(ui->actionLoad);
+    dock->addAction(ui->actionQuit);
 }
 
 CMainWindow::~CMainWindow()
@@ -198,7 +210,7 @@ void CMainWindow::powerOn(bool value)
     if (value) {
         if (cmd->Open()) {
             cmd->Initialize();
-        }
+        } else ui->pushPower->setChecked(false);
     } else {
         cmd->Close();
     }
@@ -253,6 +265,10 @@ void CMainWindow::slotReceivedData(QString data)
         remote->sendData(QString("PWRON"));
         found = true;
     }
+    if (data.contains("NE")) {
+        myBandScope->setSamples(data);
+        found = true;
+    }
     if (!found) {
         dbgWin->slotDebugSerial(data);
         remote->sendData(QString("DBG\r\n%1").arg(data));
@@ -305,6 +321,7 @@ void CMainWindow::slotFrequency(QString &value)
 {
     if (value != "") {
         cmd->setFrequency(value.toInt());
+        myBandScope->setCentralFrequency(value.toInt());
     }
 }
 
@@ -464,9 +481,12 @@ void CMainWindow::slotDecoderChange(int value)
     // Connect Demodulator to debug windows
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
     connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    connect(mySpectrum, SIGNAL(bandwidth(int)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(int)));
-    myDecoder->setScaleType(1);
-    myDecoder->setAxis(0,512,0.0,30.0);
+    connect(mySpectrum, SIGNAL(bandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    //myDecoder->setScaleType(CSpectrumWidget::eTime);
+    if (value == 4)
+        myDecoder->setAxis(0,512,-5.0,5.0);
+    else
+        myDecoder->setAxis(0,512,0.0,30.0);
 }
 
 void CMainWindow::slotChannelChange(int value)
@@ -475,11 +495,16 @@ void CMainWindow::slotChannelChange(int value)
     //demodulator->slotSetDemodulator(ui->decoderList->currentIndex(), value, 16384);
 }
 
-void CMainWindow::slotScopeChanged(bool value)
+void CMainWindow::slotScopeChanged(int value)
 {
-    if (value) {
+    mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
+    if (value == 1) {
         demodulator->setScopeType(1);
         mySpectrum->setAxis(0,512,0,50);
+    } else
+    if (value == 2) {
+        demodulator->setScopeType(1);
+        mySpectrum->setAxis(0,512,0,512);
     }
     else {
         demodulator->setScopeType(0);
@@ -570,4 +595,30 @@ void CMainWindow::slotRecordAudio(bool value)
             sound->Record(fileName, false);
         }
     }
+}
+
+void CMainWindow::slotRefreshRate(int value)
+{
+    mySpectrum->setRefreshRate(value);
+}
+
+void CMainWindow::slotBandScope(bool value)
+{
+    if (value) {
+        cmd->setBandScope(CCommand::eRadio1,04,true);
+    } else {
+        cmd->setBandScope(CCommand::eRadio1,04,false);
+    }
+}
+
+void CMainWindow::slotBandScopeWidth(int value)
+{
+    myBandScope->setBandWidth(bandwidth[value]);
+    cmd->setBandScopeWidth(bandwidth[value]);
+}
+
+void CMainWindow::slotBandScopeStep(int value)
+{
+    myBandScope->setStep(stepsize[value]);
+    cmd->setBandScopeStep(stepsize[value]);
 }

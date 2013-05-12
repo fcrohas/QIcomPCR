@@ -40,6 +40,7 @@ CDevicePCR2500::CDevicePCR2500(const QString& serialport,
     tty.setStopBits(STOP_1);     //StopBits
     tty.setFlowControl(FLOW_OFF);//FlowControl
 
+    //tty.setTimeout(2, 500);
     tty.setTimeout(0, 10);
     tty.enableSending();
     tty.enableReceiving();
@@ -96,6 +97,13 @@ void CDevicePCR2500::write(QString &data)
 bool CDevicePCR2500::open()
 {
     if (tty.open()) {
+        /*
+        if (tty.isOpen()) {
+            haveSeenData = false;
+            log_t.isConnected = true;
+            watchdog->start(10000);
+            return true;
+        }*/
         if (tty.receiveData() > 1)
         {
             haveSeenData = false;

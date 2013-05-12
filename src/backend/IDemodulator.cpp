@@ -35,7 +35,7 @@ void IDemodulator::slotFrequency(double value)
     return;
 }
 
-void IDemodulator::slotBandwidth(int value)
+void IDemodulator::slotBandwidth(double value)
 {
     return;
 }

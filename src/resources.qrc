@@ -1,4 +1,18 @@
 <RCC>
     <qresource prefix="/">
+        <file>icons/system-shutdown-6.png</file>
+    </qresource>
+    <qresource prefix="/toolbar">
+        <file>icons/application-exit-2.png</file>
+        <file>icons/audio-volume-muted-3.png</file>
+        <file>icons/audio-volume-off.png</file>
+        <file>icons/document-save-5.png</file>
+        <file>icons/GlobeWin.ico</file>
+        <file>icons/media-playback-pause-8.png</file>
+        <file>icons/media-playback-start-8.png</file>
+        <file>icons/media-playback-stop-8.png</file>
+        <file>icons/media-record-6.png</file>
+        <file>icons/qicompcr.png</file>
+        <file>icons/system-shutdown-22x22.png</file>
     </qresource>
 </RCC>

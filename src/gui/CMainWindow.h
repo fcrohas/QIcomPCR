@@ -40,6 +40,7 @@
 #endif
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
+#include "CBandScope.h"
 #include "CDemodulator.h"
 #include "CFft.h"
 #include "ISound.h"
@@ -99,7 +100,7 @@ class CMainWindow : public QMainWindow
         // Sound channel
         void slotChannelChange(int value);
         // Scope
-        void slotScopeChanged(bool value);
+        void slotScopeChanged(int value);
         // Remote
         void slotRemoteData(QString &data);
         // Input Device selection
@@ -114,6 +115,14 @@ class CMainWindow : public QMainWindow
         void slotRecordAudio(bool value);
         // Window FFT function
         void slotWindowFunction(QString value);
+        // Refresh Rate
+        void slotRefreshRate(int value);
+        // BandScope
+        void slotBandScope(bool value);
+        // Bandscope width
+        void slotBandScopeWidth(int value);
+        // Bandscope step
+        void slotBandScopeStep(int value);
 
     private:
         Ui::MainWindow *ui;
@@ -144,11 +153,21 @@ class CMainWindow : public QMainWindow
         // dump decoder view
         CSpectrumWidget *myDecoder;
 
+        // Bandscope
+        CBandScope *myBandScope;
+
         // Demodulator
         CDemodulator *demodulator;
 
         // Remote Control
         CRemoteControl *remote;
+
+        //QToolbar
+        QToolBar *dock;
+
+        // Struct of value for bandscope
+        const int bandwidth[7] = {5000000,2000000,1000000,500000,200000,100000,50000};
+        const int stepsize[10] = {100000,50000,25000,15000,12500,10000,6000,5000,2500,1000};
 };
 
 extern CMainWindow *theMainWindow;
