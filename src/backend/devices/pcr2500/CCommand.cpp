@@ -214,7 +214,7 @@ bool CCommand::Open()
             opened = true;
             qDebug() << "Connected";
         }
-        sleep(5);
+        sleep(5000);
 
         retry++;
     }

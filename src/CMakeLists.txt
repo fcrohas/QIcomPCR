@@ -1,12 +1,12 @@
 project(qicompcr-binary)
 
 option(WITH_OPENGL "Build OPENGL" ON)
-option(WITH_ACARS "Build with licensed ACARS Library" ON)
+option(WITH_ACARS "Build with licensed ACARS Library" OFF)
 option(WITH_FFTW "Build with Fast Fourrier Transform Library" ON)
 option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
 option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
 option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
-option(WITH_SAMPLERATE "Build with resample capabilities support" OFF)
+option(WITH_SAMPLERATE "Build with resample capabilities support" ON)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -217,6 +217,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty
   ${CMAKE_SOURCE_DIR}/3rdparty/portaudio
   ${CMAKE_SOURCE_DIR}/3rdparty/libsndfile/include
+  ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/include
   ${CMAKE_SOURCE_DIR}/3rdparty/fftw3
   ${CMAKE_SOURCE_DIR}/3rdparty/acarsd
 )
@@ -309,7 +310,7 @@ if(UNIX)
     set(3RDPARTY ${3RDPARTY} samplerate)
 endif(UNIX)
 if(WIN32)
-    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/lib/libsamplerate.lib)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/lib/libsamplerate-0.lib)
 endif(WIN32)
 endif(WITH_SAMPLERATE)
 

@@ -45,6 +45,11 @@
 #include "CFft.h"
 #include "ISound.h"
 
+// Struct of value for bandscope
+const int bandwidth[7] = {5000000,2000000,1000000,500000,200000,100000,50000};
+const int stepsize[10] = {100000,50000,25000,15000,12500,10000,6000,5000,2500,1000};
+
+
 namespace Ui {
     class MainWindow;
 }
@@ -165,9 +170,6 @@ class CMainWindow : public QMainWindow
         //QToolbar
         QToolBar *dock;
 
-        // Struct of value for bandscope
-        const int bandwidth[7] = {5000000,2000000,1000000,500000,200000,100000,50000};
-        const int stepsize[10] = {100000,50000,25000,15000,12500,10000,6000,5000,2500,1000};
 };
 
 extern CMainWindow *theMainWindow;

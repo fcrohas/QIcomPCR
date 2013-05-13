@@ -3,7 +3,10 @@
 
 #include <QObject>
 #include <CDevicePCR2500.h>
+#ifdef WIN32
 #include <unistd.h>
+#define sleep Sleep
+#endif
 
 
 class CCommand : public QObject

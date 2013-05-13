@@ -99,7 +99,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 } // not a stop bit so
                 else {
                     // how much bit at 1 ?
-                    int count = ceil(accmark / bit);
+                    int count = ceil((double)(accmark / bit));
                     bitcount += count; // Cut into number of bit
                     qDebug() << "bits  mark count "<< bitcount << "ceil("<< accmark <<" / bit)=" << count;
                     letter.append(QString(" %1M").arg(count));
@@ -117,7 +117,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 if (started)
                 {
                     // how much bit at 0 ?
-                    int count = ceil(accspace / bit);
+                    int count = ceil((double)(accspace / bit));
                     bitcount += count; // Cut into number of bit
                     qDebug() << "bits  space count "<< bitcount << "ceil("<< accspace <<" / bit)=" << count;
                     letter.append(QString(" %1S").arg(count));
