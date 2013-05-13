@@ -9,7 +9,7 @@ Description :
   Actually the Web Interface and QT Interface are just proof of concept, the Web interface miss the sound feedback.
 
 --------------------------------  
-Dependancies :
+Dependencies :
 
 	* For sound system Pulseaudio or PortAudio
 	* Optional If you want Acars, you can install libacarsd for a robust decoding
