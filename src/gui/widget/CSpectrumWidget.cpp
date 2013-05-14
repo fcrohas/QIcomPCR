@@ -24,7 +24,7 @@ CSpectrumWidget::CSpectrumWidget(QWidget *parent) :
     background->attach(qwtPlot);
     //connect(spectro, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotClicked(QPoint)));
     rasterData =new WaterfallData();
-    rasterArray=new double[513*513]; // waterfall size is FFT usable bin * 2 for both channels so 512 * height
+    rasterArray=new double[512*512]; // waterfall size is FFT usable bin * 2 for both channels so 512 * height
     rasterData->setRangeX(1.0,512.0);
     rasterData->setRangeY(1.0,WATERFALL_MAX);
 
@@ -35,8 +35,12 @@ void CSpectrumWidget::slotRawSamples(double *xval, double *yval,int size)
 {
     if (average == NULL) {
         average = new double[size];
+        // Faster
+        memset(average,0,size*sizeof(double));
+        /*
         for (int i=0; i< size; i++)
             average[i] = 0.0;
+        */
         time.start();
     }
 
@@ -56,19 +60,14 @@ void CSpectrumWidget::slotRawSamples(double *xval, double *yval,int size)
         {
             // If spectro is full
             // translate all data
-            if (line>WATERFALL_MAX) {
-                line = WATERFALL_MAX -1;
-                // move all lines to first pos
-                for (int j=0; j<size; j++) {
-                    for (int i=1; i<WATERFALL_MAX; i++) {
-                        rasterArray[i-1 + j * size] = rasterArray[i + j * size];
-                    }
-                }
+            if (line>WATERFALL_MAX-1) {
+                line = line-1;
+                // Faster
+                memmove(&rasterArray[0],&rasterArray[size],((size*WATERFALL_MAX-1) - size)*sizeof(double));
             }
             // save line by line so
-            for (int i=0;i<size;i++) {
-                rasterArray[line + i * size] = average[i];
-            }
+            //Faster
+            memcpy(&rasterArray[line * size],&average[0], size*sizeof(double));
             rasterData->setData(rasterArray,512,WATERFALL_MAX);
             waterfall->setData(rasterData);
             line++;

@@ -123,7 +123,8 @@ public:
 
     int ArrPos(const int x, const int y) const
     {
-            return y + m_DataSize.y * x;
+            return x + m_DataSize.x * y;
+            //return y + m_DataSize.y * x;
     }
 
 };
