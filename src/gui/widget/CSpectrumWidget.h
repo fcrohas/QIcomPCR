@@ -422,7 +422,7 @@ private:
     ePlotter plotterType;
     int line;
     QwtLinearColorMap *m_colorMap;
-    uint refreshrate;
+    int refreshrate;
     double *average;
     
 };

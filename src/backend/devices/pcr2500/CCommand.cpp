@@ -97,7 +97,7 @@ void CCommand::setFilter(uint value)
 
 void CCommand::setRadio(uint value)
 {
-    if (value < radioList->count()) {
+    if (value < (uint)radioList->count()) {
         currentRadio = radioList->at(value);
         qDebug() << "dump radio " << value << " filter is " << currentRadio->filter;
         qDebug() << "dump radio " << value << " frequency is " << currentRadio->frequency;

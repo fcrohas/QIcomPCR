@@ -268,7 +268,7 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE )
 endif(MSVC)
 
-set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt spuc DspFilters)
+set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt DspFilters) #spuc
 
 if(WITH_PULSEAUDIO)
     set(3RDPARTY ${3RDPARTY} pulse-simple pulse)

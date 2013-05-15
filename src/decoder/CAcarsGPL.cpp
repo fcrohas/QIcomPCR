@@ -330,8 +330,6 @@ int CAcarsGPL::getmesg(unsigned char r, msg_t * msg, int ch)
 
 void CAcarsGPL::print_mesg(msg_t * msg)
 {
-    time_t t;
-    struct tm *tmp;
     char pos[128];
 
     emit sendData(QString("ACARS mode: %1\r\n").arg(msg->mode));
@@ -352,7 +350,7 @@ void CAcarsGPL::print_mesg(msg_t * msg)
 
 void CAcarsGPL::decode(int16_t *data, int size, int offset)
 {
-    int ind, len;
+    int ind;
     int el=1, er=0; // only one channel
     int nbitl = 0, nbitr = 0;
     int nrbitl =8,  nrbitr = 8;

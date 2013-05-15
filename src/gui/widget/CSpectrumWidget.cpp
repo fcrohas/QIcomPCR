@@ -12,14 +12,10 @@ CSpectrumWidget::CSpectrumWidget(QWidget *parent) :
     setupUi(this);
     spectro = new QwtPlotCurve();
 
-    CpuCurve *curve;
     Background * background;
     spectro->attach(qwtPlot);
     spectro->setPen(QPen(QColor(Qt::green)));
     //spectro->setStyle(QwtPlotCurve::Sticks);
-    //curve = new CpuCurve( "FFT" );
-    //curve->setColor( Qt::blue );
-    //curve->attach(qwtPlot);
     background = new Background();
     background->attach(qwtPlot);
     //connect(spectro, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotClicked(QPoint)));

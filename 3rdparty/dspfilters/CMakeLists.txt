@@ -16,7 +16,7 @@ set(SRCS
     ChebyshevI.cpp
     ChebyshevII.cpp
     Custom.cpp
-    Design.cpp
+    #Design.cpp
     Documentation.cpp
     Elliptic.cpp
     Filter.cpp

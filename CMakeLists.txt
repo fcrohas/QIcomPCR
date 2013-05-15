@@ -62,7 +62,7 @@ include(ConfigureChecks.cmake)
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 add_subdirectory(3rdparty/qwt)
-add_subdirectory(3rdparty/spuc)
+#add_subdirectory(3rdparty/spuc)
 add_subdirectory(3rdparty/SerialPort)
 add_subdirectory(3rdparty/getopt)
 add_subdirectory(3rdparty/dspfilters)

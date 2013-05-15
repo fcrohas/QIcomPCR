@@ -424,7 +424,7 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound(bool value)
 {
-#ifdef WITH_SNDFILE || WITH_PORTAUDIO || WITH_PULSEAUDIO
+#if defined(WITH_SNDFILE) || defined(WITH_PORTAUDIO) || defined(WITH_PULSEAUDIO)
     if (value == true) {
         if (sound == NULL) {
 #ifdef WITH_PULSEAUDIO

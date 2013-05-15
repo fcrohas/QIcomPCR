@@ -140,7 +140,7 @@ class CMainWindow : public QMainWindow
 
         //Widgets
         CLcdWidget *lcd;
-#ifdef WITH_SNDFILE || WITH_PORTAUDIO || WITH_PULSEAUDIO
+#if defined(WITH_SNDFILE) || defined(WITH_PORTAUDIO) || defined(WITH_PULSEAUDIO)
         ISound *sound;
 #endif
         CStatusWidget *status;
