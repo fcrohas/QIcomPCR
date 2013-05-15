@@ -39,6 +39,9 @@ class CDevicePCR2500 : public IDevice
             int dataReceive;
 
         } log_t;
+        void close();
+        QString WriteAndRead(QString cmd, int timeout);
+        void setBaudRate(const QString &baudrate);
 
     private slots:
         void slotNewDataReceived(const QByteArray &dataReceived);

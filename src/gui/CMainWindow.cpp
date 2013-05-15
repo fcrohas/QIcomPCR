@@ -50,7 +50,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
     remote = new CRemoteControl(this);
 
     status = new CStatusWidget(this);
-    lcd    = new CLcdWidget(this);
+    lcd1    = new CLcdWidget(this);
+    lcd2    = new CLcdWidget(this);
 #ifdef WITH_PULSEAUDIO
     sound  = new CPulseSound(this);
 #endif
@@ -74,13 +75,15 @@ CMainWindow::CMainWindow(QWidget *parent) :
     // Set Squelch max
     ui->knobSquelch->setRange(0.0,255.0,1.0);
     ui->knobIF->setRange(0.0,255.0,1.0);
+    ui->volume1->setRange(0.0,255.0,1.0);
+
 
     connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
     connect(ui->pushPower, SIGNAL(toggled(bool)), this, SLOT(powerOn(bool)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
-    connect(ui->volume1, SIGNAL(valueChanged(int)), this,SLOT(slotVolume1(int)));
-    connect(ui->volume2, SIGNAL(valueChanged(int)), this,SLOT(slotVolume2(int)));
+    connect(ui->volume1, SIGNAL(valueChanged(double)), this,SLOT(slotVolume1(double)));
+    //connect(ui->volume2, SIGNAL(valueChanged(double)), this,SLOT(slotVolume2(double)));
     connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
     connect(ui->knobIF,SIGNAL(valueChanged(double)), this, SLOT(slotIF(double)));
     connect(ui->pushNoiseBlanker,SIGNAL(toggled(bool)),this,SLOT(slotNoiseBlanker(bool)));
@@ -109,8 +112,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->signalRadio1->setOrientation(Qt::Horizontal,QwtThermo::BottomScale);
 
     // Frequency
-    ui->layoutFrequency->addWidget(lcd);
-    connect( lcd, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency(QString&)));
+    ui->layoutFrequency2->addWidget(lcd2);
+    ui->layoutFrequency1->addWidget(lcd1);
+    connect( lcd1, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency1(QString&)));
+    connect( lcd2, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency2(QString&)));
 #ifndef WIN32
     // Connect sound with demodulator
     sound->SetDemodulator(demodulator);
@@ -242,7 +247,7 @@ void CMainWindow::slotReceivedData(QString data)
         double value;
         bool ok;
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
-        if ((ok)  && (ui->radio1->isChecked())) {
+        if ((ok) /* && (ui->radio1->isChecked())*/) {
             ui->signalRadio1->setValue(value);
             remote->sendData(QString("SA%1").arg(value));
         }
@@ -253,8 +258,8 @@ void CMainWindow::slotReceivedData(QString data)
         double value;
         bool ok;
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
-        if ((ok)  && (ui->radio2->isChecked())) {
-            ui->signalRadio1->setValue(value);
+        if ((ok) /* && (ui->radio2->isChecked())*/) {
+            ui->signalRadio2->setValue(value);
             remote->sendData(QString("SB%1").arg(value));
         }
         found = true;
@@ -298,14 +303,14 @@ void CMainWindow::slotReceivedData(QString data)
 
 }
 
-void CMainWindow::slotVolume1(int value)
+void CMainWindow::slotVolume1(double value)
 {
-    cmd->setRadio(0);
+    //cmd->setRadio(0);
     cmd->setSoundVolume(value);
-    cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
+    //cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
 }
 
-void CMainWindow::slotVolume2(int value)
+void CMainWindow::slotVolume2(double value)
 {
     cmd->setRadio(1);
     cmd->setSoundVolume(value);
@@ -323,13 +328,24 @@ void CMainWindow::slotIF(double value)
     cmd->setIFShift(value);
 }
 
-void CMainWindow::slotFrequency(QString &value)
+void CMainWindow::slotFrequency1(QString &value)
 {
     if (value != "") {
+        cmd->setRadio(0);
         cmd->setFrequency(value.toInt());
         myBandScope->setCentralFrequency(value.toInt());
     }
 }
+
+void CMainWindow::slotFrequency2(QString &value)
+{
+    if (value != "") {
+        cmd->setRadio(1);
+        cmd->setFrequency(value.toInt());
+        myBandScope->setCentralFrequency(value.toInt());
+    }
+}
+
 
 void CMainWindow::slotFilter28k()
 {
@@ -408,7 +424,7 @@ void CMainWindow::slotRadioClicked(int value)
     QString freq("%1");
     freq = freq.arg(cmd->getFrequency(),10);
     qDebug() << "freq  " << freq;
-    lcd->setFrequency(freq);
+    //lcd->setFrequency(freq);
     ui->knobIF->setValue(cmd->getIFShift());
     ui->knobSquelch->setValue(cmd->getSquelch());
     switch(cmd->getModulation()) {

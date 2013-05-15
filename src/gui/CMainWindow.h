@@ -72,11 +72,12 @@ class CMainWindow : public QMainWindow
         void powerOn(bool value);
         void slotSendData(QString &data);
         void slotReceivedData(QString data);
-        void slotVolume1(int value);
-        void slotVolume2(int value);
+        void slotVolume1(double value);
+        void slotVolume2(double value);
         void slotSquelch(double value);
         void slotIF(double value);
-        void slotFrequency(QString&value);
+        void slotFrequency1(QString&value);
+        void slotFrequency2(QString&value);
         void slotUpdateStatus();
         // Filter switch
         void slotFilter28k();
@@ -139,7 +140,8 @@ class CMainWindow : public QMainWindow
         CDebugWindow *dbgWin;
 
         //Widgets
-        CLcdWidget *lcd;
+        CLcdWidget *lcd1;
+        CLcdWidget *lcd2;
 #if defined(WITH_SNDFILE) || defined(WITH_PORTAUDIO) || defined(WITH_PULSEAUDIO)
         ISound *sound;
 #endif

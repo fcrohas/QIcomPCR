@@ -213,9 +213,11 @@ bool CCommand::Open()
         if (m_device->open()) {
             opened = true;
             qDebug() << "Connected";
+            break;
         }
-        sleep(5000);
-
+        sleep(1);
+        m_device->close();
+        sleep(1);
         retry++;
     }
     // If not opened cancel
@@ -226,10 +228,19 @@ bool CCommand::Open()
     retry = 0;
     while (retry < 3) {
         // Try to power it on
+        qDebug() << "setPower();";
         setPower(true);
         // If powered end loop
         if (getPower()) {
+            qDebug() << "Power on is OK";
+            qDebug() << "so change baudrate";
+            sleep(3);
+            qDebug() << "change it on computer side too";
+            //m_device->setBaudRate("38400");
             setBaudRate(CCommand::b38400);
+            getPower();
+            sleep(10);
+            // Baud rate is now 38400
             return true;
         }
         sleep(3);
@@ -350,7 +361,7 @@ void CCommand::Initialize()
 
 void CCommand::slotReceivedData(QString value)
 {
-    //qDebug() << "received";
+    qDebug() << "received " << value;
     emit dataChanged(value);
 }
 

@@ -95,22 +95,42 @@ void CDevicePCR2500::write(QString &data)
 bool CDevicePCR2500::open()
 {
     if (tty.open()) {
-        /*
-        if (tty.isOpen()) {
-            haveSeenData = false;
-            log_t.isConnected = true;
-            watchdog->start(10000);
-            return true;
-        }*/
-        if (tty.receiveData() > 1)
+        // Wait a little  before ICOM initialize serial
+        qDebug() << "opened";
+        // Wait for data
+        sleep(5);
+        if (tty.receiveData() == 1 )
         {
+            qDebug() << "receiveData() activate";
             haveSeenData = false;
             log_t.isConnected = true;
             watchdog->start(10000);
             return true;
         }
-        return true;
+        return false;
     } else
         return false;
+
+}
+
+void CDevicePCR2500::close()
+{
+    tty.close();
+}
+
+QString CDevicePCR2500::WriteAndRead(QString cmd, int timeout)
+{
+    //while(tty.receiveData()>
+}
+
+void CDevicePCR2500::setBaudRate(const QString& baudrate)
+{
+    enum BaudRateType eBaudrate = BAUD4800;
+    if (baudrate.compare("9600")   == 0) { eBaudrate = BAUD9600;   }
+    if (baudrate.compare("19200")  == 0) { eBaudrate = BAUD19200;  }
+    if (baudrate.compare("38400")  == 0) { eBaudrate = BAUD38400;  }
+    if (baudrate.compare("57600")  == 0) { eBaudrate = BAUD57600;  }
+    if (baudrate.compare("115200") == 0) { eBaudrate = BAUD115200; }
+    tty.setBaudRate(eBaudrate);   //BaudRate
 
 }
