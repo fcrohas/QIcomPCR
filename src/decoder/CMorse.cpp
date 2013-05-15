@@ -66,6 +66,21 @@ CMorse::CMorse(QObject *parent, uint channel) :
     flowpass->setParams (params);
 }
 
+CMorse::~CMorse()
+{
+    delete [] mark_i;
+    delete [] mark_q;
+    delete [] xval;
+    delete [] yval;
+    delete [] corr;
+    delete [] mark;
+    delete [] space;
+    delete [] avgcorr;
+    delete [] audioData[0];
+    delete fmorse;
+    delete flowpass;
+}
+
 void CMorse::decode(int16_t *buffer, int size, int offset)
 {
     // Convert to double and normalize between -1.0 and 1.0

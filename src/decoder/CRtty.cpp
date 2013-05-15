@@ -42,6 +42,17 @@ CRtty::CRtty(QObject *parent, uint channel) :
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
 }
 
+CRtty::~CRtty()
+{
+    delete [] xval;
+    delete [] corrmark;
+    delete [] corrspace;
+    delete [] avgcorr;
+    delete [] audioData[0];
+    delete flowpass;
+    delete fbandpass;
+}
+
 void CRtty::decode(int16_t *buffer, int size, int offset)
 {
     // Convert to double and normalize between -1.0 and 1.0

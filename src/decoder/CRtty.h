@@ -16,6 +16,7 @@ class CRtty : public IDemodulator
     Q_OBJECT
 public:
     explicit CRtty(QObject *parent = 0, uint channel=1);
+    ~CRtty();
     void decode(int16_t *buffer, int size, int offset);
     uint getDataSize();
     uint getChannel();

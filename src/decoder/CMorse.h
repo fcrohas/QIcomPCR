@@ -91,6 +91,7 @@ class CMorse : public IDemodulator
     Q_OBJECT
 public:
     explicit CMorse(QObject *parent = 0, uint channel=1);
+    ~CMorse();
     void decode(int16_t *buffer, int size, int offset);
     uint getDataSize();
     uint getChannel();

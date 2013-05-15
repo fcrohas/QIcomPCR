@@ -203,6 +203,12 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
 CMainWindow::~CMainWindow()
 {
+    if (sound) {
+        sound->setRunning(false);
+        sound->terminate();
+        delete sound;
+        sound = NULL;
+    }
 }
 
 void CMainWindow::powerOn(bool value)

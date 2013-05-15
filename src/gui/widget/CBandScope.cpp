@@ -15,8 +15,8 @@ void CBandScope::setupUi(QWidget *widget)
 {
     QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sizePolicy.setHorizontalStretch(200);
-    sizePolicy.setVerticalStretch(80);
-    sizePolicy.setHeightForWidth(widget->sizePolicy().hasHeightForWidth());
+    sizePolicy.setVerticalStretch(200);
+    //sizePolicy.setHeightForWidth(widget->sizePolicy().hasHeightForWidth());
     widget->setSizePolicy(sizePolicy);
     widget->setAutoFillBackground(false);
     hboxLayout = new QHBoxLayout(widget);
