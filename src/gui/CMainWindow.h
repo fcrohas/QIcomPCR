@@ -41,6 +41,7 @@
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
 #include "CBandScope.h"
+#include "CDisplay.h"
 #include "CDemodulator.h"
 #include "CFft.h"
 #include "ISound.h"
@@ -171,6 +172,9 @@ class CMainWindow : public QMainWindow
 
         //QToolbar
         QToolBar *dock;
+
+        // Display
+        CDisplay *display;
 
 };
 

@@ -50,8 +50,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     remote = new CRemoteControl(this);
 
     status = new CStatusWidget(this);
-    lcd1    = new CLcdWidget(this);
-    lcd2    = new CLcdWidget(this);
+    //lcd1    = new CLcdWidget(this);
+    //lcd2    = new CLcdWidget(this);
+    display = new CDisplay(this);
 #ifdef WITH_PULSEAUDIO
     sound  = new CPulseSound(this);
 #endif
@@ -112,10 +113,11 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->signalRadio1->setOrientation(Qt::Horizontal,QwtThermo::BottomScale);
 
     // Frequency
-    ui->layoutFrequency2->addWidget(lcd2);
-    ui->layoutFrequency1->addWidget(lcd1);
-    connect( lcd1, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency1(QString&)));
-    connect( lcd2, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency2(QString&)));
+    ui->layoutFrequencies->addWidget(display);
+    //ui->layoutFrequency2->addWidget(lcd2);
+    //ui->layoutFrequency1->addWidget(lcd1);
+    //connect( lcd1, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency1(QString&)));
+    //connect( lcd2, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency2(QString&)));
 #ifndef WIN32
     // Connect sound with demodulator
     sound->SetDemodulator(demodulator);
@@ -248,6 +250,7 @@ void CMainWindow::slotReceivedData(QString data)
         bool ok;
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
         if ((ok) /* && (ui->radio1->isChecked())*/) {
+            display->setSignal1(value);
             ui->signalRadio1->setValue(value);
             remote->sendData(QString("SA%1").arg(value));
         }
@@ -259,6 +262,7 @@ void CMainWindow::slotReceivedData(QString data)
         bool ok;
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
         if ((ok) /* && (ui->radio2->isChecked())*/) {
+            display->setSignal2(value);
             ui->signalRadio2->setValue(value);
             remote->sendData(QString("SB%1").arg(value));
         }
