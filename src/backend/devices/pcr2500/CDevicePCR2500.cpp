@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 #include <QtGui>
 
+#define sleep Sleep
+
 CDevicePCR2500::CDevicePCR2500(const QString& serialport,
                          const QString& baudrate,
                          QObject * parent)
@@ -120,7 +122,7 @@ void CDevicePCR2500::close()
 
 QString CDevicePCR2500::WriteAndRead(QString cmd, int timeout)
 {
-    //while(tty.receiveData()>
+    return QString("");    //while(tty.receiveData()>
 }
 
 void CDevicePCR2500::setBaudRate(const QString& baudrate)

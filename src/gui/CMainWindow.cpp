@@ -330,6 +330,7 @@ void CMainWindow::slotSquelch(double value)
 void CMainWindow::slotIF(double value)
 {
     cmd->setIFShift(value);
+    display->setIF1(value);
 }
 
 void CMainWindow::slotFrequency1(QString &value)
