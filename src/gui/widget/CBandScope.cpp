@@ -92,7 +92,7 @@ void CBandScope::setCentralFrequency(int value)
     int max = 128 + (size / step) / 2;
     xAxis->setParams(frequency,step);
     qwtPlot->setAxisScale(QwtPlot::xBottom,min,max);
-    //qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
+    qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
 }
 
 void CBandScope::slotClicked(QPointF p)
@@ -104,8 +104,7 @@ void CBandScope::slotClicked(QPointF p)
     double minfreq = frequency - middle * step;
     // Middle is tuned frequency
     //emit fre minfreq + v * stepSize;
-    frequency = minfreq + (p.x()-min) * step;
-    xAxis->setParams(frequency,step);
+    frequency = minfreq + (p.toPoint().x()-min) * step;
     emit frequencyChanged(QString("%1").arg(frequency));
-    qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
+    setCentralFrequency(frequency);
 }

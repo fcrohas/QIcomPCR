@@ -550,6 +550,7 @@ void CMainWindow::slotChannelChange(int value)
 
 void CMainWindow::slotScopeChanged(int value)
 {
+    qDebug() << "cb changed =" << value;
     mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
     if (value == 1) {
         demodulator->setScopeType(1);

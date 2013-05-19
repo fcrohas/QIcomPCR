@@ -42,6 +42,7 @@ public:
     void setParams(int centerFreq, int step) {
         center = centerFreq;
         stepSize = step;
+        this->invalidateCache();
     }
 
 private:

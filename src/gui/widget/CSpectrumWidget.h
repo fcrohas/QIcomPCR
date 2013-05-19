@@ -204,6 +204,7 @@ public:
         type = value;
         qDebug() << "type setType=" << type;
         //invalidateCache();
+        this->invalidateCache();
 
     }
 
@@ -211,6 +212,7 @@ public:
         samplerate = rate;
         FftBins = bins;
         rate = refresh;
+        this->invalidateCache();
     }
 
 private:
@@ -383,7 +385,7 @@ class CSpectrumWidget : public QWidget
     Q_OBJECT
 public:
     explicit CSpectrumWidget(QWidget *parent = 0);
-    enum ePlotter {eFFT=0,eScope=1,eWaterfall=2};
+    enum ePlotter {eScope=0,eFFT=1,eWaterfall=2};
     enum eColorMap {eNormal=1, eGray=2, eColor=3};
     enum ScaleType {eFrequency=1, eTime=2, eTimeInv=3, ePower=4};
     void setAxis(int x1, int x2, int y1, int y2);
