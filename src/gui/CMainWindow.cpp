@@ -108,16 +108,13 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->pushUSB,SIGNAL(clicked()), this, SLOT(slotModulationUSB()));
 
     // Radio
-    ui->buttonGroup->setId(ui->radio1,0);
-    ui->buttonGroup->setId(ui->radio2,1);
-    ui->signalRadio1->setOrientation(Qt::Horizontal,QwtThermo::BottomScale);
+    //ui->buttonGroup->setId(ui->radio1,0);
+    //ui->buttonGroup->setId(ui->radio2,1);
 
     // Frequency
     ui->layoutFrequencies->addWidget(display);
-    //ui->layoutFrequency2->addWidget(lcd2);
-    //ui->layoutFrequency1->addWidget(lcd1);
-    //connect( lcd1, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency1(QString&)));
-    //connect( lcd2, SIGNAL(frequencyChanged(QString&)), this,SLOT(slotFrequency2(QString&)));
+    connect( display, SIGNAL(frequencyChanged(QString)), this,SLOT(slotFrequency(QString)));
+    connect( myBandScope, SIGNAL(frequencyChanged(QString)), this, SLOT(slotFrequency(QString)));
 #ifndef WIN32
     // Connect sound with demodulator
     sound->SetDemodulator(demodulator);
@@ -145,7 +142,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->refreshRate, SIGNAL(valueChanged(int)), this, SLOT(slotRefreshRate(int)));
     connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
-    connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
+    //connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
 #endif
@@ -153,6 +150,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->pushBandscope,SIGNAL(clicked(bool)),this,SLOT(slotBandScope(bool)));
     connect(ui->cbBandwidth, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeWidth(int)));
     connect(ui->cbStepsize, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeStep(int)));
+
+    // Step size change
+    connect(ui->pushStepUp,SIGNAL(clicked()), this, SLOT(slotStepUp()));
+    connect(ui->pushStepDown,SIGNAL(clicked()), this, SLOT(slotStepDown()));
 
     // Connect remote to event
     connect(remote,SIGNAL(sigAutomaticGainControl(bool)), cmd, SLOT(setAutomaticGainControl(bool)));
@@ -250,8 +251,7 @@ void CMainWindow::slotReceivedData(QString data)
         bool ok;
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
         if ((ok) /* && (ui->radio1->isChecked())*/) {
-            display->setSignal1(value);
-            ui->signalRadio1->setValue(value);
+            display->setSignal(0,value);
             remote->sendData(QString("SA%1").arg(value));
         }
         found = true;
@@ -262,8 +262,7 @@ void CMainWindow::slotReceivedData(QString data)
         bool ok;
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
         if ((ok) /* && (ui->radio2->isChecked())*/) {
-            display->setSignal2(value);
-            ui->signalRadio2->setValue(value);
+            display->setSignal(1,value);
             remote->sendData(QString("SB%1").arg(value));
         }
         found = true;
@@ -310,15 +309,16 @@ void CMainWindow::slotReceivedData(QString data)
 void CMainWindow::slotVolume1(double value)
 {
     //cmd->setRadio(0);
+    cmd->setRadio(display->getRadio());
     cmd->setSoundVolume(value);
     //cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
 }
 
 void CMainWindow::slotVolume2(double value)
 {
-    cmd->setRadio(1);
+    cmd->setRadio(display->getRadio());
     cmd->setSoundVolume(value);
-    cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
+    //cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
 }
 
 
@@ -330,94 +330,117 @@ void CMainWindow::slotSquelch(double value)
 void CMainWindow::slotIF(double value)
 {
     cmd->setIFShift(value);
-    display->setIF1(value);
+    display->setIF(value);
 }
 
-void CMainWindow::slotFrequency1(QString &value)
+void CMainWindow::slotFrequency(QString value)
 {
     if (value != "") {
-        cmd->setRadio(0);
+        cmd->setRadio(display->getRadio());
         cmd->setFrequency(value.toInt());
         myBandScope->setCentralFrequency(value.toInt());
+        display->setFrequency(value.toInt());
     }
 }
 
-void CMainWindow::slotFrequency2(QString &value)
+void CMainWindow::slotStepUp()
 {
-    if (value != "") {
-        cmd->setRadio(1);
-        cmd->setFrequency(value.toInt());
-        myBandScope->setCentralFrequency(value.toInt());
-    }
+    display->StepUp();
 }
 
+void CMainWindow::slotStepDown()
+{
+    display->StepDown();
+}
 
 void CMainWindow::slotFilter28k()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setFilter(CCommand::e28k);
+    display->setFilter(2800);
     ui->push28k->setChecked(true);
 }
 
 void CMainWindow::slotFilter6k()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setFilter(CCommand::e6k);
+    display->setFilter(6000);
     ui->push6k->setChecked(true);
 }
 
 void CMainWindow::slotFilter15k()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setFilter(CCommand::e15k);
+    display->setFilter(15000);
     ui->push15k->setChecked(true);
 }
 
 void CMainWindow::slotFilter50k()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setFilter(CCommand::e50k);
+    display->setFilter(50000);
     ui->push50k->setChecked(true);
 }
 
 void CMainWindow::slotFilter230k()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setFilter(CCommand::e230k);
+    display->setFilter(230000);
     ui->push230k->setChecked(true);
 
 }
 
 void CMainWindow::slotModulationAM()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setModulation(CCommand::eAM);
+    display->setMode(ui->pushAM->text());
     ui->pushAM->setChecked(true);
 }
 
 void CMainWindow::slotModulationFM()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setModulation(CCommand::eFM);
+    display->setMode(ui->pushFM->text());
     ui->pushFM->setChecked(true);
 }
 
 void CMainWindow::slotModulationWFM()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setModulation(CCommand::eWFM);
+    display->setMode(ui->pushWFM->text());
     ui->pushWFM->setChecked(true);
 
 }
 
 void CMainWindow::slotModulationLSB()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setModulation(CCommand::eLSB);
+    display->setMode(ui->pushLSB->text());
     ui->pushLSB->setChecked(true);
 
 }
 
 void CMainWindow::slotModulationUSB()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setModulation(CCommand::eUSB);
+    display->setMode(ui->pushUSB->text());
     ui->pushUSB->setChecked(true);
 }
 
 void CMainWindow::slotModulationCW()
 {
+    cmd->setRadio(display->getRadio());
     cmd->setModulation(CCommand::eCW);
+    display->setMode(ui->pushCW->text());
     ui->pushCW->setChecked(true);
 }
 
@@ -478,17 +501,20 @@ void CMainWindow::slotSwitchSound(bool value)
 
 void CMainWindow::slotNoiseBlanker(bool value)
 {
+    cmd->setRadio(display->getRadio());
     cmd->setNoiseBlanker(value);
 }
 
 void CMainWindow::slotAGC(bool value)
 {
+    cmd->setRadio(display->getRadio());
    cmd->setAutomaticGainControl(value);
 
 }
 
 void CMainWindow::slotVSC(bool value)
 {
+    cmd->setRadio(display->getRadio());
     cmd->setVoiceControl(value);
 }
 

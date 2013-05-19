@@ -3,6 +3,11 @@
 
 #include <QWidget>
 #include <QPainter>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QWheelEvent>
+
+const int StepSize[18] = {1,10,50,100,500,1000,2500,6000,8333,10000,12500,15000,20000,25000,50000,100000,500000,1000000 };
 
 class CDisplay : public QWidget
 {
@@ -12,30 +17,66 @@ public:
     ~CDisplay();
 
     // Frequency
-    void setFrequency1(QString value);
-    void setFrequency2(QString value);
+    void setFrequency(QString value);
+    void setFrequency(int value);
 
-    void setSignal1(int value);
-    void setSignal2(int value);
+    void setSignal(int ch, int value);
 
-    void setIF1(int value);
-    void setIF2(int value);
+    void setIF(int value);
+
+    void setFilter(int value);
+
+    void setRadio(int value);
+    int  getRadio();
+
+    void StepUp();
+    void StepDown();
+
+    void setMode(QString value);
 
     void paintEvent(QPaintEvent *event);
 
+    void mousePressEvent(QMouseEvent *event);
+
+    void keyPressEvent(QKeyEvent *event);
+
+    void wheelEvent(QWheelEvent *event);
     
 signals:
+    void frequencyChanged(QString value);
     
 public slots:
 
 private:
 
+    // Frequency
     QString frequency1;
     QString frequency2;
+    QRect rectFreq1;
+    QRect rectFreq2;
+
+    // Signal
     int signal1;
     int signal2;
+
+    // IF
     int IF1;
     int IF2;
+
+    // Filter
+    int Filter1;
+    int Filter2;
+
+    // Step
+    int Step1;
+    int Step2;
+
+    // Radio
+    int radio;
+
+    // Mode
+    QString Mode1;
+    QString Mode2;
 
     // Frequency
     void drawFrequency(QPainter *p);
@@ -45,6 +86,18 @@ private:
 
     // IF
     void drawIF(QPainter *p);
+
+    // Filter
+    void drawFilter(QPainter *p);
+
+    // Step Size
+    void drawStepSize(QPainter *p);
+
+    // Modulation
+    void drawMode(QPainter *p);
+
+    // Format frequency
+    QString format(QString frequency, int increment);
 };
 
 #endif // CDISPLAY_H

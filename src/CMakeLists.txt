@@ -78,6 +78,7 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/CSettings.cpp
     ${qicompcr_SRCS}
 )
 
@@ -124,6 +125,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.h
     ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.h
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.h
+    ${CMAKE_SOURCE_DIR}/src/backend/CSettings.h
     CApplication.h
     version.h
     ${qicompcr_HDRS}

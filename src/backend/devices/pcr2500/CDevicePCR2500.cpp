@@ -19,8 +19,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #include "CDevicePCR2500.h"
 
 #include <QtGui>
-
+#ifdef WIN32
 #define sleep Sleep
+#endif
 
 CDevicePCR2500::CDevicePCR2500(const QString& serialport,
                          const QString& baudrate,

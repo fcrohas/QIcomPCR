@@ -2,12 +2,19 @@
 
 CDisplay::CDisplay(QWidget *parent) :
     QWidget(parent),
-    frequency1("0.000.000.000"),
-    frequency2("0.000.000.000"),
+    frequency1("106.500000"),
+    frequency2("145.425000"),
     signal1(128),
     signal2(240),
     IF1(128),
-    IF2(128)
+    IF2(128),
+    Filter1(230000),
+    Filter2(15000),
+    radio(0),
+    Step1(0),
+    Step2(0),
+    Mode1("WFM"),
+    Mode2("FM")
 {
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 }
@@ -16,6 +23,72 @@ CDisplay::~CDisplay()
 {
 
 }
+
+void CDisplay::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Enter) {
+        if (radio == 0)
+            frequency1 = format(frequency1,0);
+        else frequency2 = format(frequency2,0);
+
+        releaseKeyboard();
+
+        repaint();
+        if (radio == 0)
+            emit frequencyChanged(frequency1.replace(".",""));
+        else
+            emit frequencyChanged(frequency2.replace(".",""));
+
+        return;
+    }
+    if (radio == 0)
+        frequency1.append( event->text());
+    else frequency2.append( event->text());
+
+    repaint();
+}
+
+void CDisplay::mousePressEvent(QMouseEvent *event)
+{
+    // Grab keyboard entry
+    if (event->button() == Qt::LeftButton) {
+        // Activate radio from rect
+        if (rectFreq1.contains(event->pos()))
+            radio = 0;
+        if (rectFreq2.contains(event->pos()))
+            radio = 1;
+    }
+    if (event->button() == Qt::RightButton) {
+        //setIncrement(ts/10);
+    }
+    if (event->button() == Qt::MiddleButton) {
+        grabKeyboard();
+        if (radio == 0)
+            frequency1 = "";
+        else frequency2 = "";
+    }
+    repaint();
+}
+
+void CDisplay::wheelEvent(QWheelEvent *event)
+{
+    int numDegrees = event->delta() / 8;
+    int numSteps = numDegrees / 15;
+    if (event->delta() >0) {
+        if (radio==0)
+            frequency1 = format(frequency1,StepSize[Step1]);
+        else frequency2 = format(frequency2,StepSize[Step2]);
+    } else {
+        if (radio==0)
+            frequency1 = format(frequency1,StepSize[Step1] * -1);
+        else frequency2 = format(frequency2,StepSize[Step2] * -1);
+    }
+    repaint();
+    if (radio==0)
+        emit frequencyChanged(frequency1.replace(".",""));
+    else emit frequencyChanged(frequency2.replace(".",""));
+}
+
 
 void CDisplay::paintEvent(QPaintEvent *event)
 {
@@ -32,6 +105,15 @@ void CDisplay::paintEvent(QPaintEvent *event)
 
     // Draw IF
     drawIF(&painter);
+
+    // Draw Filter
+    drawFilter(&painter);
+
+    // Draw Step
+    drawStepSize(&painter);
+
+    // draw Mode
+    drawMode(&painter);
 }
 
 void CDisplay::drawFrequency(QPainter *p)
@@ -44,6 +126,7 @@ void CDisplay::drawFrequency(QPainter *p)
     QRect           r = fm.boundingRect(frequency1);
     // Calculate width() to set on corect increment digit
     r.moveCenter(QPoint(size.width()/4,size.height()/3));
+    rectFreq1 = r;
     p->setPen(Qt::white);
     p->setFont(font);
 
@@ -58,12 +141,18 @@ void CDisplay::drawFrequency(QPainter *p)
     p->drawText(r.adjusted( 0,+1, 0,+1),Qt::AlignCenter,frequency1);
     p->drawText(r.adjusted(+1,+1,+1,+1),Qt::AlignCenter,frequency1);
 
-    p->setPen(QColor(Qt::cyan));
+    // Radio activated ?
+    if (radio == 0)
+        p->setPen(QColor(Qt::blue));
+    else
+        p->setPen(QColor(Qt::gray));
+
     p->drawText(r,Qt::AlignCenter,frequency1);
 
     r = fm.boundingRect(frequency2);
     // Calculate width() to set on corect increment digit
     r.moveCenter(QPoint(size.width()*3/4,size.height()/3));
+    rectFreq2 = r;
     p->setPen(Qt::white);
     p->setFont(font);
 
@@ -78,7 +167,11 @@ void CDisplay::drawFrequency(QPainter *p)
     p->drawText(r.adjusted( 0,+1, 0,+1),Qt::AlignCenter,frequency2);
     p->drawText(r.adjusted(+1,+1,+1,+1),Qt::AlignCenter,frequency2);
 
-    p->setPen(QColor(Qt::cyan));
+    // Radio activated ?
+    if (radio == 1)
+        p->setPen(QColor(Qt::blue));
+    else
+        p->setPen(QColor(Qt::gray));
     p->drawText(r,Qt::AlignCenter,frequency2);
 
 }
@@ -94,12 +187,12 @@ void CDisplay::drawSignal(QPainter *p)
     // Draw horizontal line
     QPen pen(Qt::gray, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
     p->setPen(pen);
-    p->drawLine(QPointF((size.width()*0.5/grid),size.height()*1.33/3 + 17.0), QPointF((size.width()*0.5/grid)+252,size.height()*1.33/3 + 17.0));
+    p->drawLine(QPointF((size.width()*0.25/grid),size.height()*1.33/3 + 17.0), QPointF((size.width()*0.25/grid)+252,size.height()*1.33/3 + 17.0));
 
     // Draw scale
     for (int i=0; i < 255; i+=5) {
         // square
-        QRectF s(QPointF((size.width()*0.5/grid)+i,size.height()*1.33/3), QSizeF(2.0 +((i % 15) == 0 ?2.0:0.0), 11.0));
+        QRectF s(QPointF((size.width()*0.25/grid)+i,size.height()*1.33/3), QSizeF(2.0 +((i % 15) == 0 ?2.0:0.0), 11.0));
         if ( i < signal1)
             p->fillRect(s,Qt::blue);
         else
@@ -109,20 +202,20 @@ void CDisplay::drawSignal(QPainter *p)
         if ((i % 25) == 0 ) {
             QPen pendash(Qt::red, 1.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
             p->setPen(pendash);
-            p->drawLine(QPointF((size.width()*0.5/grid)+i,size.height()*1.33/3 + 17.0), QPointF((size.width()*0.5/grid)+i,size.height()*1.66/3));
+            p->drawLine(QPointF((size.width()*0.25/grid)+i,size.height()*1.33/3 + 17.0), QPointF((size.width()*0.25/grid)+i,size.height()*1.66/3));
             p->setPen(Qt::white);
-            p->drawText(QPointF((size.width()*0.5/grid)+i,size.height()*1.33/3 + 27.0), QString("%1").arg(i));
+            p->drawText(QPointF((size.width()*0.25/grid)+i,size.height()*1.33/3 + 27.0), QString("%1").arg(i));
         }
 
     }
 
     p->setPen(pen);
-    p->drawLine(QPointF((size.width()*2.5/grid),size.height()*1.33/3 + 17.0), QPointF((size.width()*2.5/grid)+252,size.height()*1.33/3 + 17.0));
+    p->drawLine(QPointF((size.width()*2.25/grid),size.height()*1.33/3 + 17.0), QPointF((size.width()*2.25/grid)+252,size.height()*1.33/3 + 17.0));
 
     // Draw scale
     for (int i=0; i < 255; i+=5) {
         // square
-        QRectF s(QPointF((size.width()*2.5/grid)+i,size.height()*1.33/3), QSizeF(2.0 +((i % 15) == 0 ?2.0:0.0), 11.0));
+        QRectF s(QPointF((size.width()*2.25/grid)+i,size.height()*1.33/3), QSizeF(2.0 +((i % 15) == 0 ?2.0:0.0), 11.0));
         if ( i < signal2)
             p->fillRect(s,Qt::blue);
         else
@@ -132,9 +225,9 @@ void CDisplay::drawSignal(QPainter *p)
         if ((i % 25) == 0 ) {
             QPen pendash(Qt::red, 1.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
             p->setPen(pendash);
-            p->drawLine(QPointF((size.width()*2.5/grid)+i,size.height()*1.33/3 + 17.0), QPointF((size.width()*2.5/grid)+i,size.height()*1.66/3));
+            p->drawLine(QPointF((size.width()*2.25/grid)+i,size.height()*1.33/3 + 17.0), QPointF((size.width()*2.25/grid)+i,size.height()*1.66/3));
             p->setPen(Qt::white);
-            p->drawText(QPointF((size.width()*2.5/grid)+i,size.height()*1.33/3 + 27.0), QString("%1").arg(i));
+            p->drawText(QPointF((size.width()*2.25/grid)+i,size.height()*1.33/3 + 27.0), QString("%1").arg(i));
         }
 
     }
@@ -157,6 +250,9 @@ void CDisplay::drawIF(QPainter *p)
     qreal axisheight = axisy2 -axisy1;
     qreal axismid = axisx1 + (axisx2 - axisx1)/2.0;
     qreal pos = IF1*axiswidth/255.0;
+    QBrush brush(QColor(Qt::cyan));
+    p->setBrush(brush);
+
     // Draw center axis
     p->setPen(penaxis);
     //draw bottom axis
@@ -174,6 +270,21 @@ void CDisplay::drawIF(QPainter *p)
     //right
     p->drawLine(QPointF(axisx2 + pos - (filterwidth*axiswidth/255.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos - axiswidth/8.0 , axisy2));
 
+    // Selection
+    pen.setWidth(1.0);
+    p->setPen(pen);
+    QFont font("Times", 8, QFont::Bold);
+    QFontMetrics    fm(font);
+    QRect           r = fm.boundingRect(QString("IF"));
+    r.moveCenter(QPoint(axismid,axisy2 +13.0));
+    p->setFont(font);
+    p->drawRoundRect(QRectF(axismid - axiswidth/4.0, axisy2 +8.0, axiswidth * 2 / 4, 10.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("IF"));
+    pen.setColor(QColor(Qt::cyan));
+    p->setPen(pen);
+    pen.setWidth(2.0);
     // Draw axis 2
     axisx1 = (size.width()*2.75/grid);
     axisx2 = (size.width()*2.25/grid);
@@ -195,38 +306,270 @@ void CDisplay::drawIF(QPainter *p)
     //right
     p->drawLine(QPointF(axisx2 + pos + (filterwidth*axiswidth/255.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos + axiswidth/8.0 , axisy2));
 
+    // Selection
+    pen.setWidth(1.0);
+    p->setPen(pen);
+    r = fm.boundingRect(QString("IF"));
+    r.moveCenter(QPoint(axismid,axisy2 +13.0));
+    p->setFont(font);
+    p->drawRoundRect(QRectF(axismid - axiswidth/4.0, axisy2 +8.0, axiswidth * 2 / 4, 10.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("IF"));
+
 }
 
-void CDisplay::setFrequency1(QString value)
+void CDisplay::drawFilter(QPainter *p)
 {
-    frequency1 = value;
+    QRect size = this->geometry();
+    int grid = 4;
+    QPen penaxis(Qt::white, 1.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen pen(Qt::cyan, 2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    // Draw axis 1
+    qreal axisx1 = (size.width()*1.75/grid);
+    qreal axisx2 = (size.width()*1.25/grid);
+    qreal axiswidth = axisx1 - axisx2;
+    qreal axisy1 = size.height()*2/3;
+    qreal axisy2 = size.height()*2.5/3 ;
+    qreal axisheight = axisy2 -axisy1;
+    qreal axismid = axisx1 + (axisx2 - axisx1)/2.0;
+    qreal pos = 128*axiswidth/255.0;
+    // Draw center axis
+    p->setPen(penaxis);
+    //draw bottom axis
+    p->drawLine(QPointF(axisx1,axisy2), QPointF(axisx2,axisy2));
+    penaxis.setStyle(Qt::DashLine);
+    p->drawLine(QPointF(axismid, axisy1 ), QPointF(axismid,axisy2));
+    penaxis.setStyle(Qt::SolidLine);
+
+    // Draw Filter1 band
+    p->setPen(pen);
+    //top
+    p->drawLine(QPointF(axisx2 + pos + (Filter1*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos - (Filter1*axiswidth/460000.0), axisy1 + axisheight * 2 /8));
+    //left
+    p->drawLine(QPointF(axisx2 + pos + (Filter1*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos + (Filter1*axiswidth/460000.0) + axiswidth/16.0 , axisy2));
+    //right
+    p->drawLine(QPointF(axisx2 + pos - (Filter1*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos - (Filter1*axiswidth/460000.0) - axiswidth/16.0 , axisy2));
+
+    // Selection
+    QBrush brush(QColor(Qt::cyan));
+    p->setBrush(brush);
+
+    pen.setWidth(1.0);
+    QFont font("Times", 8, QFont::Bold);
+    QFontMetrics    fm(font);
+    QRect           r = fm.boundingRect(QString("%1k").arg(Filter1/1000.0));
+    r.moveCenter(QPoint(axismid,axisy2 +13.0));
+    p->setFont(font);
+    p->drawRoundRect(QRectF(axismid - axiswidth/4.0, axisy2 +8.0, axiswidth * 2 / 4, 10.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("%1k").arg(Filter1/1000));
+    pen.setColor(QColor(Qt::cyan));
+    pen.setWidth(2.0);
+    p->setPen(pen);
+
+    // Draw axis 2
+    axisx1 = (size.width()*3.75/grid);
+    axisx2 = (size.width()*3.25/grid);
+    axismid = axisx1 + (axisx2 - axisx1)/2.0;
+    pos = 128*axiswidth/255.0;
+    p->setPen(penaxis);
+    //draw bottom axis
+    p->drawLine(QPointF(axisx1,axisy2), QPointF(axisx2,axisy2));
+    penaxis.setStyle(Qt::DashLine);
+    p->drawLine(QPointF(axismid, axisy1 ), QPointF(axismid,axisy2));
+    penaxis.setStyle(Qt::SolidLine);
+
+    // Draw Filter2 band
+    p->setPen(pen);
+    // top
+    p->drawLine(QPointF(axisx2 + pos - (Filter2*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos +  (Filter2*axiswidth/460000.0), axisy1 + axisheight * 2 /8));
+    //left
+    p->drawLine(QPointF(axisx2 + pos - (Filter2*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos - (Filter2*axiswidth/460000.0) - axiswidth/16.0 , axisy2));
+    //right
+    p->drawLine(QPointF(axisx2 + pos + (Filter2*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos + (Filter2*axiswidth/460000.0) + axiswidth/16.0 , axisy2));
+
+    // Selection
+    pen.setWidth(1.0);
+    p->setPen(pen);
+    r = fm.boundingRect(QString("%1k").arg(Filter2/1000.0));
+    r.moveCenter(QPoint(axismid,axisy2 +13.0));
+    p->setFont(font);
+    p->drawRoundRect(QRectF(axismid - axiswidth/4.0, axisy2 +8.0, axiswidth * 2 / 4, 10.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("%1k").arg(Filter2/1000));
+    pen.setColor(QColor(Qt::cyan));
+
 }
 
-void CDisplay::setFrequency2(QString value)
+void CDisplay::drawStepSize(QPainter *p)
 {
-    frequency1 = value;
+    QRect size = this->geometry();
+    int left = size.width()/4;
+    int right = size.width()*3/4;
+    int top = size.height()*2/3;
+    QBrush brush(QColor(Qt::cyan));
+    QFont font("Times", 8, QFont::Bold);
+    QFontMetrics    fm(font);
+    QRect           r = fm.boundingRect(QString("%1k").arg(StepSize[Step1]/1000.0));
+    QPen pen(Qt::cyan, 2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    // First channel
+    r.moveCenter(QPoint(left,top));
+    p->setBrush(brush);
+    p->setFont(font);
+    p->drawRoundRect(QRectF(left - 20.0, top - 10.0, 40.0, 20.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("%1k").arg(StepSize[Step1]/1000.0));
+    pen.setColor(QColor(Qt::cyan));
+
+    r = fm.boundingRect(QString("%1k").arg(StepSize[Step2]/1000.0));
+    r.moveCenter(QPoint(right,top));
+    p->setBrush(brush);
+    p->setFont(font);
+    p->drawRoundRect(QRectF(right - 20.0, top - 10.0, 40.0, 20.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("%1k").arg(StepSize[Step2]/1000.0));
+    pen.setColor(QColor(Qt::cyan));
+
 }
 
-void CDisplay::setSignal1(int value)
+void CDisplay::drawMode(QPainter *p)
 {
-    signal1 = value;
+    QRect size = this->geometry();
+    int left = size.width()/4;
+    int right = size.width()*3/4;
+    int top = size.height()*2.3/3;
+    QBrush brush(QColor(Qt::cyan));
+    QFont font("Times", 8, QFont::Bold);
+    QFontMetrics    fm(font);
+    QRect           r = fm.boundingRect(QString("%1").arg(Mode1));
+    QPen pen(Qt::cyan, 2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    r.moveCenter(QPoint(left,top));
+    p->setBrush(brush);
+    p->setFont(font);
+    p->drawRoundRect(QRectF(left - 20.0, top - 10.0, 40.0, 20.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("%1").arg(Mode1));
+    pen.setColor(QColor(Qt::cyan));
+
+    r = fm.boundingRect(QString("%1").arg(Mode2));
+    r.moveCenter(QPoint(right,top));
+    p->setBrush(brush);
+    p->setFont(font);
+    p->drawRoundRect(QRectF(right - 20.0, top - 10.0, 40.0, 20.0));
+    pen.setColor(QColor(Qt::black));
+    p->setPen(pen);
+    p->drawText(r, QString("%1k").arg(Mode2));
+    pen.setColor(QColor(Qt::cyan));
+
+}
+
+
+QString CDisplay::format(QString frequency, int increment)
+{
+    // fill left side after dot with 0
+    if (frequency.indexOf(".")>-1) {
+        QString digit;
+        QString unit;
+
+        // First part of 106.5 eg 106 in unit
+        unit = frequency.mid(0,frequency.indexOf("."));
+
+        // Second part of 106.5 eg 5 in digit
+        digit = frequency.mid(frequency.indexOf(".")+1).leftJustified(6,'0',true);
+        // Limit unit to 3200
+        if (unit.toInt()>3200) { unit = "3200"; }
+        // the full frequency can be 3200.000000 do 10 digits
+        frequency = unit +"."+digit;
+    }
+
+    // Add the increment
+    frequency = frequency.replace(".",""); // remove Mhz point
+    frequency = QString("%1").arg(frequency.toInt() + increment);
+    frequency = frequency.insert(frequency.length()-6,"."); // reinsert Mhz point
+    return frequency;
+}
+
+void CDisplay::setFrequency(QString value)
+{
+    if (radio == 0)
+        frequency1 = value;
+    else
+        frequency2 = value;
     repaint();
 }
 
-void CDisplay::setSignal2(int value)
+void CDisplay::setFrequency(int value)
 {
-    signal2 = value;
+    QString frequency("%1");
+    frequency = frequency.arg(value);
+    frequency = frequency.insert(frequency.length()-6,".");
+    if (radio == 0)
+        frequency1 = frequency;
+    else
+        frequency2 = frequency;
     repaint();
 }
 
-void CDisplay::setIF1(int value)
+void CDisplay::setSignal(int ch, int value)
 {
-    IF1 = value;
+    if (ch ==0)
+        signal1 = value;
+    else
+        signal2 = value;
     repaint();
 }
 
-void CDisplay::setIF2(int value)
+void CDisplay::setIF(int value)
 {
-    IF2 = value;
+    if (radio == 0)
+        IF1 = value;
+    else
+        IF2 = value;
+    repaint();
+}
+
+void CDisplay::setFilter(int value)
+{
+    if (radio == 0)
+        Filter1 = value;
+    else
+        Filter2 = value;
+    repaint();
+}
+
+void CDisplay::setRadio(int value)
+{
+    radio = value;
+}
+
+int CDisplay::getRadio()
+{
+    return radio;
+}
+
+void CDisplay::StepUp()
+{
+    if (radio==0) Step1++;
+    else Step2++;
+    repaint();
+}
+
+void CDisplay::StepDown()
+{
+    if (radio==0) Step1--;
+    else Step2--;
+    repaint();
+}
+
+void CDisplay::setMode(QString value)
+{
+    if (radio==0) Mode1=value;
+    else Mode2=value;
     repaint();
 }

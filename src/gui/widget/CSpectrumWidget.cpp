@@ -146,6 +146,8 @@ void CSpectrumWidget::setPlotterType(ePlotter type)
                 spectro->attach(qwtPlot);
                 qwtPlot->plotLayout()->setAlignCanvasToScales(true);
                 qwtPlot->replot();
+                qwtPlot->axisWidget(QwtPlot::xBottom)->repaint();
+                qwtPlot->axisWidget(QwtPlot::yLeft)->repaint();
             break;
         case eScope:
                  spectro->detach();
@@ -163,6 +165,8 @@ void CSpectrumWidget::setPlotterType(ePlotter type)
                  qwtPlot->plotLayout()->setAlignCanvasToScales(true);
                  spectro->attach(qwtPlot);
                  qwtPlot->replot();
+                 qwtPlot->axisWidget(QwtPlot::xBottom)->repaint();
+                 qwtPlot->axisWidget(QwtPlot::yLeft)->repaint();
             break;
         case eWaterfall:
                  spectro->detach();
@@ -179,6 +183,8 @@ void CSpectrumWidget::setPlotterType(ePlotter type)
                  waterfall->attach(qwtPlot);
                  qwtPlot->plotLayout()->setAlignCanvasToScales(true);
                  qwtPlot->replot();
+                 qwtPlot->axisWidget(QwtPlot::xBottom)->repaint();
+                 qwtPlot->axisWidget(QwtPlot::yLeft)->repaint();
              break;
         default:
                 spectro->detach();

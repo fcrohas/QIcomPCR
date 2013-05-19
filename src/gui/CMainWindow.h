@@ -77,8 +77,7 @@ class CMainWindow : public QMainWindow
         void slotVolume2(double value);
         void slotSquelch(double value);
         void slotIF(double value);
-        void slotFrequency1(QString&value);
-        void slotFrequency2(QString&value);
+        void slotFrequency(QString value);
         void slotUpdateStatus();
         // Filter switch
         void slotFilter28k();
@@ -130,6 +129,9 @@ class CMainWindow : public QMainWindow
         void slotBandScopeWidth(int value);
         // Bandscope step
         void slotBandScopeStep(int value);
+        // Step
+        void slotStepUp();
+        void slotStepDown();
 
     private:
         Ui::MainWindow *ui;

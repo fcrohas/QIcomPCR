@@ -2,8 +2,8 @@
 
 CBandScope::CBandScope(QWidget *parent) :
     QWidget(parent),
-    size(500000),
-    step(12500),
+    size(5000000),
+    step(100000),
     position(128),
     samples(256),
     frequency(106500000)
@@ -20,11 +20,21 @@ void CBandScope::setupUi(QWidget *widget)
     widget->setSizePolicy(sizePolicy);
     widget->setAutoFillBackground(false);
     hboxLayout = new QHBoxLayout(widget);
+    xAxis = new FrequencyScaleDraw();
     qwtPlot = new QwtPlot(widget);
     qwtPlot->setSizePolicy(sizePolicy);
-    qwtPlot->setAxisScale(QwtPlot::xBottom,64.0,176.0);
+    qwtPlot->enableAxis(QwtPlot::yLeft,false);
+    qwtPlot->setAxisAutoScale(QwtPlot::yLeft, false);
     qwtPlot->setAxisScale(QwtPlot::yLeft,0.0,50.0);
+    qwtPlot->setCanvasBackground(QBrush(Qt::black));
+    qwtPlot->setAxisScaleDraw(QwtPlot::xBottom, xAxis);
+    qwtPlot->setAxisScale(QwtPlot::xBottom,0.0,256.0);
+    qwtPlot->setAxisLabelRotation(QwtPlot::xBottom, 35.0);
+    qwtPlot->setMouseTracking(true);
+    qwtPlot->canvas()->setMouseTracking(true);
+    picker = new MyBandPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::VLineRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
     hboxLayout->addWidget(qwtPlot);
+    connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
     bandscope = new QwtPlotHistogram("BandScope");
     bandscope->setStyle(QwtPlotHistogram::Columns);
     bandscope->setPen(QPen(Qt::blue));
@@ -61,6 +71,7 @@ void CBandScope::setBandWidth(int value)
     // 80 hex is middle so
     int min = 128 - (size / step) / 2;
     int max = 128 + (size / step) / 2;
+    xAxis->setParams(frequency,step);
     qwtPlot->setAxisScale(QwtPlot::xBottom,min,max);
 }
 
@@ -69,10 +80,32 @@ void CBandScope::setStep(int value)
     step = value;
     int min = 128 - (size / step) / 2;
     int max = 128 + (size / step) / 2;
+    xAxis->setParams(frequency,step);
     qwtPlot->setAxisScale(QwtPlot::xBottom,min,max);
+    //qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
 }
 
 void CBandScope::setCentralFrequency(int value)
 {
     frequency = value;
+    int min = 128 - (size / step) / 2;
+    int max = 128 + (size / step) / 2;
+    xAxis->setParams(frequency,step);
+    qwtPlot->setAxisScale(QwtPlot::xBottom,min,max);
+    //qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
+}
+
+void CBandScope::slotClicked(QPointF p)
+{
+    double min = qwtPlot->axisWidget(QwtPlot::xBottom)->scaleDraw()->scaleMap().s1();
+    double max = qwtPlot->axisWidget(QwtPlot::xBottom)->scaleDraw()->scaleMap().s2();
+    double middle = (max - min) / 2.0;
+    double size = max-min;
+    double minfreq = frequency - middle * step;
+    // Middle is tuned frequency
+    //emit fre minfreq + v * stepSize;
+    frequency = minfreq + (p.x()-min) * step;
+    xAxis->setParams(frequency,step);
+    emit frequencyChanged(QString("%1").arg(frequency));
+    qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
 }

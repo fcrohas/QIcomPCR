@@ -4,8 +4,8 @@
 CCommand::CCommand(QObject *parent) :
     QObject(parent),
     m_device(NULL),
-    stepsize(12500),
-    scopewidth(1000000)
+    stepsize(100000),
+    scopewidth(5000000)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -361,7 +361,7 @@ void CCommand::Initialize()
 
 void CCommand::slotReceivedData(QString value)
 {
-    qDebug() << "received " << value;
+    //qDebug() << "received " << value;
     emit dataChanged(value);
 }
 
