@@ -87,33 +87,6 @@ CMainWindow::CMainWindow(QWidget *parent) :
 #endif
     connectSignals();
     mySpectrum->setAxis(0,16384,0,256);
-#ifndef WIN32
-    // Build menu settings
-    // Add input list device
-    QMenu *input = ui->menu_Settings->addMenu(tr("input"));
-    QHashIterator<QString, int> in(sound->getDeviceList());
-    QAction *action;
-    while (in.hasNext()) {
-        in.next();
-        action = new QAction(in.key(), this);
-        action->setCheckable(true);
-        action->setObjectName(in.key());
-        input->addAction(action);
-        connect(action, SIGNAL(triggered()), this, SLOT(slotInputDevice()));
-    }
-
-    // add output list device
-    QMenu *output = ui->menu_Settings->addMenu(tr("output"));
-    QHashIterator<QString, int> out(sound->getDeviceList());
-    while (out.hasNext()) {
-        out.next();
-        action = new QAction(out.key(), this);
-        action->setCheckable(true);
-        action->setObjectName(out.key());
-        output->addAction(action);
-        connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
-    }
-#endif
     dock = addToolBar("File");
     dock->addAction(ui->actionLoad);
     dock->addAction(ui->actionQuit);
@@ -210,6 +183,7 @@ void CMainWindow::connectSignals()
     connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
     connect(ui->pushRecord, SIGNAL(clicked(bool)), this, SLOT(slotRecordAudio(bool)));
     connect(display, SIGNAL(radioChanged(int)), this, SLOT(slotRadioClicked(int)));
+    connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
 }
 
 void CMainWindow::restoreSettings()
@@ -232,6 +206,7 @@ void CMainWindow::restoreSettings()
         display->setRadio(i);
         display->setStepFromValue(radio.step);
         // other device
+        cmd->setRadio(i);
         slotFrequency(QString("%1").arg(radio.frequency));
         slotIF(radio.IF);
         slotSquelch(radio.squelch);
@@ -257,8 +232,12 @@ void CMainWindow::powerOn(bool value)
         if (cmd->Open()) {
             cmd->Initialize();
         } else ui->pushPower->setChecked(false);
+        // Radio is powered on need to restoreprevious settings now
+        restoreSettings();
     } else {
         cmd->Close();
+        // Radio is power off save settings now
+        saveSettings();
     }
     status->setState(cmd->getPower());
 }
@@ -444,6 +423,18 @@ void CMainWindow::slotSwitchSound(bool value)
             sound  = new CPortAudio(this);
 #endif
         }
+        // Restore sound settings
+        CSettings::global *params = new CSettings::global();
+        settings->getGlobal(params);
+        #ifndef WIN32
+            qDebug() << "sound input " << params->inputDevice;
+            sound->selectInputDevice(params->inputDevice);
+        #endif
+        #ifndef WIN32
+            qDebug() << "sound output " << params->outputDevice;
+            sound->selectOutputDevice(params->outputDevice);
+        #endif
+        delete params;
         sound->SetDemodulator(demodulator);
 
         demodulator->initBuffer(32768);
@@ -453,6 +444,7 @@ void CMainWindow::slotSwitchSound(bool value)
     else {
         sound->setRunning(false);
         sound->terminate();
+        sound->wait();
         delete sound;
         sound = NULL;
     }
@@ -540,20 +532,6 @@ void CMainWindow::slotScopeChanged(int value)
 void CMainWindow::slotRemoteData(QString &data)
 {
 
-}
-
-void CMainWindow::slotInputDevice()
-{
-#ifndef WIN32
-    sound->selectInputDevice(QObject::sender()->objectName());
-#endif
-}
-
-void CMainWindow::slotOutputDevice()
-{
-#ifndef WIN32
-    sound->selectOutputDevice(QObject::sender()->objectName());
-#endif
 }
 
 void CMainWindow::slotLoadFile()
@@ -646,4 +624,14 @@ void CMainWindow::slotBandScopeStep(int value)
 {
     myBandScope->setStep(stepsize[value]);
     cmd->setBandScopeStep(stepsize[value]);
+}
+
+void CMainWindow::slotSettings()
+{
+    CDlgSettings *dlgparam = new CDlgSettings(this, settings);
+    dlgparam->addInputSoundDevices(sound->getDeviceList());
+    dlgparam->addOutputSoundDevices(sound->getDeviceList());
+    dlgparam->initialize();
+    dlgparam->exec();
+    delete dlgparam;
 }

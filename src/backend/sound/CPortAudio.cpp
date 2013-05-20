@@ -43,6 +43,8 @@ CPortAudio::CPortAudio(QObject *parent) :
     int error = Pa_Initialize();
     if( error != paNoError )
        qDebug() <<   QString("PortAudio Pa_Initialize error: %1\n").arg(Pa_GetErrorText( error ) );
+    // build device list
+    getDeviceList();
 }
 
 CPortAudio::~CPortAudio()
@@ -69,7 +71,7 @@ void CPortAudio::Record(QString &filename, bool start)
 void CPortAudio::Initialize()
 {
     int error;
-    qDebug() << "Portaudio Thread run()";
+    qDebug() << "Portaudio Thread run() " << inputParameters.device;
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paInt16;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultHighOutputLatency;
@@ -81,9 +83,9 @@ void CPortAudio::Initialize()
     error = Pa_IsFormatSupported( &inputParameters, NULL, SAMPLERATE );
     if( error != paNoError )
         qDebug() <<   QString("PortAudio Pa_IsFormatSupported inputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
-    error = Pa_IsFormatSupported( NULL, &outputParameters, SAMPLERATE );
-    if( error != paNoError )
-        qDebug() <<   QString("PortAudio Pa_IsFormatSupported outputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
+    //error = Pa_IsFormatSupported( NULL, &outputParameters, SAMPLERATE );
+    //if( error != paNoError )
+    //    qDebug() <<   QString("PortAudio Pa_IsFormatSupported outputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
     error = Pa_OpenStream(&stream, &inputParameters, NULL, SAMPLERATE, FRAME_SIZE, paNoFlag, recordCallback, (void *) this);
     if( error != paNoError ) {
         qDebug() <<   QString("PortAudio Pa_OpenStream input & output error: %1\n").arg(Pa_GetErrorText( error ) );

@@ -286,6 +286,7 @@ void CCommand::Initialize()
     setNoiseBlanker(false);
 
     // Init radio 0 Frequency;
+
     setRadio(0);
     setModulation(CCommand::eWFM);
     setFilter(CCommand::e230k);

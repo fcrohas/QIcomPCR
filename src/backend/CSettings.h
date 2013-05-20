@@ -31,12 +31,21 @@ public:
         bool activated;
     };
 
+    struct global {
+        QString inputDevice;
+        QString outputDevice;
+        int samplerate;
+        int soundBufferSize;
+    };
+
     radio getRadio(int value);
     void setRadio(int radionum, radio *value);
 
     sound getSound(int value);
     void setSound(int radionum, sound *value);
 
+    void getGlobal(global *value);
+    void setGlobal(global *value);
 signals:
     
 public slots:

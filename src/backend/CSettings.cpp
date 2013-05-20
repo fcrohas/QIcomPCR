@@ -57,3 +57,23 @@ void CSettings::setSound(int radionum, CSettings::sound *value)
     endGroup();
 
 }
+
+void CSettings::getGlobal(global *value)
+{
+    beginGroup("Global");
+    value->inputDevice = this->value("InputDevice","default").toString();
+    value->outputDevice = this->value("OutputDevice","default").toString();
+    value->samplerate = this->value("SampleRate",22050).toInt();
+    value->soundBufferSize = this->value("BufferSize",512).toInt();
+    endGroup();
+}
+
+void CSettings::setGlobal(global *value)
+{
+    beginGroup("Global");
+    this->setValue("InputDevice",value->inputDevice);
+    this->setValue("OutputDevice",value->outputDevice);
+    this->setValue("SampleRate",value->samplerate);
+    this->setValue("BufferSize",value->soundBufferSize);
+    endGroup();
+}

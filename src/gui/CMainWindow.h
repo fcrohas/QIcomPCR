@@ -46,6 +46,7 @@
 #include "CDemodulator.h"
 #include "CFft.h"
 #include "ISound.h"
+#include "CDlgSettings.h"
 
 #define MAX_RADIO 2
 
@@ -102,10 +103,6 @@ class CMainWindow : public QMainWindow
         void slotScopeChanged(int value);
         // Remote
         void slotRemoteData(QString &data);
-        // Input Device selection
-        void slotInputDevice();
-        // Output Device selection
-        void slotOutputDevice();
         // Load sound file
         void slotLoadFile();
         // Stop sound playing
@@ -125,6 +122,8 @@ class CMainWindow : public QMainWindow
         // Step
         void slotStepUp();
         void slotStepDown();
+        // Display Settings
+        void slotSettings();
 
     private:
         Ui::MainWindow *ui;

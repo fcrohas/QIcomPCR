@@ -1122,12 +1122,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <widget class="QMenu" name="menu_Settings">
-     <property name="title">
-      <string>&amp;Settings</string>
-     </property>
-    </widget>
-    <addaction name="menu_Settings"/>
+    <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1226,6 +1221,11 @@
   <action name="actionDemodulator">
    <property name="text">
     <string>Demodulator</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
