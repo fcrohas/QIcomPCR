@@ -48,10 +48,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     dbgWin = new CDebugWindow(this,ui);
     demodulator = new CDemodulator(this);
     remote = new CRemoteControl(this);
+    settings =new CSettings(this);
 
     status = new CStatusWidget(this);
-    //lcd1    = new CLcdWidget(this);
-    //lcd2    = new CLcdWidget(this);
     display = new CDisplay(this);
 #ifdef WITH_PULSEAUDIO
     sound  = new CPulseSound(this);
@@ -77,8 +76,64 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->knobSquelch->setRange(0.0,255.0,1.0);
     ui->knobIF->setRange(0.0,255.0,1.0);
     ui->volume1->setRange(0.0,255.0,1.0);
+    ui->layoutFrequencies->addWidget(display);
+    // Add two default radio struct
+    for (int i=0; i<MAX_RADIO; i++) {
+        radioList.append(new CSettings::radio);
+    }
+#ifndef WIN32
+    // Connect sound with demodulator
+    sound->SetDemodulator(demodulator);
+#endif
+    connectSignals();
+    mySpectrum->setAxis(0,16384,0,256);
+#ifndef WIN32
+    // Build menu settings
+    // Add input list device
+    QMenu *input = ui->menu_Settings->addMenu(tr("input"));
+    QHashIterator<QString, int> in(sound->getDeviceList());
+    QAction *action;
+    while (in.hasNext()) {
+        in.next();
+        action = new QAction(in.key(), this);
+        action->setCheckable(true);
+        action->setObjectName(in.key());
+        input->addAction(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(slotInputDevice()));
+    }
 
+    // add output list device
+    QMenu *output = ui->menu_Settings->addMenu(tr("output"));
+    QHashIterator<QString, int> out(sound->getDeviceList());
+    while (out.hasNext()) {
+        out.next();
+        action = new QAction(out.key(), this);
+        action->setCheckable(true);
+        action->setObjectName(out.key());
+        output->addAction(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
+    }
+#endif
+    dock = addToolBar("File");
+    dock->addAction(ui->actionLoad);
+    dock->addAction(ui->actionQuit);
 
+    restoreSettings();
+}
+
+CMainWindow::~CMainWindow()
+{
+    saveSettings();
+    if (sound) {
+        sound->setRunning(false);
+        sound->terminate();
+        delete sound;
+        sound = NULL;
+    }
+}
+
+void CMainWindow::connectSignals()
+{
     connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
     connect(ui->pushPower, SIGNAL(toggled(bool)), this, SLOT(powerOn(bool)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
@@ -93,33 +148,13 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
 
     // Connect filters
-    connect(ui->push28k,SIGNAL(clicked()), this, SLOT(slotFilter28k()));
-    connect(ui->push6k,SIGNAL(clicked()), this, SLOT(slotFilter6k()));
-    connect(ui->push15k,SIGNAL(clicked()), this, SLOT(slotFilter15k()));
-    connect(ui->push50k,SIGNAL(clicked()), this, SLOT(slotFilter50k()));
-    connect(ui->push230k,SIGNAL(clicked()), this, SLOT(slotFilter230k()));
-
+    connect(ui->filterGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotFilter(int)));
     // Connect Moudlation mode
-    connect(ui->pushAM,SIGNAL(clicked()), this, SLOT(slotModulationAM()));
-    connect(ui->pushFM,SIGNAL(clicked()), this, SLOT(slotModulationFM()));
-    connect(ui->pushCW,SIGNAL(clicked()), this, SLOT(slotModulationCW()));
-    connect(ui->pushWFM,SIGNAL(clicked()), this, SLOT(slotModulationWFM()));
-    connect(ui->pushLSB,SIGNAL(clicked()), this, SLOT(slotModulationLSB()));
-    connect(ui->pushUSB,SIGNAL(clicked()), this, SLOT(slotModulationUSB()));
-
-    // Radio
-    //ui->buttonGroup->setId(ui->radio1,0);
-    //ui->buttonGroup->setId(ui->radio2,1);
+    connect(ui->modeGroup,SIGNAL(buttonClicked(int)),this, SLOT(slotModulation(int)));
 
     // Frequency
-    ui->layoutFrequencies->addWidget(display);
     connect( display, SIGNAL(frequencyChanged(QString)), this,SLOT(slotFrequency(QString)));
     connect( myBandScope, SIGNAL(frequencyChanged(QString)), this, SLOT(slotFrequency(QString)));
-#ifndef WIN32
-    // Connect sound with demodulator
-    sound->SetDemodulator(demodulator);
-    //connect(sound,SIGNAL(dataBuffer(int16_t*,int)), demodulator, SLOT(slotDataBuffer(int16_t*,int)));
-#endif
     // Connect spectrum widget
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
 
@@ -137,12 +172,10 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(ui->channel, SIGNAL(currentIndexChanged(int)), this, SLOT(slotChannelChange(int)));
 
     // Connect Scope type
-    //connect(ui->FFT, SIGNAL(clicked(bool)), this,SLOT(slotScopeChanged(bool)));
     connect(ui->cbPlotterType , SIGNAL(currentIndexChanged(int)),this, SLOT(slotScopeChanged(int)));
     connect(ui->refreshRate, SIGNAL(valueChanged(int)), this, SLOT(slotRefreshRate(int)));
     connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
-    //connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(slotRadioClicked(int)));
 #ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
 #endif
@@ -172,50 +205,49 @@ CMainWindow::CMainWindow(QWidget *parent) :
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
     connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
-    mySpectrum->setAxis(0,16384,0,256);
-#ifndef WIN32
-    // Build menu settings
-    // Add input list device
-    QMenu *input = ui->menu_Settings->addMenu(tr("input"));
-    QHashIterator<QString, int> in(sound->getDeviceList());
-    QAction *action;
-    while (in.hasNext()) {
-        in.next();
-        action = new QAction(in.key(), this);
-        action->setCheckable(true);
-        action->setObjectName(in.key());
-        input->addAction(action);
-        connect(action, SIGNAL(triggered()), this, SLOT(slotInputDevice()));
-    }
-
-    // add output list device
-    QMenu *output = ui->menu_Settings->addMenu(tr("output"));
-    QHashIterator<QString, int> out(sound->getDeviceList());
-    while (out.hasNext()) {
-        out.next();
-        action = new QAction(out.key(), this);
-        action->setCheckable(true);
-        action->setObjectName(out.key());
-        output->addAction(action);
-        connect(action, SIGNAL(triggered()), this, SLOT(slotOutputDevice()));
-    }
-#endif
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
     connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
     connect(ui->pushRecord, SIGNAL(clicked(bool)), this, SLOT(slotRecordAudio(bool)));
-    dock = addToolBar("File");
-    dock->addAction(ui->actionLoad);
-    dock->addAction(ui->actionQuit);
+    connect(display, SIGNAL(radioChanged(int)), this, SLOT(slotRadioClicked(int)));
 }
 
-CMainWindow::~CMainWindow()
+void CMainWindow::restoreSettings()
 {
-    if (sound) {
-        sound->setRunning(false);
-        sound->terminate();
-        delete sound;
-        sound = NULL;
+    // restore radio saved values
+    for (int i=0; i<MAX_RADIO; i++) {
+        CSettings::radio radio = settings->getRadio(i);
+        radioList[i]->frequency = radio.frequency;
+        radioList[i]->step = radio.step;
+        radioList[i]->IF = radio.IF;
+        radioList[i]->squelch = radio.squelch;
+        radioList[i]->mode = radio.mode;
+        radioList[i]->filter = radio.filter;
+        radioList[i]->nb = radio.nb;
+        radioList[i]->agc = radio.agc;
+        radioList[i]->vsc = radio.vsc;
+
+        // Set it on UI
+        // Display only
+        display->setRadio(i);
+        display->setStepFromValue(radio.step);
+        // other device
+        slotFrequency(QString("%1").arg(radio.frequency));
+        slotIF(radio.IF);
+        slotSquelch(radio.squelch);
+        slotFilter(radio.filter);
+        slotModulation(radio.mode);
+        slotNoiseBlanker(radio.nb);
+        slotVSC(radio.vsc);
+        slotAGC(radio.agc);
+    }
+}
+
+void CMainWindow::saveSettings()
+{
+    for (int i=0; i<MAX_RADIO; i++) {
+        radioList[i]->step = display->getStep(i);
+        settings->setRadio(i,radioList[i]);
     }
 }
 
@@ -308,38 +340,43 @@ void CMainWindow::slotReceivedData(QString data)
 
 void CMainWindow::slotVolume1(double value)
 {
-    //cmd->setRadio(0);
-    cmd->setRadio(display->getRadio());
+    int current = display->getRadio();
+    cmd->setRadio(current);
     cmd->setSoundVolume(value);
-    //cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
+    // Save to radio struct
 }
-
-void CMainWindow::slotVolume2(double value)
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setSoundVolume(value);
-    //cmd->setRadio((ui->radio1->isChecked() == true ) ? 0 : 1);
-}
-
 
 void CMainWindow::slotSquelch(double value)
 {
+    int current = display->getRadio();
+    cmd->setRadio(current);
     cmd->setSquelch(value);
+    ui->knobSquelch->setValue(value);
+    // save to radio
+    radioList[current]->squelch = value;
 }
 
 void CMainWindow::slotIF(double value)
 {
+    int current = display->getRadio();
+    cmd->setRadio(current);
     cmd->setIFShift(value);
     display->setIF(value);
+    ui->knobIF->setValue(value);
+    // save to radio
+    radioList[current]->IF = value;
 }
 
 void CMainWindow::slotFrequency(QString value)
 {
     if (value != "") {
-        cmd->setRadio(display->getRadio());
+        int current = display->getRadio();
+        cmd->setRadio(current);
         cmd->setFrequency(value.toInt());
         myBandScope->setCentralFrequency(value.toInt());
         display->setFrequency(value.toInt());
+        // save to radio
+        radioList[current]->frequency = value.replace(".","").toInt();
     }
 }
 
@@ -353,123 +390,46 @@ void CMainWindow::slotStepDown()
     display->StepDown();
 }
 
-void CMainWindow::slotFilter28k()
+void CMainWindow::slotFilter(int filter)
 {
-    cmd->setRadio(display->getRadio());
-    cmd->setFilter(CCommand::e28k);
-    display->setFilter(2800);
-    ui->push28k->setChecked(true);
+    // Filter come from UI value
+    if (filter < 0) {
+        filter = abs(filter)-2;
+    }
+
+    qDebug() << "Filter " << filter;
+    // Convert buttongroup to enum value
+    int current = display->getRadio();
+    cmd->setRadio(current);
+    cmd->setFilter((CCommand::filter)filter);
+    display->setFilter((CCommand::filter)filter);
+    // save to radio
+    radioList[current]->filter = (CCommand::filter)filter;
 }
 
-void CMainWindow::slotFilter6k()
+void CMainWindow::slotModulation(int mode)
 {
-    cmd->setRadio(display->getRadio());
-    cmd->setFilter(CCommand::e6k);
-    display->setFilter(6000);
-    ui->push6k->setChecked(true);
-}
-
-void CMainWindow::slotFilter15k()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setFilter(CCommand::e15k);
-    display->setFilter(15000);
-    ui->push15k->setChecked(true);
-}
-
-void CMainWindow::slotFilter50k()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setFilter(CCommand::e50k);
-    display->setFilter(50000);
-    ui->push50k->setChecked(true);
-}
-
-void CMainWindow::slotFilter230k()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setFilter(CCommand::e230k);
-    display->setFilter(230000);
-    ui->push230k->setChecked(true);
-
-}
-
-void CMainWindow::slotModulationAM()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setModulation(CCommand::eAM);
-    display->setMode(ui->pushAM->text());
-    ui->pushAM->setChecked(true);
-}
-
-void CMainWindow::slotModulationFM()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setModulation(CCommand::eFM);
-    display->setMode(ui->pushFM->text());
-    ui->pushFM->setChecked(true);
-}
-
-void CMainWindow::slotModulationWFM()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setModulation(CCommand::eWFM);
-    display->setMode(ui->pushWFM->text());
-    ui->pushWFM->setChecked(true);
-
-}
-
-void CMainWindow::slotModulationLSB()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setModulation(CCommand::eLSB);
-    display->setMode(ui->pushLSB->text());
-    ui->pushLSB->setChecked(true);
-
-}
-
-void CMainWindow::slotModulationUSB()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setModulation(CCommand::eUSB);
-    display->setMode(ui->pushUSB->text());
-    ui->pushUSB->setChecked(true);
-}
-
-void CMainWindow::slotModulationCW()
-{
-    cmd->setRadio(display->getRadio());
-    cmd->setModulation(CCommand::eCW);
-    display->setMode(ui->pushCW->text());
-    ui->pushCW->setChecked(true);
+    if(mode < 0) {
+        mode = abs(mode)-2;
+    }
+    qDebug() << "Modulation " << mode;
+    // Convert buttongroup to enum value
+    int current = display->getRadio();
+    cmd->setRadio(current);
+    cmd->setModulation((CCommand::mode)mode);
+    display->setMode((CCommand::mode)mode);
+    // save to radio
+    radioList[current]->mode = (CCommand::filter)mode;
 }
 
 void CMainWindow::slotRadioClicked(int value)
 {
-    cmd->setRadio(value);
-
-    // Init button according to radio settings
-    QString freq("%1");
-    freq = freq.arg(cmd->getFrequency(),10);
-    qDebug() << "freq  " << freq;
-    //lcd->setFrequency(freq);
-    ui->knobIF->setValue(cmd->getIFShift());
-    ui->knobSquelch->setValue(cmd->getSquelch());
-    switch(cmd->getModulation()) {
-        case CCommand::eAM : ui->pushAM->setChecked(true);   break;
-        case CCommand::eFM : ui->pushFM->setChecked(true);   break;
-        case CCommand::eWFM : ui->pushWFM->setChecked(true); break;
-        case CCommand::eCW  : ui->pushCW->setChecked(true);  break;
-        case CCommand::eLSB : ui->pushLSB->setChecked(true); break;
-        case CCommand::eUSB : ui->pushUSB->setChecked(true); break;
-    }
-    switch(cmd->getFilter()) {
-        case CCommand::e28k : ui->push28k->setChecked(true);   break;
-        case CCommand::e6k  : ui->push6k->setChecked(true);    break;
-        case CCommand::e15k : ui->push15k->setChecked(true);   break;
-        case CCommand::e50k : ui->push50k->setChecked(true);   break;
-        case CCommand::e230k : ui->push230k->setChecked(true); break;
-    }
+    // Update knob settings
+    ui->knobSquelch->setValue(radioList[value]->squelch);
+    ui->knobIF->setValue(radioList[value]->IF);
+    ui->pushNoiseBlanker->setChecked(radioList[value]->nb);
+    ui->pushVSC->setChecked(radioList[value]->vsc);
+    ui->pushAGC->setChecked(radioList[value]->agc);
 }
 
 void CMainWindow::slotSwitchSound(bool value)
@@ -501,21 +461,32 @@ void CMainWindow::slotSwitchSound(bool value)
 
 void CMainWindow::slotNoiseBlanker(bool value)
 {
-    cmd->setRadio(display->getRadio());
+    int current = display->getRadio();
+    cmd->setRadio(current);
     cmd->setNoiseBlanker(value);
+    ui->pushNoiseBlanker->setChecked(value);
+    // save to radio
+    radioList[current]->nb = value;
 }
 
 void CMainWindow::slotAGC(bool value)
 {
-    cmd->setRadio(display->getRadio());
-   cmd->setAutomaticGainControl(value);
-
+    int current = display->getRadio();
+    cmd->setRadio(current);
+    cmd->setAutomaticGainControl(value);
+    ui->pushAGC->setChecked(value);
+    // save to radio
+    radioList[current]->agc = value;
 }
 
 void CMainWindow::slotVSC(bool value)
 {
-    cmd->setRadio(display->getRadio());
+    int current = display->getRadio();
+    cmd->setRadio(current);
     cmd->setVoiceControl(value);
+    ui->pushVSC->setChecked(value);
+    // save to radio
+    radioList[current]->vsc = value;
 }
 
 void CMainWindow::slotDemodulatorData(QString data)

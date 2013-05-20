@@ -53,10 +53,14 @@ void CDisplay::mousePressEvent(QMouseEvent *event)
     // Grab keyboard entry
     if (event->button() == Qt::LeftButton) {
         // Activate radio from rect
-        if (rectFreq1.contains(event->pos()))
+        if (rectFreq1.contains(event->pos())) {
             radio = 0;
-        if (rectFreq2.contains(event->pos()))
+            emit radioChanged(radio);
+        }
+        if (rectFreq2.contains(event->pos())) {
             radio = 1;
+            emit radioChanged(radio);
+        }
     }
     if (event->button() == Qt::RightButton) {
         //setIncrement(ts/10);
@@ -534,8 +538,17 @@ void CDisplay::setIF(int value)
     repaint();
 }
 
-void CDisplay::setFilter(int value)
+void CDisplay::setFilter(CCommand::filter filter)
 {
+    int value = 2800;
+    switch(filter) {
+        case CCommand::e28k : value=2800; break;
+        case CCommand::e6k : value=6000; break;
+        case CCommand::e15k : value=15000; break;
+        case CCommand::e50k : value=50000; break;
+        case CCommand::e230k : value=230000; break;
+        default : value=230000;
+    }
     if (radio == 0)
         Filter1 = value;
     else
@@ -567,9 +580,41 @@ void CDisplay::StepDown()
     repaint();
 }
 
-void CDisplay::setMode(QString value)
+void CDisplay::setMode(CCommand::mode mode)
 {
+    QString value("");
+    switch(mode) {
+        case CCommand::eWFM : value="WFM"; break;
+        case CCommand::eFM : value="FM"; break;
+        case CCommand::eAM : value="AM"; break;
+        case CCommand::eCW : value="CW"; break;
+        case CCommand::eUSB : value="USB"; break;
+        case CCommand::eLSB : value="LSB"; break;
+        default : value="WFM";
+    }
+
     if (radio==0) Mode1=value;
     else Mode2=value;
     repaint();
+}
+
+void CDisplay::setStepFromValue(int value)
+{
+    // loop to find correct value
+    int pos = 0;
+    for (int i=0; i< MAX_STEP; i++) {
+        if (StepSize[i] == value) {
+            pos = i;
+            break;
+        }
+    }
+    if (radio==0) Step1=pos;
+    else Step2=pos;
+
+}
+
+int CDisplay::getStep(int radionum)
+{
+    if (radionum==0) return StepSize[Step1];
+    else return StepSize[Step2];
 }

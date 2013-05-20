@@ -6,8 +6,10 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QWheelEvent>
+#include <CCommand.h>
 
-const int StepSize[18] = {1,10,50,100,500,1000,2500,6000,8333,10000,12500,15000,20000,25000,50000,100000,500000,1000000 };
+#define MAX_STEP 18
+const int StepSize[MAX_STEP] = {1,10,50,100,500,1000,2500,6000,8333,10000,12500,15000,20000,25000,50000,100000,500000,1000000 };
 
 class CDisplay : public QWidget
 {
@@ -24,7 +26,10 @@ public:
 
     void setIF(int value);
 
-    void setFilter(int value);
+    void setFilter(CCommand::filter filter);
+
+    void setStepFromValue(int value);
+    int  getStep(int radionum);
 
     void setRadio(int value);
     int  getRadio();
@@ -32,7 +37,7 @@ public:
     void StepUp();
     void StepDown();
 
-    void setMode(QString value);
+    void setMode(CCommand::mode mode);
 
     void paintEvent(QPaintEvent *event);
 
@@ -44,6 +49,7 @@ public:
     
 signals:
     void frequencyChanged(QString value);
+    void radioChanged(int radio);
     
 public slots:
 

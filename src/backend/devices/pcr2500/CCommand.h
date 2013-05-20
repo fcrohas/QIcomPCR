@@ -37,7 +37,7 @@ public:
     enum radioSound {eSound1=0, eSound2=1};
     enum radioMode {eBoth=0, eSingle=1, eDiversity=2}; // 0=both, 1=single, 2=diversity
     enum radioA {eRadio1=0, eRadio2=1}; // 0,1 with 0 for antenna 1
-    enum mode { eLSB=0, eUSB=1, eAM=2, eCW=3, eFM=5, eWFM=6}; // 00=LSB, 01=USB, 02=AM, 03=CW, 05=FM, 06=WFM
+    enum mode { eLSB=0, eUSB=1, eAM=2, eCW=3, eUkn=4, eFM=5, eWFM=6}; // 00=LSB, 01=USB, 02=AM, 03=CW, 05=FM, 06=WFM
     enum filter {e28k=0, e6k=1, e15k=2, e50k=3, e230k=4}; // 00 =2.8k, 01 = 6k, 02 =15k, 03=50k, 04=230k
     enum agc {eAgcOff=0, eAgcOn=1};
     enum nb {eNBOff=0, eNBOn=1};

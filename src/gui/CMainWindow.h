@@ -38,6 +38,7 @@
 #ifdef WITH_SNDFILE
 #include "CSoundFile.h"
 #endif
+#include "CSettings.h"
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
 #include "CBandScope.h"
@@ -45,6 +46,8 @@
 #include "CDemodulator.h"
 #include "CFft.h"
 #include "ISound.h"
+
+#define MAX_RADIO 2
 
 // Struct of value for bandscope
 const int bandwidth[7] = {5000000,2000000,1000000,500000,200000,100000,50000};
@@ -74,24 +77,14 @@ class CMainWindow : public QMainWindow
         void slotSendData(QString &data);
         void slotReceivedData(QString data);
         void slotVolume1(double value);
-        void slotVolume2(double value);
         void slotSquelch(double value);
         void slotIF(double value);
         void slotFrequency(QString value);
         void slotUpdateStatus();
         // Filter switch
-        void slotFilter28k();
-        void slotFilter6k();
-        void slotFilter15k();
-        void slotFilter50k();
-        void slotFilter230k();
+        void slotFilter(int filter);
         // Modulation switch
-        void slotModulationAM();
-        void slotModulationFM();
-        void slotModulationWFM();
-        void slotModulationCW();
-        void slotModulationLSB();
-        void slotModulationUSB();
+        void slotModulation(int mode);
         // Radio
         void slotRadioClicked(int);
         void slotNoiseBlanker(bool value);
@@ -177,6 +170,21 @@ class CMainWindow : public QMainWindow
 
         // Display
         CDisplay *display;
+
+        // Settings
+        CSettings *settings;
+
+        // Restore settings
+        void restoreSettings();
+
+        // Save settings
+        void saveSettings();
+
+        // Connect signals
+        void connectSignals();
+
+        // List of radio
+        QList<CSettings::radio*> radioList;
 
 };
 
