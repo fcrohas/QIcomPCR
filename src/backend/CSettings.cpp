@@ -48,6 +48,7 @@ CSettings::sound CSettings::getSound(int value)
     current.soundcard = this->value("SoundOnPC", false).toBool(); // Volume
     current.activated = this->value("Activated", true).toBool(); // Volume
     endGroup();
+    return current;
 }
 
 void CSettings::setSound(int radionum, CSettings::sound *value)

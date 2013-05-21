@@ -254,7 +254,8 @@ void CDisplay::drawIF(QPainter *p)
     qreal axisheight = axisy2 -axisy1;
     qreal axismid = axisx1 + (axisx2 - axisx1)/2.0;
     qreal pos = IF1*axiswidth/255.0;
-    QBrush brush(QColor(Qt::cyan));
+    QColor cyan(Qt::cyan);
+    QBrush brush(cyan);
     p->setBrush(brush);
 
     // Draw center axis
@@ -356,7 +357,8 @@ void CDisplay::drawFilter(QPainter *p)
     p->drawLine(QPointF(axisx2 + pos - (Filter1*axiswidth/460000.0) , axisy1 + axisheight * 2 /8), QPointF(axisx2 + pos - (Filter1*axiswidth/460000.0) - axiswidth/16.0 , axisy2));
 
     // Selection
-    QBrush brush(QColor(Qt::cyan));
+    QColor cyan(Qt::cyan);
+    QBrush brush(cyan);
     p->setBrush(brush);
 
     pen.setWidth(1.0);
@@ -414,7 +416,8 @@ void CDisplay::drawStepSize(QPainter *p)
     int left = size.width()/4;
     int right = size.width()*3/4;
     int top = size.height()*2/3;
-    QBrush brush(QColor(Qt::cyan));
+    QColor cyan(Qt::cyan);
+    QBrush brush(cyan);
     QFont font("Times", 8, QFont::Bold);
     QFontMetrics    fm(font);
     QRect           r = fm.boundingRect(QString("%1k").arg(StepSize[Step1]/1000.0));
@@ -447,7 +450,8 @@ void CDisplay::drawMode(QPainter *p)
     int left = size.width()/4;
     int right = size.width()*3/4;
     int top = size.height()*2.3/3;
-    QBrush brush(QColor(Qt::cyan));
+    QColor cyan(Qt::cyan);
+    QBrush brush(cyan);
     QFont font("Times", 8, QFont::Bold);
     QFontMetrics    fm(font);
     QRect           r = fm.boundingRect(QString("%1").arg(Mode1));
