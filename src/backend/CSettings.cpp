@@ -19,6 +19,7 @@ CSettings::radio CSettings::getRadio(int value)
     current.agc = this->value("AGC", CCommand::eAgcOff).toBool();
     current.vsc = this->value("VSC", CCommand::eVSCOff).toBool();
     current.mode = this->value("Mode", CCommand::eWFM).toInt();
+    current.volume = this->value("Volume",0).toInt();
     endGroup();
     return current;
 }
@@ -35,6 +36,7 @@ void CSettings::setRadio(int radionum,CSettings::radio *value)
     this->setValue("AGC",value->agc);
     this->setValue("VSC",value->vsc);
     this->setValue("Mode",value->mode);
+    this->setValue("Volume",value->volume);
     endGroup();
 }
 

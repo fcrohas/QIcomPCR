@@ -128,6 +128,9 @@ class CMainWindow : public QMainWindow
     private:
         Ui::MainWindow *ui;
 
+        // Bandscope
+        int bandscopeActivate;
+
         // CommandBuilder
         CCommand * cmd;
 
@@ -178,6 +181,12 @@ class CMainWindow : public QMainWindow
 
         // Save settings
         void saveSettings();
+
+        // Restore sound
+        void restoreSound();
+
+        // Save sound
+        void saveSound();
 
         // Connect signals
         void connectSignals();

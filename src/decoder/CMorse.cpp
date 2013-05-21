@@ -104,6 +104,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
             corr[i] += sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
         }
 #endif
+#ifdef KALMAN
         // Kalman filter
         double Pt = Pp + Q;
         //calculate the Kalman gain
@@ -114,7 +115,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         //update our last's
         Pp = P;
         lastestimation = corr[i];
-
+#endif
         if (corr[i]>peak) peak=corr[i];
         // Calculate average
         avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;

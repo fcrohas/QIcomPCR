@@ -39,7 +39,9 @@ CMainWindow *theMainWindow = 0;
 CMainWindow::CMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
-    ,sound(NULL)
+    ,sound(NULL),
+    bandscopeActivate(-1)
+
 {
     theMainWindow = this;
     ui->setupUi(this);
@@ -215,6 +217,7 @@ void CMainWindow::restoreSettings()
         slotNoiseBlanker(radio.nb);
         slotVSC(radio.vsc);
         slotAGC(radio.agc);
+        slotVolume1(radio.volume);
     }
 }
 
@@ -322,6 +325,8 @@ void CMainWindow::slotVolume1(double value)
     int current = display->getRadio();
     cmd->setRadio(current);
     cmd->setSoundVolume(value);
+    ui->volume1->setValue(value);
+    radioList[current]->volume = value;
     // Save to radio struct
 }
 
@@ -352,7 +357,11 @@ void CMainWindow::slotFrequency(QString value)
         int current = display->getRadio();
         cmd->setRadio(current);
         cmd->setFrequency(value.toInt());
-        myBandScope->setCentralFrequency(value.toInt());
+
+        // Set bandscope central frequency only on corerct entry
+        if (current == bandscopeActivate)
+            myBandScope->setCentralFrequency(value.toInt());
+
         display->setFrequency(value.toInt());
         // save to radio
         radioList[current]->frequency = value.replace(".","").toInt();
@@ -409,6 +418,7 @@ void CMainWindow::slotRadioClicked(int value)
     ui->pushNoiseBlanker->setChecked(radioList[value]->nb);
     ui->pushVSC->setChecked(radioList[value]->vsc);
     ui->pushAGC->setChecked(radioList[value]->agc);
+    ui->volume1->setValue(radioList[value]->volume);
 }
 
 void CMainWindow::slotSwitchSound(bool value)
@@ -607,9 +617,12 @@ void CMainWindow::slotRefreshRate(int value)
 
 void CMainWindow::slotBandScope(bool value)
 {
+
     if (value) {
-        cmd->setBandScope(CCommand::eRadio1,04,true);
+        bandscopeActivate = display->getRadio();
+        cmd->setBandScope((CCommand::radioA)bandscopeActivate,04,true);
     } else {
+        bandscopeActivate = -1;
         cmd->setBandScope(CCommand::eRadio1,04,false);
     }
 }

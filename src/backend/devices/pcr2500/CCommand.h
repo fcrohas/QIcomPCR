@@ -33,6 +33,9 @@ public:
     // set Squelch
     uint getSquelch();
 
+    // Volume
+    uint getSoundVolume();
+
     // Enum
     enum radioSound {eSound1=0, eSound2=1};
     enum radioMode {eBoth=0, eSingle=1, eDiversity=2}; // 0=both, 1=single, 2=diversity
@@ -132,6 +135,7 @@ private:
         bool agc; // false=off ,true=on
         bool nb; // Noise blanker
         bool vsc;
+        uint volume;
     };
     settings_t *currentRadio;
     // List of radio antenna settings

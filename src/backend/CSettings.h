@@ -23,6 +23,7 @@ public:
         bool agc;
         bool vsc;
         bool nb;
+        int volume;
     };
 
     struct sound {

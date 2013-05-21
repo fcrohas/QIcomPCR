@@ -177,6 +177,7 @@ void CCommand::setSoundVolume(uint value)
     data = (radio == 0) ? "J40%1" : "J60%1";
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     qDebug() << "Sound Volume " << data << "\n";
+    currentRadio->volume = value;
     emit sendData(data);
 }
 
@@ -402,4 +403,9 @@ void CCommand::setBandScopeStep(int value)
 {
     stepsize= value;
     setBandScope((radioA)radio, scoperefresh, scopepower);
+}
+
+uint CCommand::getSoundVolume()
+{
+    return currentRadio->volume;
 }
