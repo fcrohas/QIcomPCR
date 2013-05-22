@@ -49,12 +49,14 @@ var ViewerView = Backbone.View.extend({
 			for (var i=0; i< this.width; i++) 
 			{
 				var value = this.datas[j*this.width+i];
-				if (value <= this.view.colorOffset)
-					this.stroke(0 , 0, value+30);
-				if ((value > this.view.colorOffset) && (value < this.view.colorOffset+25))
-					this.stroke(60, 30+value, 0);
-				if (value >= this.view.colorOffset+25)
-					this.stroke(this.view.colorOffset+value, 0, 0);
+				if (value <= 12 )
+					this.stroke(0 , 0, value);
+				if ((value >= 12 ) && (value <= 64))
+					this.stroke(0 , value, value+30);
+				if ((value >= 64) && (value <= 240))
+					this.stroke(60+value, 60+value, 0);
+				if (value >= 240)
+					this.stroke(value, 0, 0);
 				this.point(i, j );
 				//store value before end
 				this.datas[(j-lines)*this.width+i] = value;
@@ -65,12 +67,14 @@ var ViewerView = Backbone.View.extend({
 	
 	for(var i=0; i<length; i++) {
 		var value = parseInt(data.substr(4+i*2,2),16);
-		if (value <= this.view.colorOffset)
-			this.stroke(0 , 0, value+30);
-		if ((value > this.view.colorOffset) && (value < this.view.colorOffset+25))
-			this.stroke(60, 30+value, 0);
-		if (value >= this.view.colorOffset+25)
-			this.stroke(this.view.colorOffset+value, 0, 0);
+		if (value <= 12 )
+			this.stroke(0 , 0, value);
+		if ((value >= 12 ) && (value <= 64))
+			this.stroke(0 , value, value+30);
+		if ((value >= 64) && (value <= 240))
+			this.stroke(60+value, 60+value, 0);
+		if (value >= 240)
+			this.stroke(value, 0, 0);
 		this.point(i, this.line);
 		//store value before end
 		this.datas[this.line*this.width + i] = value;
