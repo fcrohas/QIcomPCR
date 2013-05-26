@@ -5,6 +5,8 @@
 #include <QHash>
 #include <IDemodulator.h>
 #include <math.h>
+#include <CFir.h>
+#include <CWindowFunc.h>
 #include "dspfilters/Dsp.h"
 
 // x is sample index and f frequency
@@ -128,8 +130,9 @@ private:
     //Current frequency selected
     double frequency;
     // Filters
-    Dsp::Filter *fmorse;
-    Dsp::Filter *flowpass;
+    CWindowFunc *winfunc;
+    CFIR *fbandpass;
+    CFIR *flowpass;
     // Audio channel buffer
     double* audioData[1];
     // Hash table for morse code

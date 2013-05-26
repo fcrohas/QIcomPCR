@@ -191,8 +191,10 @@ public:
                 unit = "s";
                 break;
             case ePower:
-                display = 10*log(v);
-                unit = "Db";
+                //display = 10*log(v);
+                //unit = "Db";
+                display = v;
+                unit = "raw";
                 break;
             default:
                 break;

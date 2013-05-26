@@ -49,21 +49,23 @@ CMorse::CMorse(QObject *parent, uint channel) :
     }
     // Save local selected channel
     this->channel = channel;
-    // Initialize Bandpass filter
-    fmorse = new Dsp::SmoothedFilterDesign<Dsp::Butterworth::Design::BandPass <4>, 1, Dsp::DirectFormII> (1024);
-    Dsp::Params paramsMorse;
-    paramsMorse[0] = SAMPLERATE;
-    paramsMorse[1] = 4; // order
-    paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = bandwidth; // band width
-    fmorse->setParams(paramsMorse);
-    // Low pass Filter to keep only orig signal
-    flowpass = new Dsp::SmoothedFilterDesign<Dsp::RBJ::Design::LowPass, 1>(1024);
-    Dsp::Params params;
-    params[0] = 22050; // sample rate
-    params[1] = 200; // cutoff frequency
-    params[2] = 1.05; // Q
-    flowpass->setParams (params);
+    winfunc = new CWindowFunc(this);
+    winfunc->init(65);
+    winfunc->hann();
+    // band pass filter
+    fbandpass = new CFIR(this);
+    fbandpass->setWindow(winfunc->getWindow());
+    // arbitrary order for 200 Hz bandwidth
+    fbandpass->setOrder(64);
+    fbandpass->setSampleRate(SAMPLERATE);
+    fbandpass->bandpass(frequency,bandwidth);
+    // low pass filter
+    flowpass = new CFIR(this);
+    flowpass->setWindow(winfunc->getWindow());
+    // arbitrary order for 200 Hz bandwidth
+    flowpass->setOrder(64);
+    flowpass->setSampleRate(SAMPLERATE);
+    flowpass->lowpass(100);
 }
 
 CMorse::~CMorse()
@@ -77,7 +79,7 @@ CMorse::~CMorse()
     delete [] space;
     delete [] avgcorr;
     delete [] audioData[0];
-    delete fmorse;
+    delete fbandpass;
     delete flowpass;
 }
 
@@ -90,8 +92,9 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     }
     // Pass band filter at frequency
     // With width of 200 Hz
-    fmorse->process(getBufferSize(), audioData);
-
+    fbandpass->apply(audioData[0], getBufferSize());
+    //fmorse->process(getBufferSize(), audioData);
+#if 1
     // Correlation of with selected frequency
     for(int i=0; i < size-correlationLength; i++) { //
         // Init correlation value
@@ -126,12 +129,14 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         xval[i] = i;
 
     }
+
     // Fill end of buffer with 0 as the end is not used
     // Maybe suppress this if init is well done
     for (int i=0; i < correlationLength; i++) {
         yval[(size-(int)correlationLength)+i] = 0.0;
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
+#endif
     // Low pass filter for orig CW signal
 #ifdef GOERTZEL
     audioData[0] = yval;
@@ -139,9 +144,11 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     yval = audioData[0];
 #endif
     // Do low pass filtering
+    //flowpass->apply(yval, getBufferSize());
     // Now calculation of timing
+#if 1
     agc = peak / 2.0; // average value per buffer size
-    if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
+    if (agc<agclimit/10.0) agc=agclimit/10.0; // minimum detection signal is 1.0
     // Detect High <-> low state and timing
     for (int i=0; i<size-(int)correlationLength; i++) {
         // if > then it is mark
@@ -202,7 +209,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         mark[0] = mark[marks-1];
         marks = 1;
     }
-
+#endif
     // Send correlated signal to scope
     emit dumpData(xval,yval,getBufferSize());
     //qDebug() << "Kalman Q=" << Q << " R=" << R << " T="<< -1.0*log(Q/R);
@@ -239,13 +246,8 @@ void CMorse::slotFrequency(double value)
     // Generate Correlation for this frequency
     GenerateCorrelation(correlationLength);
     qDebug() << "Correlation generated for frequency " << frequency << " hz";
-    Dsp::Params paramsMorse;
-    paramsMorse[0] = SAMPLERATE;
-    paramsMorse[1] = 4; // order
-    paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = bandwidth; // band width
-    fmorse->setParams(paramsMorse);
-
+    // Update bandpass filter frequency
+    fbandpass->bandpass(frequency,bandwidth);
 }
 
 void CMorse::translate(int position, int position2)
@@ -405,7 +407,7 @@ void CMorse::GenerateCorrelation(int length)
 void CMorse::setThreshold(int value)
 {
     agclimit = value * 1.0;
-    emit sendData(QString("Adjust threshold %1").arg(agclimit));
+    //emit sendData(QString("Adjust threshold %1").arg(agclimit));
 }
 
 void CMorse::setCorrelationLength(int value)
@@ -420,14 +422,21 @@ void CMorse::setCorrelationLength(int value)
 void CMorse::slotBandwidth(double value)
 {
     bandwidth = value * SAMPLERATE / 512.0;
-    // New Bandpass filter params
-    Dsp::Params paramsMorse;
-    paramsMorse[0] = SAMPLERATE;
-    paramsMorse[1] = 4; // order
-    paramsMorse[2] = frequency; // center frequency
-    paramsMorse[3] = bandwidth; // band width
-    fmorse->setParams(paramsMorse);
-
+    // Calculate new filter order
+    // approx is 4/normalized bandwidth
+    double bn = 2*M_PI*bandwidth/SAMPLERATE;
+    // New order is
+    int order = 4 / bn;
+    qDebug() << "order is " << order << " for bandwidth " << bn << " normalized order even is " << (order % 2);
+    // it must be even
+    if (order % 2 > 0) order += 1;
+    // Update windows func length
+    winfunc->init(order+1);
+    winfunc->hann();
+    // Update bandpass params
+    fbandpass->setWindow(winfunc->getWindow());
+    fbandpass->setOrder(order);
+    fbandpass->bandpass(frequency,bandwidth);
 }
 
 double CMorse::goertzel(double *x, int N, double freq, int samplerate)

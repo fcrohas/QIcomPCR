@@ -3,6 +3,7 @@
 CFFT::CFFT(QObject *parent, int size) :
     QObject(parent)
   ,window(NULL)
+  ,winfunc(NULL)
 {
     xval = new double[size];
     yval = new double[size];
@@ -12,6 +13,7 @@ CFFT::CFFT(QObject *parent, int size) :
 
 CFFT::~CFFT()
 {
+    delete winfunc;
     if (window)
         delete [] window;
     delete [] xval;
@@ -132,69 +134,18 @@ void CFFT::slotDataBuffer(int16_t *buffer, int size)
     emit sigRawSamples(xval, yval, size);
 }
 
-void CFFT::hamming(int size, double *&win)
-{
-    if (win == NULL)
-        win = new double[size];
-    else {
-        delete [] win;
-        win = new double[size];
-    }
-    for (int i = 0; i < size; i++) {
-        win[i] = 0.54 - 0.46 * cos(2*PI*i/(size-1));
-    }
-}
-
-
-void CFFT::hann(int size, double *&win)
-{
-    if (win == NULL)
-        win = new double[size];
-    else {
-        delete [] win;
-        win = new double[size];
-    }
-
-    for (int i = 0; i < size; i++) {
-        win[i] = 0.5 * (1 - cos(2*PI*i/(size-1)));
-    }
-}
-
-void CFFT::blackman(int size, double *&win)
-{
-    if (win == NULL)
-        win = new double[size];
-    else {
-        delete [] win;
-        win = new double[size];
-    }
-
-    for (int i = 0; i < size; i++) {
-        win[i] = 0.426591 - 0.496561*cos(2*PI*i/(size-1)) +0.076848*cos(4*PI*i/(size-1));
-    }
-}
-
-void CFFT::rect(int size, double *&win)
-{
-    if (win == NULL)
-        win = new double[size];
-    else {
-        delete [] win;
-        win = new double[size];
-    }
-
-    for (int i = 0; i < size; i++) {
-        win[i] = 1.0;
-    }
-}
-
 void CFFT::setWindow(windowFunction fct, int size)
 {
+    if (winfunc == NULL)
+        winfunc = new CWindowFunc(this);
+    winfunc->init(size);
     switch(fct) {
-        case Blackman  : blackman(size, window); break;
-        case Hann      : hann(size, window); break;
-        case Hamming   : hamming(size, window); break;
-        case Rectangle : rect(size, window); break;
-        default        : rect(size, window); break;
+        case BlackmanHarris : winfunc->blackmanharris(); break;
+        case Blackman  : winfunc->blackman(); break;
+        case Hann      : winfunc->hann(); break;
+        case Hamming   : winfunc->hamming(); break;
+        case Rectangle : winfunc->rectangle(); break;
+        default        : winfunc->rectangle(); break;
     }
+    window = winfunc->getWindow();
 }

@@ -140,6 +140,32 @@ void CCommand::setSquelch(uint value)
     qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
+/*
+void CCommand::setToneSquelch(uint value)
+{
+    QString data;
+     // 0x80 is reverse so 0x8a is reverse 88.5Hz
+     // Tone scan use H601 then J510a h601 j510b ....
+    data = (radio == 0) ? "J51%1" : "J71%1";
+
+    data = data.arg(value, 2, 16, QChar('0')).toUpper();
+    currentRadio->squelch = value;
+    qDebug() << "Squelch " << data << "\n";
+    emit sendData(data);
+}
+
+void CCommand::setDTCS(uint value)
+{
+    QString data;
+
+    data = (radio == 0) ? "J52%1%2%3" : "J72%1%2%3";
+
+    data = data.arg(polarity, 1, 16, QChar('0')).arg(reverse, 1, 16, QChar('0')).arg(value, 2, 16, QChar('0')).toUpper();
+    currentRadio->squelch = value;
+    qDebug() << "Squelch " << data << "\n";
+    emit sendData(data);
+}
+*/
 
 void CCommand::setAutomaticGainControl(bool value)
 {

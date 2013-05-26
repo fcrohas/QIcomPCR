@@ -886,6 +886,11 @@
                 </item>
                 <item>
                  <property name="text">
+                  <string>Blackman-Harris</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>Hamming</string>
                  </property>
                 </item>

@@ -4,6 +4,7 @@
 #include <QObject>
 #include "generic/complex.h"
 #include "functions/idft.h"
+#include "CWindowFunc.h"
 #include <math.h>
 #include <stdint.h>
 #include <QDebug>
@@ -22,7 +23,7 @@ public:
     void initBuffer(int size);
     void initFFT(int size);
     // Available Window function for FFT
-    enum windowFunction {Rectangle=1, Blackman=2, Hann=3, Hamming=4};
+    enum windowFunction {Rectangle=1, Blackman=2, BlackmanHarris=3, Hann=4, Hamming=5};
     void setWindow(windowFunction fct, int size);
 
 signals:
@@ -32,10 +33,7 @@ public slots:
      void slotDataBuffer(int16_t *buffer, int size);
 
 private:
-     void hann(int size, double *&win);
-     void hamming(int size, double *&win);
-     void blackman(int size, double *&win);
-     void rect(int size, double *&win);
+     CWindowFunc *winfunc;
      double *xval;
      double *yval;
      double *window;

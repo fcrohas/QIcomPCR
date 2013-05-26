@@ -512,7 +512,7 @@ void CMainWindow::slotDecoderChange(int value)
     if (value == 4)
         myDecoder->setAxis(0,512,-5.0,5.0);
     else
-        myDecoder->setAxis(0,512,0.0,30.0);
+        myDecoder->setAxis(0,512,0.0,15.0);
 }
 
 void CMainWindow::slotChannelChange(int value)
@@ -586,6 +586,7 @@ void CMainWindow::slotStopPlay(bool value)
 
 void CMainWindow::slotWindowFunction(QString value)
 {
+    if(value == "Blackman-Harris") demodulator->slotChangeWindowFunction(CFFT::BlackmanHarris);
     if(value == "Blackman") demodulator->slotChangeWindowFunction(CFFT::Blackman);
     if(value == "Hann") demodulator->slotChangeWindowFunction(CFFT::Hann);
     if(value == "Hamming") demodulator->slotChangeWindowFunction(CFFT::Hamming);

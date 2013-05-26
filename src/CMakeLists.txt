@@ -80,6 +80,8 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/CFir.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.cpp
     ${qicompcr_SRCS}
 )
 
@@ -128,6 +130,8 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.h
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.h
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.h
+    ${CMAKE_SOURCE_DIR}/src/backend/CFir.h
+    ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.h
     CApplication.h
     version.h
     ${qicompcr_HDRS}
