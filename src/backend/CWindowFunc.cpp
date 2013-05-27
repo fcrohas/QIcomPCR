@@ -53,6 +53,46 @@ void CWindowFunc::rectangle()
     }
 }
 
+int CWindowFunc::factorial(int n)
+{
+  return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+}
+
+double CWindowFunc::bessel(double x)
+{
+    // Bessel zero order approx
+    double i0 = 0.0;
+    for (int k=1; k<21; k++) {
+        i0 += pow(pow(x/2,k)/factorial(k),2);
+    }
+    i0 += 1.0;
+    return i0;
+}
+
+int CWindowFunc::kaiser(double attenuation, double frequency,double width, int samplerate)
+{
+
+    double beta = 0.0;
+    double M = 0.0;
+    double wdelta = 2*M_PI*(frequency+width/2.0)/samplerate - 2*M_PI*(frequency-width/2.0)/samplerate;
+    if ((attenuation !=0.0) && (width!=0.0)) {
+        N = (attenuation - 8.0) / (4.57 * wdelta) + 1.0;
+        // Update windows size according to params
+        init(N);
+        M=(N-1)/2;
+    }
+    //  beta from aa value
+    if ( attenuation < 21.0) beta =0.0;
+    if (( attenuation>=21.0) && (attenuation<=50.0)) beta = 0.5842*pow((attenuation-21.0),0.4)+0.07886*(attenuation-21.0);
+    if (attenuation>50.0) beta = 0.1102*(attenuation-8.7);
+    qDebug() << "order is " << N << " alpha is " << M << " beta is " << beta << " normalised width is " << wdelta;
+    // Windowing function
+    for (int n=0; n<N; n++) {
+        win[n] = bessel(beta*sqrt(1.0-pow((n-M)/M,2)))/bessel(beta);
+    }
+    return N;
+}
+
 double CWindowFunc::get(int i)
 {
     return win[i];

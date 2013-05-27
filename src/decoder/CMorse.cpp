@@ -52,6 +52,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     winfunc = new CWindowFunc(this);
     winfunc->init(65);
     winfunc->hann();
+    //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     // band pass filter
     fbandpass = new CFIR(this);
     fbandpass->setWindow(winfunc->getWindow());
@@ -60,12 +61,14 @@ CMorse::CMorse(QObject *parent, uint channel) :
     fbandpass->setSampleRate(SAMPLERATE);
     fbandpass->bandpass(frequency,bandwidth);
     // low pass filter
+    /*
     flowpass = new CFIR(this);
     flowpass->setWindow(winfunc->getWindow());
     // arbitrary order for 200 Hz bandwidth
     flowpass->setOrder(64);
     flowpass->setSampleRate(SAMPLERATE);
     flowpass->lowpass(100);
+    */
 }
 
 CMorse::~CMorse()
@@ -123,9 +126,16 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         // Calculate average
         avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;
         // Average result of correlation
-        if (i>0) corr[i] = (corr[i-1]+corr[i])/2.0; // this is max value after correlation
-        // Save to result buffer
-        yval[i] = corr[i];
+        if (i>10) {
+            // Moving average filter
+            yval[i] = corr[i];
+            for (int v=1; v < 10; v++) {
+            yval[i] += yval[i-v]; // this is max value after correlation
+            }
+            yval[i] = yval[i] / 10.0;
+        } else
+            // Save to result buffer
+            yval[i] = corr[i];
         xval[i] = i;
 
     }
@@ -429,6 +439,7 @@ void CMorse::slotBandwidth(double value)
     int order = 4 / bn;
     qDebug() << "order is " << order << " for bandwidth " << bn << " normalized order even is " << (order % 2);
     // it must be even
+    //order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     if (order % 2 > 0) order += 1;
     // Update windows func length
     winfunc->init(order+1);

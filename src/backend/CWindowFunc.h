@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <math.h>
+#include <qdebug.h>
 
 class CWindowFunc : public QObject
 {
@@ -14,6 +15,7 @@ public:
     void blackman();
     void blackmanharris();
     void rectangle();
+    int kaiser(double attenuation, double frequency, double width, int samplerate);
     void init(int size);
     double get(int i);
     double * getWindow();
@@ -24,7 +26,8 @@ public slots:
 private:
     double *win;
     int N;
-    
+    int factorial(int n);
+    double bessel(double x);
 };
 
 #endif // CWINDOWFUNC_H
