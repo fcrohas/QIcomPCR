@@ -5,7 +5,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     channel(0),
     frequency(4500),
     correlationLength(40),
-    bandwidth(1000),
+    bandwidth(250),
     freqlow(4263),
     freqhigh(4651),
     baudrate(50),
@@ -23,20 +23,25 @@ CRtty::CRtty(QObject *parent, uint channel) :
 
     // Save local selected channel
     this->channel = channel;
-    // Initialize Bandpass filter
-    fbandpass = new Dsp::SmoothedFilterDesign<Dsp::Butterworth::Design::BandPass <4>, 1, Dsp::DirectFormII> (1024);
-    Dsp::Params paramsbp;
-    paramsbp[0] = SAMPLERATE;
-    paramsbp[1] = 4; // order
-    paramsbp[2] = frequency; // center frequency
-    paramsbp[3] = bandwidth; // band width
-    fbandpass->setParams(paramsbp);
-    flowpass = new Dsp::SmoothedFilterDesign<Dsp::RBJ::Design::LowPass, 1>(1024);
-    Dsp::Params params;
-    params[0] = 22050; // sample rate
-    params[1] = 200; // cutoff frequency
-    params[2] = 1.15; // Q
-    flowpass->setParams (params);
+
+    // Build filter
+    winfunc = new CWindowFunc(this);
+    winfunc->init(65);
+    winfunc->hann();
+    //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
+    // band pass filter
+    fmark = new CFIR(this);
+    fspace = new CFIR(this);
+    fmark->setWindow(winfunc->getWindow());
+    fspace->setWindow(winfunc->getWindow());
+    // arbitrary order for 200 Hz bandwidth
+    fmark->setOrder(64);
+    fmark->setSampleRate(SAMPLERATE);
+    fmark->bandpass(freqhigh,bandwidth);
+
+    fspace->setOrder(64);
+    fspace->setSampleRate(SAMPLERATE);
+    fspace->bandpass(freqlow,bandwidth);
 
     bit = ((1/baudrate) * SAMPLERATE); // We want it in sample unit
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
@@ -49,8 +54,8 @@ CRtty::~CRtty()
     delete [] corrspace;
     delete [] avgcorr;
     delete [] audioData[0];
-    delete flowpass;
-    delete fbandpass;
+    delete fmark;
+    delete fspace;
 }
 
 void CRtty::decode(int16_t *buffer, int size, int offset)
@@ -62,7 +67,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     }
     // Pass band filter at frequency
     // With width of 200 Hz
-    fbandpass->process(getBufferSize(), audioData);
+    fmark->apply(audioData[0],getBufferSize());
 
     // Correlation of with selected frequency
     for(int i=0; i < size-correlationLength; i++) { //
@@ -86,7 +91,6 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     }
     // Low pass Filter to keep only baudot signal
     audioData[0] = avgcorr;
-    flowpass->process(getBufferSize(),audioData);
 
     // Decode baudo code
     // One bit timing is 1/baudrate
@@ -180,26 +184,12 @@ void CRtty::slotBandwidth(double value)
     // In rtty it is 400 Hz wide so
     freqlow = frequency - bandwidth/2;
     freqhigh = frequency + bandwidth/2;
-    //GenerateCorrelation(correlationLength);
-    Dsp::Params paramsbp;
-    paramsbp[0] = SAMPLERATE;
-    paramsbp[1] = 4; // order
-    paramsbp[2] = frequency; // center frequency
-    paramsbp[3] = bandwidth*3/2; // band width
-    fbandpass->setParams(paramsbp);
 }
 
 
 void CRtty::slotFrequency(double value)
 {
     frequency = value * SAMPLERATE / 512; // SAMPLERATE / 512 and displaying graph is 0 to 128
-    //GenerateCorrelation(correlationLength);
-    Dsp::Params paramsbp;
-    paramsbp[0] = SAMPLERATE;
-    paramsbp[1] = 4; // order
-    paramsbp[2] = frequency; // center frequency
-    paramsbp[3] = bandwidth*3/2; // band width
-    fbandpass->setParams(paramsbp);
 }
 
 void CRtty::setCorrelationLength(int value)

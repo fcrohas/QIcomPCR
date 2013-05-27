@@ -132,7 +132,6 @@ private:
     // Filters
     CWindowFunc *winfunc;
     CFIR *fbandpass;
-    CFIR *flowpass;
     // Audio channel buffer
     double* audioData[1];
     // Hash table for morse code

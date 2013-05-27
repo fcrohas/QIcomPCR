@@ -60,15 +60,6 @@ CMorse::CMorse(QObject *parent, uint channel) :
     fbandpass->setOrder(64);
     fbandpass->setSampleRate(SAMPLERATE);
     fbandpass->bandpass(frequency,bandwidth);
-    // low pass filter
-    /*
-    flowpass = new CFIR(this);
-    flowpass->setWindow(winfunc->getWindow());
-    // arbitrary order for 200 Hz bandwidth
-    flowpass->setOrder(64);
-    flowpass->setSampleRate(SAMPLERATE);
-    flowpass->lowpass(100);
-    */
 }
 
 CMorse::~CMorse()
@@ -83,7 +74,6 @@ CMorse::~CMorse()
     delete [] avgcorr;
     delete [] audioData[0];
     delete fbandpass;
-    delete flowpass;
 }
 
 void CMorse::decode(int16_t *buffer, int size, int offset)
@@ -96,7 +86,6 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     // Pass band filter at frequency
     // With width of 200 Hz
     fbandpass->apply(audioData[0], getBufferSize());
-    //fmorse->process(getBufferSize(), audioData);
 #if 1
     // Correlation of with selected frequency
     for(int i=0; i < size-correlationLength; i++) { //
@@ -125,7 +114,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         if (corr[i]>peak) peak=corr[i];
         // Calculate average
         avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;
-        // Average result of correlation
+        // Moving Average filter result of correlation
         if (i>10) {
             // Moving average filter
             yval[i] = corr[i];

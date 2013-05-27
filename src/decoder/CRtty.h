@@ -5,6 +5,8 @@
 #include <IDemodulator.h>
 #include <math.h>
 #include <qdebug.h>
+#include <CWindowFunc.h>
+#include <CFir.h>
 #include "dspfilters/Dsp.h"
 
 #define SAMPLERATE 22050
@@ -58,8 +60,9 @@ private:
     double *avgcorr;
 
     // Filters
-    Dsp::Filter *fbandpass;
-    Dsp::Filter *flowpass;
+    CWindowFunc *winfunc;
+    CFIR *fmark;
+    CFIR *fspace;
 
     // Goertzel filter
     double goertzel(double *x, int N, double frequency, int samplerate);
