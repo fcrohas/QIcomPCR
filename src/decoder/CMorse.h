@@ -7,7 +7,6 @@
 #include <math.h>
 #include <CFir.h>
 #include <CWindowFunc.h>
-#include "dspfilters/Dsp.h"
 
 // x is sample index and f frequency
 #define SAMPLERATE 22050

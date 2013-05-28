@@ -6,20 +6,26 @@ CRtty::CRtty(QObject *parent, uint channel) :
     frequency(4500),
     correlationLength(40),
     bandwidth(250),
-    freqlow(4263),
-    freqhigh(4651),
+    freqlow(1600.0),
+    freqhigh(4000.0),
     baudrate(50),
     inverse(1.0),
     letter(""),
     bitcount(0),
-    started(false)
+    started(false),
+    mark_q(NULL),
+    mark_i(NULL),
+    space_i(NULL),
+    space_q(NULL)
 {
     // Table init
     xval = new double[getBufferSize()];
+    yval = new double[getBufferSize()];
     corrmark = new double[getBufferSize()];
     corrspace = new double[getBufferSize()];
     avgcorr = new double[getBufferSize()];
     audioData[0] = new double[getBufferSize()];
+    audioData[1] = new double[getBufferSize()];
 
     // Save local selected channel
     this->channel = channel;
@@ -32,28 +38,42 @@ CRtty::CRtty(QObject *parent, uint channel) :
     // band pass filter
     fmark = new CFIR(this);
     fspace = new CFIR(this);
+    flow = new CFIR(this);
     fmark->setWindow(winfunc->getWindow());
     fspace->setWindow(winfunc->getWindow());
     // arbitrary order for 200 Hz bandwidth
+    // for mark frequency
     fmark->setOrder(64);
     fmark->setSampleRate(SAMPLERATE);
     fmark->bandpass(freqhigh,bandwidth);
 
+    // for space frequency
     fspace->setOrder(64);
     fspace->setSampleRate(SAMPLERATE);
     fspace->bandpass(freqlow,bandwidth);
 
+    // Low pass filter at the end
+    flow->setOrder(64);
+    flow->setSampleRate(SAMPLERATE);
+    flow->lowpass(200.0);
     bit = ((1/baudrate) * SAMPLERATE); // We want it in sample unit
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
+    GenerateCorrelation(50);
 }
 
 CRtty::~CRtty()
 {
     delete [] xval;
+    delete [] yval;
     delete [] corrmark;
     delete [] corrspace;
     delete [] avgcorr;
     delete [] audioData[0];
+    delete [] audioData[1];
+    delete [] mark_i;
+    delete [] mark_q;
+    delete [] space_i;
+    delete [] space_q;
     delete fmark;
     delete fspace;
 }
@@ -64,21 +84,38 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     double peak = 0.0;
     for (int i=0 ; i < size; i++) {
         audioData[0][i] = buffer[i]*1.0/32768.0;
+        audioData[1][i] = buffer[i]*1.0/32768.0;
     }
     // Pass band filter at frequency
     // With width of 200 Hz
     fmark->apply(audioData[0],getBufferSize());
+    fspace->apply(audioData[1],getBufferSize());
 
     // Correlation of with selected frequency
     for(int i=0; i < size-correlationLength; i++) { //
         // Init correlation value
         corrmark[i] = 0.0;
         corrspace[i] = 0.0;
-        corrmark[i]  = sqrt(pow(goertzel(&audioData[0][i],correlationLength, freqlow , SAMPLERATE),2));
-        corrspace[i] = sqrt(pow(goertzel(&audioData[0][i],correlationLength, freqhigh, SAMPLERATE),2));
-        if (i>0) corrmark[i] = (corrmark[i-1]+corrmark[i])/2.0; // this is max value after correlation
-        if (i>0) corrspace[i] = (corrspace[i-1]+corrspace[i])/2.0; // this is max value after correlation
+        for (int j=0; j < correlationLength; j++) {
+            corrmark[i]  = sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
+            corrspace[i] = sqrt(pow(audioData[1][i+j] * space_i[j],2) + pow(audioData[1][i+j] * space_q[j],2));
+        }
+        // Output results
         avgcorr[i] = (corrmark[i] - corrspace[i]) * inverse;
+        // Moving Average filter result of correlation
+#if 0
+        if (i>4) {
+            // Moving average filter
+            yval[i] = avgcorr[i];
+            for (int v=0; v < 4; v++) {
+            yval[i] += yval[i-v]; // this is max value after correlation
+            }
+            yval[i] = yval[i] / 4.0;
+        } else
+#endif
+            // Save to result buffer
+            yval[i] = avgcorr[i];
+
         // Save to result buffer
         xval[i] = i;
     }
@@ -86,19 +123,19 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     // Fill end of buffer with 0 as the end is not used
     // Maybe suppress this if init is well done
     for (int i=0; i < correlationLength; i++) {
-        avgcorr[(size-(int)correlationLength)+i] = 0.0;
+        yval[(size-(int)correlationLength)+i] = 0.0;
         xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
     }
-    // Low pass Filter to keep only baudot signal
-    audioData[0] = avgcorr;
 
+    // Apply lowpass filter
+    flow->apply(yval,getBufferSize());
     // Decode baudo code
     // One bit timing is 1/baudrate
     accmark  = 0;
     accspace = 0;
 
     for (int i=0; i< size; i++) {
-        if (audioData[0][i]<0.0) {
+        if (yval[i]<0.0) {
             // Start measure low state to detect start bit
             if (accmark>0) { // is this a stop bit ?
                 if ((abs(accmark - (bit * STOPBITS)) <50.0)) // allow a margin of 50 samples
@@ -125,7 +162,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 accspace += 1;
             }
         }
-        if (audioData[0][i]>0.0) {
+        if (yval[i]>0.0) {
             // this is a high state now
             if (accspace >0) { // do we come from low state ?
                 // is this a start bit ?
@@ -154,7 +191,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             }
         }
     }
-    emit dumpData(xval, audioData[0], size);
+    emit dumpData(xval, yval, size);
 }
 
 uint CRtty::getDataSize()
@@ -195,6 +232,34 @@ void CRtty::slotFrequency(double value)
 void CRtty::setCorrelationLength(int value)
 {
     correlationLength = value;
+}
+
+void CRtty::GenerateCorrelation(int length)
+{
+    if (mark_q == NULL) {
+        mark_q = new double[length];
+    }
+    if (mark_i == NULL) {
+        mark_i = new double[length];
+    }
+    if (space_q == NULL) {
+        space_q = new double[length];
+    }
+    if (space_i == NULL) {
+        space_i = new double[length];
+    }
+    double freq1 = 0.0;
+    double freq2 = 0.0;
+    correlationLength = length;
+    for (int i=0; i< correlationLength;i++) {
+        mark_i[i] = cos(freq1);
+        mark_q[i] = sin(freq1);
+        freq1 += 2.0*M_PI*freqlow/SAMPLERATE;
+        space_i[i] = cos(freq2);
+        space_q[i] = sin(freq2);
+        freq2 += 2.0*M_PI*freqhigh/SAMPLERATE;
+    }
+
 }
 
 double CRtty::goertzel(double *x, int N, double freq, int samplerate)

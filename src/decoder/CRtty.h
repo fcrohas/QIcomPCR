@@ -7,7 +7,6 @@
 #include <qdebug.h>
 #include <CWindowFunc.h>
 #include <CFir.h>
-#include "dspfilters/Dsp.h"
 
 #define SAMPLERATE 22050
 #define STOPBITS 1.5
@@ -36,9 +35,9 @@ public slots:
 private:
     int bandwidth;
     int channel;
-    int frequency; // Center frequency
-    int freqlow; // Low mark frequency
-    int freqhigh; // High space frequency
+    double frequency; // Center frequency
+    double freqlow; // Low mark frequency
+    double freqhigh; // High space frequency
     int correlationLength;
     double baudrate;
     double inverse;
@@ -55,17 +54,26 @@ private:
 
     // Table
     double *xval;
+    double *yval;
     double *corrmark;
     double *corrspace;
     double *avgcorr;
+    double *mark_q;
+    double *mark_i;
+    double *space_i;
+    double *space_q;
 
     // Filters
     CWindowFunc *winfunc;
     CFIR *fmark;
     CFIR *fspace;
+    CFIR *flow;
 
     // Goertzel filter
     double goertzel(double *x, int N, double frequency, int samplerate);
+
+    // Correlation length generator
+    void GenerateCorrelation(int length);
 
 };
 

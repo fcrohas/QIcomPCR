@@ -81,6 +81,7 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CFir.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/CIir.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.cpp
     ${qicompcr_SRCS}
 )
@@ -131,6 +132,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.h
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.h
     ${CMAKE_SOURCE_DIR}/src/backend/CFir.h
+    ${CMAKE_SOURCE_DIR}/src/backend/CIir.h
     ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.h
     CApplication.h
     version.h
@@ -279,7 +281,7 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE )
 endif(MSVC)
 
-set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt DspFilters) #spuc
+set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt ) #spuc DspFilters
 
 if(WITH_PULSEAUDIO)
     set(3RDPARTY ${3RDPARTY} pulse-simple pulse)
