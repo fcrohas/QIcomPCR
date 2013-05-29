@@ -9,7 +9,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     freqlow(1600.0),
     freqhigh(4000.0),
     baudrate(50),
-    inverse(-1.0),
+    inverse(1.0),
     letter(""),
     bitcount(0),
     started(false),
@@ -57,7 +57,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     // Low pass filter at the end
     flow->setOrder(64);
     flow->setSampleRate(SAMPLERATE);
-    flow->lowpass(200.0);
+    flow->lowpass(500.0);
     bit = ((1/baudrate) * SAMPLERATE); // We want it in sample unit
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
     GenerateCorrelation(50);
@@ -70,14 +70,15 @@ CRtty::~CRtty()
     delete [] corrmark;
     delete [] corrspace;
     delete [] avgcorr;
-    delete [] audioData[0];
-    delete [] audioData[1];
+    //delete [] audioData[1];
+    //delete [] audioData[0];
     delete [] mark_i;
     delete [] mark_q;
     delete [] space_i;
     delete [] space_q;
     delete fmark;
     delete fspace;
+    delete flow;
 }
 
 void CRtty::decode(int16_t *buffer, int size, int offset)
@@ -138,55 +139,49 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     for (int i=0; i< (size-correlationLength); i++) {
         if (yval[i]<0.0) {
             // Start measure low state to detect start bit
-            if (accmark>0) { // is this a stop bit ?
-                if ((accmark >  (bit * STOPBITS)) && (started) && (sync)) // allow a margin of 50 samples
-                {
-                    bitcount = 0;
-                    qDebug() << "data=" << letter;
-                    qDebug() << "stop bit detected";
-                    emit sendData(letter.append("\r\n"));
-                    emit sendData(QString("stop bit\r\n"));
-                    letter ="";
-                    started = false;
-                    sync = false;
-                    counter = 0;
-                    qDebug() << "reset counter !!!";
-                } // not a stop bit so
-                accmark = 0;
-            }
-            else {
-                accspace += 1;
+            accspace += 1;
+            accmark = 0;
+            if ((accspace >=  (bit*STARTBITS)) && (!started) && (!sync)) // allow a margin of 50 samples
+            {
+                qDebug() << "start bit detected";
+                emit sendData(QString("Start bit\r\n"));
+                // Init bit counter
+                bitcount = 0;
+                counter = 0;
+                letter = ""; //reset letter
+                started = true;
+                sync = false;
+                accspace = 0;
             }
             if ((started) && (counter % (bit) == 0) && (sync)) // if data started
             {
                 // at each bit interval do the measure
-                qDebug() << " bit 1 read at " << counter << " op = " << counter % (bit);
+                //qDebug() << " bit 1 read at " << counter << " op = " << counter % (bit);
                 letter.append("1");
             }
         }
         if (yval[i]>0.0) {
             // this is a high state now
-            if (accspace >0) { // do we come from low state ?
-                if ((accspace >  (bit*STARTBITS)) && (!started) && (!sync)) // allow a margin of 50 samples
-                {
-                    qDebug() << "start bit detected";
-                    emit sendData(QString("Start bit\r\n"));
-                    // Init bit counter
-                    bitcount = 0;
-                    counter = 0;
-                    letter = ""; //reset letter
-                    started = true;
-                    sync = false;
-                }
-                accspace = 0;
-            }
-            else {
-                accmark +=1;
-            }
+            accmark +=1;
+            accspace = 0;
+            if ((accmark >=  (bit * STOPBITS)) && (started) && (sync)) // allow a margin of 50 samples
+            {
+                bitcount = 0;
+                qDebug() << "data=" << letter;
+                qDebug() << "stop bit detected";
+                emit sendData(letter.append("\r\n"));
+                emit sendData(QString("stop bit\r\n"));
+                letter ="";
+                started = false;
+                sync = false;
+                counter = 0;
+                qDebug() << "reset counter !!!";
+                accmark = 0;
+            } // not a stop bit so
             if ((started) && (counter % (bit) == 0) && (sync)) // if data started
             {
                 // at each bit interval do the measure
-                qDebug() << " bit 0 read at " << counter << " op = " << counter % (bit);
+                //qDebug() << " bit 0 read at " << counter << " op = " << counter % (bit);
                 letter.append("0");
             }
 
@@ -212,7 +207,7 @@ uint CRtty::getDataSize()
 
 uint CRtty::getBufferSize()
 {
-    return 4096;
+    return 16384;
 }
 
 
