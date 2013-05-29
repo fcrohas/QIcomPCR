@@ -48,6 +48,8 @@ private:
     int bitcount;
     bool started;
     int bit;
+    int counter;
+    bool sync;
 
     // Audio channel buffer
     double* audioData[1];

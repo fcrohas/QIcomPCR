@@ -510,7 +510,7 @@ void CMainWindow::slotDecoderChange(int value)
     connect(mySpectrum, SIGNAL(bandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     //myDecoder->setScaleType(CSpectrumWidget::eTime);
     if (value == 4)
-        myDecoder->setAxis(0,512,-5.0,5.0);
+        myDecoder->setAxis(0,512,-30.0,30.0);
     else
         myDecoder->setAxis(0,512,0.0,15.0);
 }
