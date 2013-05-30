@@ -16,6 +16,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     accspace(0),
     started(false),
     sync(false),
+    isletters(true),
     counter(0),
     mark_q(NULL),
     mark_i(NULL),
@@ -206,7 +207,14 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 qDebug() << "stop bit detected";
                 if (letter.length() == 5) {
                     bool ok;
-                    emit sendData(QString("%1").arg(QChar(lettersr[letter.toInt(&ok,2)])));
+                    if (letter.toInt(&ok,2) == 31) isletters = true;
+                    else if (letter.toInt(&ok,2) == 27) isletters = false;
+                    else {
+                        if (isletters)
+                            emit sendData(QString("%1").arg(QChar(lettersr[letter.toInt(&ok,2)])));
+                        else
+                            emit sendData(QString("%1").arg(QChar(figuresr[letter.toInt(&ok,2)])));
+                    }
                 }
                 //emit sendData(QString("stop bit\r\n"));
                 letter ="";
