@@ -509,10 +509,20 @@ void CMainWindow::slotDecoderChange(int value)
     connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
     connect(mySpectrum, SIGNAL(bandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     //myDecoder->setScaleType(CSpectrumWidget::eTime);
-    if (value == 4)
+    if (value == 4) {
         myDecoder->setAxis(0,512,-30.0,30.0);
-    else
+        myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
+        mySpectrum->setPickerType(CSpectrumWidget::eRttyPicker);
+    }
+    else if (value==3) {
         myDecoder->setAxis(0,512,0.0,15.0);
+        myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
+        mySpectrum->setPickerType(CSpectrumWidget::eCwPicker);
+    } else {
+        myDecoder->setAxis(0,512,-15.0,15.0);
+        myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
+        mySpectrum->setPickerType(CSpectrumWidget::eNoPicker);
+    }
 }
 
 void CMainWindow::slotChannelChange(int value)

@@ -72,6 +72,8 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CDisplay.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CwPicker.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/RttyPicker.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.cpp
@@ -121,6 +123,8 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.h
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.h
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CDisplay.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/CwPicker.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/RttyPicker.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.h
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.h

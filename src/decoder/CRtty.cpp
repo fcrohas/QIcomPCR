@@ -5,9 +5,9 @@ CRtty::CRtty(QObject *parent, uint channel) :
     channel(0),
     frequency(4500),
     correlationLength(40),
-    bandwidth(250),
-    freqlow(1600.0),
-    freqhigh(4000.0),
+    bandwidth(200),
+    freqlow(1600.0), // 1600
+    freqhigh(4000.0), // 4000
     baudrate(50),
     inverse(1.0),
     letter(""),
@@ -138,8 +138,6 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     flow->apply(yval,getBufferSize());
     // Decode baudo code
     // One bit timing is 1/baudrate
-    //accmark  = 0;
-    //accspace = 0;
     for (int i=0; i< (size-correlationLength); i++) {
         // Counter started ?
         if (started) {
@@ -148,6 +146,11 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 // start bit measurement
                 qDebug() << " sync reached !!!";
                 sync = true;
+            }
+            if (bitcount > DATABITS+1) {
+                // reset
+                started = false;
+                sync = false;
             }
             counter +=1;
         }
@@ -166,7 +169,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             }
             //
             int length = abs(accspace -(bit*STARTBITS));
-            if ((length >=0) && (length <=2) && (!started) && (!sync)) // allow a margin of 50 samples
+            if ((length <=5) && (!started) && (!sync)) // allow a margin of 50 samples
             {
                 qDebug() << "start bit detected";
                 //emit sendData(QString("Start bit\r\n"));
@@ -198,14 +201,14 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             }
             //
             int length = abs(accmark -(bit*STOPBITS));
-            if (/*((length >=0) && (length <=2) &&*/ (started) && (sync) && (bitcount == 6))// allow a margin of 50 samples
+            if (/*((length >=0) && (length <=2) &&*/ (started) && (sync) && (bitcount == DATABITS+1))// allow a margin of 50 samples
             {
                 bitcount = 0;
 
                 qDebug() << "mark length is " << accmark;
                 qDebug() << "data=" << letter;
                 qDebug() << "stop bit detected";
-                if (letter.length() == 5) {
+                if (letter.length() == DATABITS) {
                     bool ok;
                     if (letter.toInt(&ok,2) == 31) isletters = true;
                     else if (letter.toInt(&ok,2) == 27) isletters = false;
@@ -236,7 +239,7 @@ uint CRtty::getDataSize()
 
 uint CRtty::getBufferSize()
 {
-    return 16384;
+    return 4096;
 }
 
 
@@ -254,14 +257,22 @@ void CRtty::slotBandwidth(double value)
 {
     bandwidth = value * SAMPLERATE / 512.0;
     // In rtty it is 400 Hz wide so
-    freqlow = frequency - bandwidth/2;
-    freqhigh = frequency + bandwidth/2;
+    freqlow = frequency - bandwidth/2.0;
+    freqhigh = frequency + bandwidth/2.0;
+    GenerateCorrelation(correlationLength);
+    fspace->bandpass(freqlow,bandwidth);
+    fmark->bandpass(freqhigh,bandwidth);
 }
 
 
 void CRtty::slotFrequency(double value)
 {
-    frequency = value * SAMPLERATE / 512; // SAMPLERATE / 512 and displaying graph is 0 to 128
+    frequency = value * SAMPLERATE / 512.0; // SAMPLERATE / 512 and displaying graph is 0 to 128
+    freqlow = frequency - bandwidth/2.0;
+    freqhigh = frequency + bandwidth/2.0;
+    GenerateCorrelation(correlationLength);
+    fspace->bandpass(freqlow,bandwidth);
+    fmark->bandpass(freqhigh,bandwidth);
 }
 
 void CRtty::setCorrelationLength(int value)

@@ -7,6 +7,7 @@ CSpectrumWidget::CSpectrumWidget(QWidget *parent) :
   ,x2(0)
   ,line(0)
   ,average(NULL)
+  ,picker(NULL)
   ,refreshrate(20)
 {
     setupUi(this);
@@ -103,15 +104,8 @@ void CSpectrumWidget::setupUi(QWidget *widget)
     qwtPlot->setMouseTracking(true);
     qwtPlot->canvas()->setMouseTracking(true);
     //zoomer = new MyZoomer(qwtPlot->canvas());
-    //picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::RectRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
-    picker = new MyPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
-    //picker->setStateMachine(new QwtPickerTrackerMachine());
-    //picker->setRubberBand(QwtPlotPicker::VLineRubberBand);
-    //picker->setRubberBandPen(QPen(QColor(Qt::red)));
-    //picker->setTrackerPen(QColor(Qt::red));
-    connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
-    connect(picker, SIGNAL(bandwidthChanged(double)), this, SLOT(slotBandWidth(double)));
-    //QMetaObject::connectSlotsByName(widget);
+    // Choose a default picker
+    setPickerType(eNoPicker);
     qwtPlot->setAutoReplot(false);
     marker = new QwtPlotMarker();
 }
@@ -200,7 +194,7 @@ void CSpectrumWidget::setScaleType(ScaleType type)
 
 void CSpectrumWidget::slotClicked(QPointF point)
 {
-    //qDebug() << "point=" << point;
+    qDebug() << "slotClicked point=" << point;
     marker->detach();
     marker->setLinePen(QPen(Qt::red));
     marker->setLineStyle(QwtPlotMarker::VLine);
@@ -211,6 +205,7 @@ void CSpectrumWidget::slotClicked(QPointF point)
 
 void CSpectrumWidget::slotBandWidth(double bw)
 {
+    qDebug() << "slotBandWidth bandwidth=" << bw;
     emit bandwidth(bw);
 }
 
@@ -266,4 +261,32 @@ void CSpectrumWidget::setRefreshRate(int milliseconds)
     yScaleDraw->setParams(22050,512,milliseconds);
     qwtPlot->updateAxes();
     qwtPlot->replot();
+}
+
+void CSpectrumWidget::setPickerType(ePickerType type)
+{
+    if (picker != NULL)
+        delete picker;
+    switch(type) {
+        case eCwPicker:
+                picker = new CwPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
+                connect(picker, SIGNAL(bandwidthChanged(double)), this, SLOT(slotBandWidth(double)));
+                qDebug() << "CW Picker";
+            break;
+        case eRttyPicker:
+                picker = new RttyPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
+                connect(picker, SIGNAL(bandwidthChanged(double)), this, SLOT(slotBandWidth(double)));
+                qDebug() << "Rtty Picker";
+            break;
+        case eThresholdPicker:
+                picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::HLineRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
+                qDebug() << "Threshold Picker";
+            break;
+        case eNoPicker:
+        default:
+            break;
+    }
 }

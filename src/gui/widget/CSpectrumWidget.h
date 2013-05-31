@@ -19,10 +19,10 @@
 #include <qwt_legend_item.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot.h>
-#include <qwt_plot_picker.h>
 #include <qwt_plot_marker.h>
 #include <qwt_compat.h>
-#include <qwt_picker_machine.h>
+#include <CwPicker.h>
+#include <RttyPicker.h>
 #define WATERFALL_MAX 512
 
 class WaterfallData: public QwtRasterData
@@ -277,98 +277,6 @@ public:
     }
 };
 
-class MyPicker : public QwtPlotPicker
-{
-        Q_OBJECT
-
-    public:
-        MyPicker( int xAxis, int yAxis, RubberBand rubberBand, DisplayMode trackerMode, QwtPlotCanvas *canvas ):
-            QwtPlotPicker(xAxis, yAxis, rubberBand, trackerMode,canvas)
-        {
-            setTrackerMode( trackerMode );
-            setStateMachine( new QwtPickerTrackerMachine() );
-            setRubberBand( rubberBand );
-            setRubberBandPen(QPen(QColor(Qt::red)));
-            samplerate=22050;
-            FftBins=512;
-            bandwidth = 3.0;
-        }
-
-        QwtText trackerText (const QPoint & point) const
-        {
-            //const QPoint point = pos.toPoint();
-            QwtText text;
-            text.setColor(Qt::white);
-            double x = invTransform(point).x();
-            double freq = 0.0;
-            if (x <FftBins/2)
-                freq = x * samplerate/FftBins;
-            else
-                freq = (x-(FftBins/2)) * samplerate/FftBins;
-            QString freqText(" %1 Hz bw=%2 Hz");
-            text.setText(freqText.arg(freq).arg(bandwidth * samplerate/FftBins));
-            return text;
-            //return QwtText(QString::number(point.x()) + ", " + QString::number(point.y()));
-        }
-
-        void drawRubberBand(QPainter *p) const
-        {
-            p->save();
-            int x = this->trackerPosition().x();
-            p->setPen(Qt::blue);
-            QBrush brush(Qt::SolidPattern);
-            brush.setColor(QColor(0,0,120,180));
-            //p->setBrush();
-            p->fillRect(QRectF(x-(bandwidth/2.0),0,bandwidth,this->canvas()->height()),brush);
-            p->setOpacity(1.0);
-            //brush.setColor(Qt::red);
-            p->setPen(QColor(180,0,0,180));
-            p->drawLine(x,0,x,this->canvas()->height());
-            p->restore();
-        }
-
-        void setParams(uint rate, uint bins) {
-            samplerate = rate;
-            FftBins = bins;
-        }
-
-    protected:
-
-        void widgetMousePressEvent(QMouseEvent *mouseEvent)
-        {
-            emit selected(invTransform(mouseEvent->pos()));
-        }
-
-        void widgetWheelEvent(QWheelEvent *wheelEvent)
-        {
-            if (wheelEvent->delta()>0)
-                bandwidth += 0.5;
-            else
-                bandwidth -= 0.5;
-            // Block limits
-            if (bandwidth <1.0) bandwidth = 1.0;
-            //qDebug() << "bandwidth="<< bandwidth;
-            updateDisplay();
-            emit bandwidthChanged(bandwidth);
-        }
-
-        /*
-        void drawTracker(QPainter *p) const
-        {
-            int x = this->trackerPosition().x();
-            p->drawLine(x,0,x,this->plot()->height());
-        }*/
-
-    signals:
-        void mouseMoved(const QPoint& pos) const;
-        void bandwidthChanged(double bandwidth);
-    private:
-        double bandwidth;
-        uint samplerate;
-        uint FftBins;
-
-};
-
 class ColorMap: public QwtLinearColorMap
 {
 public:
@@ -390,9 +298,11 @@ public:
     enum ePlotter {eScope=0,eFFT=1,eWaterfall=2};
     enum eColorMap {eNormal=1, eGray=2, eColor=3};
     enum ScaleType {eFrequency=1, eTime=2, eTimeInv=3, ePower=4};
+    enum ePickerType {eNoPicker=0,eCwPicker=1, eRttyPicker=2, eThresholdPicker=3};
     void setAxis(int x1, int x2, int y1, int y2);
     void setScaleType(ScaleType type);
     void setPlotterType(ePlotter type);
+    void setPickerType(ePickerType type);
     void initColorMap(eColorMap colorMap);
 
 signals:
@@ -412,7 +322,7 @@ private:
     QwtPlotSpectrogram *waterfall;
     QHBoxLayout *hboxLayout;
     QwtPlot *qwtPlot;
-    MyPicker *picker;
+    QwtPlotPicker *picker;
     MyZoomer *zoomer;
     TimeScaleDraw *xScaleDraw;
     TimeScaleDraw *yScaleDraw;

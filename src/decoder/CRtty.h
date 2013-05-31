@@ -10,6 +10,7 @@
 
 #define SAMPLERATE 22050
 #define STOPBITS 1.5
+#define DATABITS 5
 #define STARTBITS 1
 
 static unsigned char lettersr[] = {'\0','T','\r','O',' ','H','N','M','\n','L','R','G','I','P','C','V','E','Z','D','B','S','Y','F','X','A','W','J','\0','U','Q','K','\0'};
