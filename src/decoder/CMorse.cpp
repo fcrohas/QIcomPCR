@@ -30,6 +30,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     space = new double[getBufferSize()];
     avgcorr = new double[getBufferSize()];
     audioData[0] = new double[getBufferSize()];
+    audioBuffer[0] = new double[getBufferSize()];
 
     // Calculate correlation length
     correlationLength = 50; //SAMPLERATE/201; // Default creation is 6Khz
@@ -60,6 +61,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     fbandpass->setOrder(64);
     fbandpass->setSampleRate(SAMPLERATE);
     fbandpass->bandpass(frequency,bandwidth);
+    memset(yval,0,getBufferSize()*sizeof(double));
 }
 
 CMorse::~CMorse()
@@ -73,6 +75,7 @@ CMorse::~CMorse()
     delete [] space;
     delete [] avgcorr;
     delete [] audioData[0];
+    delete [] audioBuffer[0];
     delete fbandpass;
 }
 
@@ -88,15 +91,19 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     fbandpass->apply(audioData[0], getBufferSize());
 #if 1
     // Correlation of with selected frequency
-    for(int i=0; i < size-correlationLength; i++) { //
+    for(int i=size-1; i > 0; i--) { //
         // Init correlation value
         corr[i] = 0.0;
 #ifdef GOERTZEL
         // Correlate en shift over correlation length
         corr[i]  = sqrt(pow(goertzel(&audioData[0][i],correlationLength, frequency , SAMPLERATE),2));
 #else
-        for (int j=0; j<correlationLength; j++) {
-            corr[i] += sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
+
+        for (int j=correlationLength-1; j>0; j--) {
+            if (i-j>=0) {
+                corr[i] += sqrt(pow(audioData[0][i-j] * mark_i[j],2) + pow(audioData[0][i-j] * mark_q[j],2));
+            } else
+                corr[i] += sqrt(pow(audioBuffer[0][i-j] * mark_i[j],2) + pow(audioBuffer[0][i-j] * mark_q[j],2));
         }
 #endif
 #ifdef KALMAN
@@ -112,29 +119,24 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         lastestimation = corr[i];
 #endif
         if (corr[i]>peak) peak=corr[i];
+
         // Calculate average
         avgcorr[i] = ((corr[i] / 2.0) > agclimit) ? corr[i] / 2.0 : agclimit ;
+
         // Moving Average filter result of correlation
-        if (i>10) {
-            // Moving average filter
-            yval[i] = corr[i];
-            for (int v=1; v < 10; v++) {
-            yval[i] += yval[i-v]; // this is max value after correlation
+        yval[i] = corr[i];
+        if ((i+5)<size) {
+            for (int v=1; v < 5; v++) {
+                    yval[i] += yval[i+v]; // this is max value after correlation
             }
-            yval[i] = yval[i] / 10.0;
+            yval[i] = yval[i] / 5;
         } else
-            // Save to result buffer
             yval[i] = corr[i];
         xval[i] = i;
 
     }
-
-    // Fill end of buffer with 0 as the end is not used
-    // Maybe suppress this if init is well done
-    for (int i=0; i < correlationLength; i++) {
-        yval[(size-(int)correlationLength)+i] = 0.0;
-        xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
-    }
+    // Copy buffer back for next iteration
+    memcpy(audioBuffer[0],audioData[0], size*sizeof(double));
 #endif
     // Low pass filter for orig CW signal
 #ifdef GOERTZEL
@@ -149,7 +151,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     agc = peak / 2.0; // average value per buffer size
     if (agc<agclimit/10.0) agc=agclimit/10.0; // minimum detection signal is 1.0
     // Detect High <-> low state and timing
-    for (int i=0; i<size-(int)correlationLength; i++) {
+    for (int i=0; i<size; i++) {
         // if > then it is mark
         if (yval[i] >agc) {
             // Start to coutn time in sample

@@ -60,7 +60,8 @@ private:
     bool isletters;
 
     // Audio channel buffer
-    double* audioData[1];
+    double* audioData[2];
+    double* audioBuffer[2];
 
     // Table
     double *xval;
@@ -78,9 +79,6 @@ private:
     CFIR *fmark;
     CFIR *fspace;
     CFIR *flow;
-
-    // Goertzel filter
-    double goertzel(double *x, int N, double frequency, int samplerate);
 
     // Correlation length generator
     void GenerateCorrelation(int length);

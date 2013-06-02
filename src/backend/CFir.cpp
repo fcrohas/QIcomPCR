@@ -118,7 +118,7 @@ void CFIR::apply(double *&in, int size)
         // direct fir filter
         for (int j=0; j<N; j++) {
             if ((i-j) < 0)
-                sample += buffer[size+i-j] * fir[j]; // use previous buffer call values
+                sample += buffer[(size-1)+i-j] * fir[j]; // use previous buffer call values
             else
                 sample += buffer[i-j] * fir[j]; // use current buffer values
         }

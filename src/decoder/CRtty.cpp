@@ -9,7 +9,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     freqlow(1600.0), // 1600
     freqhigh(4000.0), // 4000
     baudrate(50),
-    inverse(1.0),
+    inverse(-1.0),
     letter(""),
     bitcount(0),
     accmark(0),
@@ -31,6 +31,11 @@ CRtty::CRtty(QObject *parent, uint channel) :
     avgcorr = new double[getBufferSize()];
     audioData[0] = new double[getBufferSize()];
     audioData[1] = new double[getBufferSize()];
+    audioBuffer[0] = new double[getBufferSize()];
+    audioBuffer[1] = new double[getBufferSize()];
+
+    memset(audioBuffer[0],0,getBufferSize()*sizeof(double));
+    memset(audioBuffer[1],0,getBufferSize()*sizeof(double));
 
     // Save local selected channel
     this->channel = channel;
@@ -38,7 +43,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     // Build filter
     winfunc = new CWindowFunc(this);
     winfunc->init(65);
-    winfunc->hann();
+    winfunc->rectangle();
     //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     // band pass filter
     fmark = new CFIR(this);
@@ -50,21 +55,20 @@ CRtty::CRtty(QObject *parent, uint channel) :
     // for mark frequency
     fmark->setOrder(64);
     fmark->setSampleRate(SAMPLERATE);
-    fmark->bandpass(freqhigh,bandwidth);
+    fmark->bandpass(freqlow,bandwidth);
 
     // for space frequency
     fspace->setOrder(64);
     fspace->setSampleRate(SAMPLERATE);
-    fspace->bandpass(freqlow,bandwidth);
+    fspace->bandpass(freqhigh,bandwidth);
 
     // Low pass filter at the end
     flow->setOrder(64);
     flow->setSampleRate(SAMPLERATE);
     flow->lowpass(500.0);
-    bit = 160; //((1/baudrate) * SAMPLERATE); // We want it in sample unit
-
+    bit = 10.5+(SAMPLERATE/baudrate)/3.0; // We want it in sample unit
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
-    GenerateCorrelation(50);
+    GenerateCorrelation(correlationLength);
 }
 
 CRtty::~CRtty()
@@ -74,8 +78,10 @@ CRtty::~CRtty()
     delete [] corrmark;
     delete [] corrspace;
     delete [] avgcorr;
-    //delete [] audioData[1];
-    //delete [] audioData[0];
+    delete [] audioBuffer[1];
+    delete [] audioBuffer[0];
+    delete [] audioData[1];
+    delete [] audioData[0];
     delete [] mark_i;
     delete [] mark_q;
     delete [] space_i;
@@ -99,13 +105,18 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     fspace->apply(audioData[1],getBufferSize());
 
     // Correlation of with selected frequency
-    for(int i=0; i < size-correlationLength; i++) { //
+    for(int i=size-1; i > 0; i--) { //
         // Init correlation value
         corrmark[i] = 0.0;
         corrspace[i] = 0.0;
-        for (int j=0; j < correlationLength; j++) {
-            corrmark[i]  += sqrt(pow(audioData[0][i+j] * mark_i[j],2) + pow(audioData[0][i+j] * mark_q[j],2));
-            corrspace[i] += sqrt(pow(audioData[1][i+j] * space_i[j],2) + pow(audioData[1][i+j] * space_q[j],2));
+        for (int j=correlationLength-1; j > 0 ; j--) {
+            if (((i-j)>=0)) {
+                corrmark[i]  += sqrt(pow(audioData[0][i-j] * mark_i[j],2)  + pow(audioData[0][i-j] * mark_q[j],2));
+                corrspace[i] += sqrt(pow(audioData[1][i-j] * space_i[j],2) + pow(audioData[1][i-j] * space_q[j],2));
+            } else {
+                corrmark[i]  += sqrt(pow(audioBuffer[0][size-i-j] * mark_i[j],2)  + pow(audioBuffer[0][size-i-j] * mark_q[j],2));
+                corrspace[i] += sqrt(pow(audioBuffer[1][size-i-j] * space_i[j],2) + pow(audioBuffer[1][size-i-j] * space_q[j],2));
+            }
         }
         // Output results
         avgcorr[i] = (corrmark[i] - corrspace[i]) * inverse;
@@ -127,38 +138,39 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
         xval[i] = i;
     }
 
-    // Fill end of buffer with 0 as the end is not used
-    // Maybe suppress this if init is well done
-    for (int i=0; i < correlationLength; i++) {
-        yval[(size-(int)correlationLength)+i] = 0.0;
-        xval[(size-(int)correlationLength)+i] = (size-(int)correlationLength)+i;
-    }
+    // Copy back buffer
+    memcpy(audioBuffer[0],audioData[0], size*sizeof(double));
+    memcpy(audioBuffer[1],audioData[1], size*sizeof(double));
 
     // Apply lowpass filter
     flow->apply(yval,getBufferSize());
+
     // Decode baudo code
     // One bit timing is 1/baudrate
-    for (int i=0; i< (size-correlationLength); i++) {
+    for (int i=0; i< (size); i++) {
         // Counter started ?
         if (started) {
             // count how samples from start bit
             if (counter == bit / 2) { // half bit reached
                 // start bit measurement
-                qDebug() << " sync reached !!!";
                 sync = true;
             }
-            if (bitcount > DATABITS+1) {
-                // reset
-                started = false;
-                sync = false;
-            }
             counter +=1;
+        }
+        // reset all if bit count is wrong
+        if (bitcount > DATABITS+1) {
+            // reset
+            started = false;
+            sync = false;
+            bitcount = 0;
+            letter ="";
+            counter = 0;
         }
         if (yval[i]<0.0) {
             // Start measure low state to detect start bit
             accspace += 1;
             if (accmark>0) {
-                qDebug() << "Mark length is " << accmark;
+                qDebug() << "mark timing " << accmark;
                 accmark = 0;
             }
             //
@@ -169,10 +181,9 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             }
             //
             int length = abs(accspace -(bit*STARTBITS));
-            if ((length <=5) && (!started) && (!sync)) // allow a margin of 50 samples
+            if ((length <=10) && (!started) && (!sync)) // allow a margin of 50 samples
             {
-                qDebug() << "start bit detected";
-                //emit sendData(QString("Start bit\r\n"));
+                qDebug() << "Start bits detected";
                 // Init bit counter
                 bitcount = 1;
                 counter = 0;
@@ -180,7 +191,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 started = true;
                 sync = false;
                 // sync back to half space length
-                counter = accspace / 2;
+                counter = bit / 2;
             }
             //
         }
@@ -188,7 +199,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             // this is a high state now
             accmark +=1;
             if (accspace>0) {
-                qDebug() << "Space length is " << accspace;
+                qDebug() << "space timing " << accspace;
                 accspace = 0;
             }
             //
@@ -196,7 +207,6 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             {
                 // at each bit interval do the measure
                 bitcount +=1;
-                qDebug() << " bitcount = " << bitcount ;
                 letter.append("1");
             }
             //
@@ -204,10 +214,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             if (/*((length >=0) && (length <=2) &&*/ (started) && (sync) && (bitcount == DATABITS+1))// allow a margin of 50 samples
             {
                 bitcount = 0;
-
-                qDebug() << "mark length is " << accmark;
-                qDebug() << "data=" << letter;
-                qDebug() << "stop bit detected";
+                qDebug() << "Stop bits detected";
                 if (letter.length() == DATABITS) {
                     bool ok;
                     if (letter.toInt(&ok,2) == 31) isletters = true;
@@ -224,7 +231,6 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
                 started = false;
                 sync = false;
                 counter = 0;
-                qDebug() << "reset counter !!!";
             } // not a stop bit so
             //
         }
@@ -260,8 +266,8 @@ void CRtty::slotBandwidth(double value)
     freqlow = frequency - bandwidth/2.0;
     freqhigh = frequency + bandwidth/2.0;
     GenerateCorrelation(correlationLength);
-    fspace->bandpass(freqlow,bandwidth);
-    fmark->bandpass(freqhigh,bandwidth);
+    fspace->bandpass(freqhigh,bandwidth);
+    fmark->bandpass(freqlow,bandwidth);
 }
 
 
@@ -271,8 +277,8 @@ void CRtty::slotFrequency(double value)
     freqlow = frequency - bandwidth/2.0;
     freqhigh = frequency + bandwidth/2.0;
     GenerateCorrelation(correlationLength);
-    fspace->bandpass(freqlow,bandwidth);
-    fmark->bandpass(freqhigh,bandwidth);
+    fspace->bandpass(freqhigh,bandwidth);
+    fmark->bandpass(freqlow,bandwidth);
 }
 
 void CRtty::setCorrelationLength(int value)
@@ -307,20 +313,4 @@ void CRtty::GenerateCorrelation(int length)
         freq2 += 2.0*M_PI*freqhigh/SAMPLERATE;
     }
 
-}
-
-double CRtty::goertzel(double *x, int N, double freq, int samplerate)
-{
-    double Skn, Skn1, Skn2;
-    Skn = Skn1 = Skn2 = 0;
-
-    for (int i=0; i<N; i++) {
-        Skn2 = Skn1;
-        Skn1 = Skn;
-        Skn = 2*cos(2*M_PI*freq/samplerate)*Skn1 - Skn2 + x[i];
-    }
-
-    double WNk = exp(-2*M_PI*freq/samplerate); // this one ignores complex stuff
-    //float WNk = exp(-2*j*PI*k/N);
-    return (Skn - WNk*Skn1);
 }

@@ -133,6 +133,7 @@ private:
     CFIR *fbandpass;
     // Audio channel buffer
     double* audioData[1];
+    double* audioBuffer[1];
     // Hash table for morse code
     QHash<QString,int> code;
     // Translate result
