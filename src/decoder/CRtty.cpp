@@ -8,7 +8,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     bandwidth(200),
     freqlow(1600.0), // 1600
     freqhigh(4000.0), // 4000
-    baudrate(50),
+    baudrate(75),
     inverse(-1.0),
     letter(""),
     bitcount(0),
@@ -105,11 +105,11 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
     fspace->apply(audioData[1],getBufferSize());
 
     // Correlation of with selected frequency
-    for(int i=size-1; i > 0; i--) { //
+    for(int i=size-1; i >= 0; i--) { //
         // Init correlation value
         corrmark[i] = 0.0;
         corrspace[i] = 0.0;
-        for (int j=correlationLength-1; j > 0 ; j--) {
+        for (int j=correlationLength-1; j >= 0 ; j--) {
             if (((i-j)>=0)) {
                 corrmark[i]  += sqrt(pow(audioData[0][i-j] * mark_i[j],2)  + pow(audioData[0][i-j] * mark_q[j],2));
                 corrspace[i] += sqrt(pow(audioData[1][i-j] * space_i[j],2) + pow(audioData[1][i-j] * space_q[j],2));

@@ -91,7 +91,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     fbandpass->apply(audioData[0], getBufferSize());
 #if 1
     // Correlation of with selected frequency
-    for(int i=size-1; i > 0; i--) { //
+    for(int i=size-1; i >= 0; i--) { //
         // Init correlation value
         corr[i] = 0.0;
 #ifdef GOERTZEL
@@ -99,11 +99,11 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
         corr[i]  = sqrt(pow(goertzel(&audioData[0][i],correlationLength, frequency , SAMPLERATE),2));
 #else
 
-        for (int j=correlationLength-1; j>0; j--) {
+        for (int j=correlationLength-1; j>=0; j--) {
             if (i-j>=0) {
                 corr[i] += sqrt(pow(audioData[0][i-j] * mark_i[j],2) + pow(audioData[0][i-j] * mark_q[j],2));
             } else
-                corr[i] += sqrt(pow(audioBuffer[0][i-j] * mark_i[j],2) + pow(audioBuffer[0][i-j] * mark_q[j],2));
+                corr[i] += sqrt(pow(audioBuffer[0][size-i-j] * mark_i[j],2) + pow(audioBuffer[0][size-i-j] * mark_q[j],2));
         }
 #endif
 #ifdef KALMAN
@@ -125,11 +125,11 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
 
         // Moving Average filter result of correlation
         yval[i] = corr[i];
-        if ((i+5)<size) {
-            for (int v=1; v < 5; v++) {
+        if ((i+10)<size) {
+            for (int v=1; v < 10; v++) {
                     yval[i] += yval[i+v]; // this is max value after correlation
             }
-            yval[i] = yval[i] / 5;
+            yval[i] = yval[i] / 10;
         } else
             yval[i] = corr[i];
         xval[i] = i;
