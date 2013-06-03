@@ -103,7 +103,11 @@ void CSpectrumWidget::setupUi(QWidget *widget)
     hboxLayout->addWidget(qwtPlot);
     qwtPlot->setMouseTracking(true);
     qwtPlot->canvas()->setMouseTracking(true);
-    //zoomer = new MyZoomer(qwtPlot->canvas());
+    /*
+    zoomer = new AdvPlotZoomer(qwtPlot->canvas());
+    zoomer->setZoomConstrain(AdvPlotZoomer::HZoomOnly);
+    zoomer->setRubberBand(AdvPlotZoomer::VLineRubberBand);
+    */
     // Choose a default picker
     setPickerType(eNoPicker);
     qwtPlot->setAutoReplot(false);

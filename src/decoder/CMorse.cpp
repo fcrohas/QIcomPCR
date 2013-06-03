@@ -434,7 +434,7 @@ void CMorse::slotBandwidth(double value)
     if (order % 2 > 0) order += 1;
     // Update windows func length
     winfunc->init(order+1);
-    winfunc->hann();
+    winfunc->rectangle();
     // Update bandpass params
     fbandpass->setWindow(winfunc->getWindow());
     fbandpass->setOrder(order);

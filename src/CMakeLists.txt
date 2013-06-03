@@ -66,6 +66,7 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.cpp
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/AdvPlotZoomer.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CBandScope.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.cpp
@@ -117,6 +118,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.h
     ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.h
     ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.h
+    ${CMAKE_SOURCE_DIR}/src/gui/widget/AdvPlotZoomer.h
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CBandScope.h
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.h
     ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.h

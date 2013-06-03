@@ -215,15 +215,19 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             {
                 bitcount = 0;
                 qDebug() << "Stop bits detected";
-                if (letter.length() == DATABITS) {
+                if (letter.length() == DATABITS) { // If baudot only
                     bool ok;
-                    if (letter.toInt(&ok,2) == 31) isletters = true;
-                    else if (letter.toInt(&ok,2) == 27) isletters = false;
-                    else {
-                        if (isletters)
-                            emit sendData(QString("%1").arg(QChar(lettersr[letter.toInt(&ok,2)])));
-                        else
-                            emit sendData(QString("%1").arg(QChar(figuresr[letter.toInt(&ok,2)])));
+                    if (DATABITS==5) {
+                        if (letter.toInt(&ok,2) == 31) isletters = true;
+                        else if (letter.toInt(&ok,2) == 27) isletters = false;
+                        else {
+                            if (isletters)
+                                emit sendData(QString("%1").arg(QChar(lettersr[letter.toInt(&ok,2)])));
+                            else
+                                emit sendData(QString("%1").arg(QChar(figuresr[letter.toInt(&ok,2)])));
+                        }
+                    } else {
+                        emit sendData(QString("%1").arg(QChar(letter.toInt(&ok,2))));
                     }
                 }
                 //emit sendData(QString("stop bit\r\n"));

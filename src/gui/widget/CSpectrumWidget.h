@@ -23,6 +23,7 @@
 #include <qwt_compat.h>
 #include <CwPicker.h>
 #include <RttyPicker.h>
+#include <AdvPlotZoomer.h>
 #define WATERFALL_MAX 512
 
 class WaterfallData: public QwtRasterData
@@ -323,7 +324,7 @@ private:
     QHBoxLayout *hboxLayout;
     QwtPlot *qwtPlot;
     QwtPlotPicker *picker;
-    MyZoomer *zoomer;
+    AdvPlotZoomer *zoomer;
     TimeScaleDraw *xScaleDraw;
     TimeScaleDraw *yScaleDraw;
     QwtPlotMarker *marker;
