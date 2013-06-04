@@ -51,6 +51,7 @@ public:
     WaterfallData(): QwtRasterData()
     {
                 m_Array = NULL;
+            setInterval( Qt::ZAxis, QwtInterval( 0.0,30.0));
     }
 
     ~WaterfallData()
@@ -93,19 +94,11 @@ public:
             m_DataSize.x = sizex;
             m_DataSize.y = sizey;
             int size = sizex * sizey;
-            setInterval( Qt::ZAxis, QwtInterval( 0.0,30.0));
-            //if (m_Array != NULL)
-            //        delete [] m_Array;
-            //m_Array = new double [size];
             if (m_Array == NULL)
                 m_Array = new double [size];
             memcpy(m_Array, Array, size * sizeof(double));
-            //qDebug() << "m_RangeX.min is " << m_RangeX.min << " m_RangeX.max is " << m_RangeX.max;
-            //qDebug() << "m_RangeY.min is " << m_RangeY.min << " m_RangeY.max is " << m_RangeY.max;
-            //qDebug() << "m_DataSize.x is " << m_DataSize.x << " m_DataSize.y is " << m_DataSize.y;
             m_RealToArray.x = (m_RangeX.max - m_RangeX.min) / (m_DataSize.x - 1);
             m_RealToArray.y = (m_RangeY.max - m_RangeY.min) / (m_DataSize.y - 1);
-            //qDebug() << "m_RealToArray.x is " << m_RealToArray.x << " m_RealToArray.y is " << m_RealToArray.y;
     }
 
     void setRangeX(const double min, const double max)

@@ -559,12 +559,13 @@ void CMainWindow::slotLoadFile()
     // File dialog chooser
     QString fileName = QFileDialog::getOpenFileName(this,
          tr("Open Sound"), QDir::homePath(), tr("Sound Files (*.wav *.flac *.au *.voc *.ogg)"));
-    // Close sound card reader
-#ifndef WIN32
-    sound->terminate();
-#endif
 #ifdef WITH_SNDFILE
     if (!fileName.isEmpty()) {
+        // Close sound card reader
+        if (sound) {
+            sound->terminate();
+            delete sound;
+        }
         // Create new sound reader from file
         sound = new CSoundFile(this);
         sound->Load(fileName);
