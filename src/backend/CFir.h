@@ -10,6 +10,7 @@ class CFIR : public QObject
     Q_OBJECT
 public:
     explicit CFIR(QObject *parent = 0);
+    ~CFIR();
     void setWindow(double *win);
     void lowpass(double frequency);
     void highpass(double frequency);

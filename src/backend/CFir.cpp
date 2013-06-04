@@ -9,6 +9,11 @@ CFIR::CFIR(QObject *parent) :
 
 }
 
+CFIR::~CFIR()
+{
+    delete [] buffer;
+}
+
 void CFIR::setWindow(double *value)
 {
     win = value;
