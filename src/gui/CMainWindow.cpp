@@ -508,6 +508,7 @@ void CMainWindow::slotDecoderChange(int value)
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
     connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
     connect(mySpectrum, SIGNAL(bandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    connect(myDecoder, SIGNAL(bandwidth(double)), this, SLOT(slotThreshold(double)));
     //myDecoder->setScaleType(CSpectrumWidget::eTime);
     if (value == 4) {
         myDecoder->setAxis(0,512,-30.0,30.0);
@@ -659,4 +660,10 @@ void CMainWindow::slotSettings()
     dlgparam->initialize();
     dlgparam->exec();
     delete dlgparam;
+}
+
+void CMainWindow::slotThreshold(double threshold)
+{
+    int channel = ui->channel->currentIndex();
+    demodulator->getDemodulatorFromChannel(channel)->setThreshold(threshold);
 }

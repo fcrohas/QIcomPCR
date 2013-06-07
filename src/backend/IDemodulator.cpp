@@ -40,7 +40,7 @@ void IDemodulator::slotBandwidth(double value)
     return;
 }
 
-void IDemodulator::setThreshold(int value)
+void IDemodulator::setThreshold(double value)
 {
 
 }

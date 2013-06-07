@@ -1,6 +1,5 @@
 #ifndef CSOUNDFILE_H
 #define CSOUNDFILE_H
-
 #include "ISound.h"
 #include <sndfile.h>
 #ifdef WITH_SAMPLERATE

@@ -14,7 +14,7 @@ public:
     virtual uint getDataSize();
     virtual uint getChannel();
     virtual uint getBufferSize();
-    virtual void setThreshold(int value);
+    virtual void setThreshold(double value);
     virtual void setCorrelationLength(int value);
 
 

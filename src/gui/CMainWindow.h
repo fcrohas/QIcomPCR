@@ -124,6 +124,8 @@ class CMainWindow : public QMainWindow
         void slotStepDown();
         // Display Settings
         void slotSettings();
+        // Slot Threshold
+        void slotThreshold(double threshold);
 
     private:
         Ui::MainWindow *ui;

@@ -97,7 +97,7 @@ public:
     uint getDataSize();
     uint getChannel();
     uint getBufferSize();
-    void setThreshold(int value) override;
+    void setThreshold(double value) override;
     void setCorrelationLength(int value) override;
     
 signals:

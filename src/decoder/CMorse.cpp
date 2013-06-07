@@ -52,7 +52,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     this->channel = channel;
     winfunc = new CWindowFunc(this);
     winfunc->init(65);
-    winfunc->hann();
+    winfunc->rectangle();
     //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     // band pass filter
     fbandpass = new CFIR(this);
@@ -148,8 +148,8 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     //flowpass->apply(yval, getBufferSize());
     // Now calculation of timing
 #if 1
-    agc = peak / 2.0; // average value per buffer size
-    if (agc<agclimit/10.0) agc=agclimit/10.0; // minimum detection signal is 1.0
+    agc = agclimit; //peak / 2.0; // average value per buffer size
+    if (agc<agclimit) agc=agclimit; // minimum detection signal is 1.0
     // Detect High <-> low state and timing
     for (int i=0; i<size; i++) {
         // if > then it is mark
@@ -405,7 +405,7 @@ void CMorse::GenerateCorrelation(int length)
 
 }
 
-void CMorse::setThreshold(int value)
+void CMorse::setThreshold(double value)
 {
     agclimit = value * 1.0;
     //emit sendData(QString("Adjust threshold %1").arg(agclimit));

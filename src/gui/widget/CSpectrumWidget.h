@@ -23,6 +23,7 @@
 #include <qwt_compat.h>
 #include <CwPicker.h>
 #include <RttyPicker.h>
+#include <ThresholdPicker.h>
 #include <AdvPlotZoomer.h>
 #define WATERFALL_MAX 512
 
@@ -322,6 +323,7 @@ private:
     TimeScaleDraw *yScaleDraw;
     QwtPlotMarker *marker;
     QTime time;
+    ePickerType _type;
 
     WaterfallData *rasterData;
     double *rasterArray;

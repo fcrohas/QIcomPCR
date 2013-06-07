@@ -199,12 +199,20 @@ void CSpectrumWidget::setScaleType(ScaleType type)
 void CSpectrumWidget::slotClicked(QPointF point)
 {
     qDebug() << "slotClicked point=" << point;
+    double value = 0.0;
     marker->detach();
     marker->setLinePen(QPen(Qt::red));
-    marker->setLineStyle(QwtPlotMarker::VLine);
-    marker->setXValue(point.x());
+    if (_type == eThresholdPicker) {
+        marker->setLineStyle(QwtPlotMarker::HLine);
+        value = point.y();
+        marker->setYValue(value);
+    } else {
+        marker->setLineStyle(QwtPlotMarker::VLine);
+        value = point.x();
+        marker->setXValue(value);
+    }
     marker->attach(qwtPlot);
-    emit frequency(point.x());
+    emit frequency(value);
 }
 
 void CSpectrumWidget::slotBandWidth(double bw)
@@ -285,7 +293,7 @@ void CSpectrumWidget::setPickerType(ePickerType type)
                 qDebug() << "Rtty Picker";
             break;
         case eThresholdPicker:
-                picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::HLineRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                picker = new ThresholdPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::HLineRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
                 connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
                 qDebug() << "Threshold Picker";
             break;
@@ -293,4 +301,5 @@ void CSpectrumWidget::setPickerType(ePickerType type)
         default:
             break;
     }
+    _type = type;
 }
