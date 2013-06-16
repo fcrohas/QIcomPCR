@@ -7,9 +7,9 @@ RttyPicker::RttyPicker( int xAxis, int yAxis, RubberBand rubberBand, DisplayMode
     setStateMachine( new QwtPickerTrackerMachine() );
     setRubberBand( rubberBand );
     setRubberBandPen(QPen(QColor(Qt::red)));
-    samplerate=22050;
-    FftBins=512;
-    bandwidth = 170.0;
+    samplerate=SAMPLERATE;
+    FftBins=FFTSIZE;
+    bandwidth = 50.0;
 }
 
 QwtText RttyPicker::trackerText (const QPoint & point) const

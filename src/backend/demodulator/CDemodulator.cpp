@@ -16,7 +16,7 @@ CDemodulator::CDemodulator(QObject *parent) :
     data16bitsl(NULL),
     data16bitsr(NULL)
 {
-    fftw = new CFFT(this,512);
+    fftw = new CFFT(this,FFTSIZE);
     list.append(new IDemodulator()); // 0 just dummy
     list.append(new IDemodulator()); // 1 Channel
     list.append(new IDemodulator()); // 2 Channel
@@ -105,7 +105,8 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
         if (scope == fft) {
             // Do it on stereo channel
             fftw->decode(buffer, size, xval, yval); // Shift to correct buffer start, do FFT on 512 bins
-            emit sigRawSamples(xval, yval, size); // Only 256 usable so 128 per channel
+            emit sigRawSamples(xval, yval, FFTSIZE); // Only 256 usable so 128 per channel
+
         }
         // fill back spectrum buffer
         //if (((bufferBlock * channelSize + channelSize) % bufferSize == 0) && (demodulator->getDataSize()!=0)) {
@@ -189,5 +190,5 @@ void CDemodulator::slotSetCorrelationLength(int value)
 
 void CDemodulator::slotChangeWindowFunction(CFFT::windowFunction fct)
 {
-    fftw->setWindow(fct,512);
+    fftw->setWindow(fct,FFTSIZE);
 }

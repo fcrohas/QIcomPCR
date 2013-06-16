@@ -31,6 +31,7 @@ private:
     double M;
     double wc;
     double fs;
+    bool update;
 };
 
 #endif // CFIR_H

@@ -32,6 +32,7 @@ private:
     bool running;
     bool loop;
     int blankCount;
+    int timing;
 #ifdef WITH_SAMPLERATE
     float *inputbufferf;
     float *outputbufferf;

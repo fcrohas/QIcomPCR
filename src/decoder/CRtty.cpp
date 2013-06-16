@@ -5,10 +5,10 @@ CRtty::CRtty(QObject *parent, uint channel) :
     channel(0),
     frequency(4500),
     correlationLength(40),
-    bandwidth(200),
+    bandwidth(150),
     freqlow(1600.0), // 1600
     freqhigh(4000.0), // 4000
-    baudrate(50),
+    baudrate(75),
     inverse(-1.0),
     letter(""),
     bitcount(0),
@@ -65,8 +65,8 @@ CRtty::CRtty(QObject *parent, uint channel) :
     // Low pass filter at the end
     flow->setOrder(64);
     flow->setSampleRate(SAMPLERATE);
-    flow->lowpass(500.0);
-    bit = 10.5+(SAMPLERATE/baudrate)/3.0; // We want it in sample unit
+    flow->lowpass(250.0);
+    bit = SAMPLERATE/baudrate; // We want it in sample unit 10.5
     qDebug() << "bit size for " << baudrate << " baud is " << bit;
     GenerateCorrelation(correlationLength);
 }
@@ -183,7 +183,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             int length = abs(accspace -(bit*STARTBITS));
             if ((length <=10) && (!started) && (!sync)) // allow a margin of 50 samples
             {
-                qDebug() << "Start bits detected";
+                //qDebug() << "Start bits detected";
                 // Init bit counter
                 bitcount = 1;
                 counter = 0;
@@ -214,7 +214,7 @@ void CRtty::decode(int16_t *buffer, int size, int offset)
             if (/*((length >=0) && (length <=2) &&*/ (started) && (sync) && (bitcount == DATABITS+1))// allow a margin of 50 samples
             {
                 bitcount = 0;
-                qDebug() << "Stop bits detected";
+                //qDebug() << "Stop bits detected";
                 if (letter.length() == DATABITS) { // If baudot only
                     bool ok;
                     if (DATABITS==5) {

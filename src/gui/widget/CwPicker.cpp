@@ -7,8 +7,8 @@ CwPicker::CwPicker( int xAxis, int yAxis, RubberBand rubberBand, DisplayMode tra
     setStateMachine( new QwtPickerTrackerMachine() );
     setRubberBand( rubberBand );
     setRubberBandPen(QPen(QColor(Qt::red)));
-    samplerate=22050;
-    FftBins=512;
+    samplerate=SAMPLERATE;
+    FftBins=FFTSIZE;
     bandwidth = 3.0;
 }
 

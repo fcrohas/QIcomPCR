@@ -538,11 +538,11 @@ void CMainWindow::slotScopeChanged(int value)
     mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
     if (value == 1) {
         demodulator->setScopeType(1);
-        mySpectrum->setAxis(0,512,0,50);
+        mySpectrum->setAxis(0,FFTSIZE,0,50);
     } else
     if (value == 2) {
         demodulator->setScopeType(1);
-        mySpectrum->setAxis(0,512,0,512);
+        mySpectrum->setAxis(0,FFTSIZE,0,WATERFALL_MAX);
     }
     else {
         demodulator->setScopeType(0);

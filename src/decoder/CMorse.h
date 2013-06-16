@@ -5,11 +5,17 @@
 #include <QHash>
 #include <IDemodulator.h>
 #include <math.h>
+#define FIR
+#ifdef FIR
 #include <CFir.h>
+#else
+#include <CIir.h>
+#endif
 #include <CWindowFunc.h>
+#include <consts.h>
 
 // x is sample index and f frequency
-#define SAMPLERATE 22050
+
 
 struct CW_TABLE {
         char chr;       /* The character(s) represented */
@@ -130,7 +136,11 @@ private:
     double frequency;
     // Filters
     CWindowFunc *winfunc;
+#ifdef FIR
     CFIR *fbandpass;
+#else
+    CIIR *fbandpass;
+#endif
     // Audio channel buffer
     double* audioData[1];
     double* audioBuffer[1];

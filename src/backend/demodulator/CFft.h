@@ -8,9 +8,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <QDebug>
-#ifdef FFTW
-    #include <fftw3.h>
-#endif
+#include <consts.h>
+#include <fftw3.h>
 
 
 class CFFT : public QObject
@@ -30,22 +29,19 @@ signals:
     void sigRawSamples(double *xval, double *yval, int size);
     
 public slots:
-     void slotDataBuffer(int16_t *buffer, int size);
 
 private:
      CWindowFunc *winfunc;
      double *xval;
      double *yval;
      double *window;
-#ifdef FFTW
-    fftw_complex *in1, *in2;
-    fftw_complex *out1, *out2;
-    fftw_plan ch1, ch2;
-#else
-    SPUC::complex<double> *in1;
-    SPUC::complex<double> *in2;
-#endif
-    
+     fftw_complex *in1, *in2;
+     fftw_complex *out1, *out2;
+     fftw_plan ch1, ch2;
+     int bufferBlock;
+     int fftsize;
+     int channelSize;
+     bool update;
 };
 
 #endif // CFFT_H

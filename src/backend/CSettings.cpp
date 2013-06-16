@@ -67,6 +67,7 @@ void CSettings::getGlobal(global *value)
     value->inputDevice = this->value("InputDevice","default").toString();
     value->outputDevice = this->value("OutputDevice","default").toString();
     value->samplerate = this->value("SampleRate",22050).toInt();
+    value->fftSize = this->value("FFTSize").toInt();
     value->soundBufferSize = this->value("BufferSize",512).toInt();
     endGroup();
 }
@@ -78,5 +79,6 @@ void CSettings::setGlobal(global *value)
     this->setValue("OutputDevice",value->outputDevice);
     this->setValue("SampleRate",value->samplerate);
     this->setValue("BufferSize",value->soundBufferSize);
+    this->setValue("FFTSize",value->fftSize);
     endGroup();
 }

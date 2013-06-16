@@ -5,7 +5,7 @@
 
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
-  ,frequency(3905) // Just for Hello sample
+  ,frequency(3050) // Just for Hello sample
   ,acclow(0)
   ,accup(0)
   ,marks(0)
@@ -13,7 +13,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
   ,markdash(0)
   ,word("")
   ,agclimit(2)
-  ,bandwidth(120)
+  ,bandwidth(250)
   ,Pp(0.0)
   ,Q(0.022)
   ,R(0.617)
@@ -50,6 +50,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     }
     // Save local selected channel
     this->channel = channel;
+#ifdef FIR
     winfunc = new CWindowFunc(this);
     winfunc->init(65);
     winfunc->rectangle();
@@ -61,6 +62,13 @@ CMorse::CMorse(QObject *parent, uint channel) :
     fbandpass->setOrder(64);
     fbandpass->setSampleRate(SAMPLERATE);
     fbandpass->bandpass(frequency,bandwidth);
+#else
+    fbandpass = new CIIR(this);
+    fbandpass->setOrder(2); // second order
+    fbandpass->setSampleRate(SAMPLERATE);
+    //fbandpass->highpass(frequency);
+    fbandpass->bandpass(frequency,bandwidth);
+#endif
     memset(yval,0,getBufferSize()*sizeof(double));
 }
 
@@ -85,10 +93,15 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     double peak = 0.0;
     for (int i=0 ; i < size; i++) {
         audioData[0][i] = buffer[i]*1.0/32768.0;
+        xval[i] = i;
     }
     // Pass band filter at frequency
     // With width of 200 Hz
     fbandpass->apply(audioData[0], getBufferSize());
+#if 0
+    emit dumpData(xval,audioData[0],getBufferSize());
+    return;
+#else
 #if 1
     // Correlation of with selected frequency
     for(int i=size-1; i >= 0; i--) { //
@@ -214,6 +227,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     // Send correlated signal to scope
     emit dumpData(xval,yval,getBufferSize());
     //qDebug() << "Kalman Q=" << Q << " R=" << R << " T="<< -1.0*log(Q/R);
+#endif
 }
 
 uint CMorse::getDataSize()
@@ -239,7 +253,7 @@ void CMorse::slotFrequency(double value)
 {
     // Calculate frequency value from selected FFT bin
     // only half samplerate is available and FFT is set to 128 per channel
-    frequency = (value) * SAMPLERATE / 512.0; // SAMPLERATE / 512 and displaying graph is 0 to 128
+    frequency = value; // value * SAMPLERATE / 512.0; // SAMPLERATE / 512 and displaying graph is 0 to 128
     // New correlation length as frequency selected has changed
 
     //correlationLength = 50;
@@ -249,6 +263,7 @@ void CMorse::slotFrequency(double value)
     qDebug() << "Correlation generated for frequency " << frequency << " hz";
     // Update bandpass filter frequency
     fbandpass->bandpass(frequency,bandwidth);
+    //fbandpass->highpass(frequency);
 }
 
 void CMorse::translate(int position, int position2)
@@ -422,10 +437,11 @@ void CMorse::setCorrelationLength(int value)
 
 void CMorse::slotBandwidth(double value)
 {
-    bandwidth = value * SAMPLERATE / 512.0;
+    bandwidth = value; // * SAMPLERATE / 512.0;
     // Calculate new filter order
     // approx is 4/normalized bandwidth
     double bn = 2*M_PI*bandwidth/SAMPLERATE;
+#ifdef FIR
     // New order is
     int order = 4 / bn;
     qDebug() << "order is " << order << " for bandwidth " << bn << " normalized order even is " << (order % 2);
@@ -438,7 +454,9 @@ void CMorse::slotBandwidth(double value)
     // Update bandpass params
     fbandpass->setWindow(winfunc->getWindow());
     fbandpass->setOrder(order);
+#endif
     fbandpass->bandpass(frequency,bandwidth);
+    //fbandpass->highpass(frequency);
 }
 
 double CMorse::goertzel(double *x, int N, double freq, int samplerate)

@@ -10,6 +10,7 @@
 #include "CMorse.h"
 #include "CRtty.h"
 #include "CFft.h"
+#include <consts.h>
 
 //#define FFTW // Use FFTW library for fourrier transform, else use SPUC
 #define MAXBLOCK 64 // for a max buffer of 32768 and sound buffer of 512 per channel

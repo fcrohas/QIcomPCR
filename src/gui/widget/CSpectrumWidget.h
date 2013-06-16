@@ -25,6 +25,7 @@
 #include <RttyPicker.h>
 #include <ThresholdPicker.h>
 #include <AdvPlotZoomer.h>
+#include <consts.h>
 #define WATERFALL_MAX 512
 
 class WaterfallData: public QwtRasterData
@@ -159,8 +160,8 @@ public:
     TimeScaleDraw()
     {
         // Frequency graph by default
-        samplerate=22050;
-        FftBins=512;
+        samplerate=SAMPLERATE;
+        FftBins=FFTSIZE;
         rate = 10;
         type=eTime;
     }
@@ -168,7 +169,7 @@ public:
     {
         double display = 0.0;
         QString unit("");
-        qDebug() << "type label=" << type;
+        //qDebug() << "type label=" << type;
         switch(type) {
             case eFrequency:
                 if (v <(FftBins/2)+1)
@@ -182,7 +183,7 @@ public:
                 unit = "ms";
                 break;
             case eTimeInv:
-                display = abs(v-512) * 0.010;
+                display = abs(v-WATERFALL_MAX) * rate/1000.0;
                 unit = "s";
                 break;
             case ePower:
@@ -199,7 +200,7 @@ public:
 
     void setType(ScaleType value) {
         type = value;
-        qDebug() << "type setType=" << type;
+        //qDebug() << "type setType=" << type;
         //invalidateCache();
         this->invalidateCache();
 

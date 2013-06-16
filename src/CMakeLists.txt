@@ -142,6 +142,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/CFir.h
     ${CMAKE_SOURCE_DIR}/src/backend/CIir.h
     ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.h
+    ${CMAKE_SOURCE_DIR}/src/backend/consts.h
     CApplication.h
     version.h
     ${qicompcr_HDRS}

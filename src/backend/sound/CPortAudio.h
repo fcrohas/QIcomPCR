@@ -2,15 +2,11 @@
 #define CPORTAUDIO_H
 
 #include "ISound.h"
+#include <consts.h>
 #ifdef WITH_PORTAUDIO
 #include <portaudio.h>
 #include <pa_ringbuffer.h>
 #endif
-
-
-#define SAMPLERATE 22050
-#define FRAME_SIZE 256
-#define BUFFER_SIZE FRAME_SIZE*2
 
 extern "C" {
     typedef struct{

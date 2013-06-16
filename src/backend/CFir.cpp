@@ -4,7 +4,8 @@ CFIR::CFIR(QObject *parent) :
     QObject(parent),
     win(NULL),
     fir(NULL),
-    buffer(NULL)
+    buffer(NULL),
+    update(false)
 {
 
 }
@@ -12,6 +13,7 @@ CFIR::CFIR(QObject *parent) :
 CFIR::~CFIR()
 {
     delete [] buffer;
+    buffer = NULL;
 }
 
 void CFIR::setWindow(double *value)
@@ -21,6 +23,7 @@ void CFIR::setWindow(double *value)
 
 void CFIR::lowpass(double frequency)
 {
+    update = true;
     QString dump("");
     wc = (2.0 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
@@ -34,10 +37,14 @@ void CFIR::lowpass(double frequency)
         dump.append(QString("%1;").arg(fir[i]));
     }
     qDebug() << "Hd=["<< dump << "]";
+    delete [] buffer;
+    buffer = NULL;
+    update = false;
 }
 
 void CFIR::highpass(double frequency)
 {
+    update = true;
     QString dump("");
     wc = (2.0 * M_PI * frequency) / fs;
     //wc = (2 * M_PI * frequency) / fs;
@@ -52,10 +59,14 @@ void CFIR::highpass(double frequency)
         dump.append(QString("%1;").arg(fir[i]));
     }
     qDebug() << "Hd=["<< dump << "]";
+    delete [] buffer;
+    buffer = NULL;
+    update = false;
 }
 
 void CFIR::bandpass(double centerfreq, double bandwidth)
 {
+    update = true;
     QString dump("");
     double wc1 = (2.0 * M_PI * (centerfreq-bandwidth/2.0)) / fs;
     double wc2 = (2.0 * M_PI * (centerfreq+bandwidth/2.0)) / fs;
@@ -71,10 +82,14 @@ void CFIR::bandpass(double centerfreq, double bandwidth)
         dump.append(QString("%1;").arg(fir[i]));
     }
     qDebug() << "Hd=["<< dump << "]";
+    delete [] buffer;
+    buffer = NULL;
+    update = false;
 }
 
 void CFIR::stopband(double centerfreq, double bandwidth)
 {
+    update = true;
     QString dump("");
     double wc1 = (2.0 * M_PI * (centerfreq-bandwidth/2.0)) / fs;
     double wc2 = (2.0 * M_PI * (centerfreq+bandwidth/2.0)) / fs;
@@ -90,6 +105,9 @@ void CFIR::stopband(double centerfreq, double bandwidth)
         dump.append(QString("%1;").arg(fir[i]));
     }
     qDebug() << "Hd=["<< dump << "]";
+    delete [] buffer;
+    buffer = NULL;
+    update = false;
 }
 
 void CFIR::setOrder(int value)
@@ -112,6 +130,8 @@ void CFIR::setSampleRate(double value)
 
 void CFIR::apply(double *&in, int size)
 {
+    if (update)
+        return;
     if (buffer == NULL) {
         buffer = new double[size];
     }
@@ -123,7 +143,7 @@ void CFIR::apply(double *&in, int size)
         // direct fir filter
         for (int j=0; j<N; j++) {
             if ((i-j) < 0)
-                sample += buffer[(size-1)+i-j] * fir[j]; // use previous buffer call values
+                sample += buffer[size+i-j] * fir[j]; // use previous buffer call values
             else
                 sample += buffer[i-j] * fir[j]; // use current buffer values
         }

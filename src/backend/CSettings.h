@@ -37,6 +37,7 @@ public:
         QString outputDevice;
         int samplerate;
         int soundBufferSize;
+        int fftSize;
     };
 
     radio getRadio(int value);

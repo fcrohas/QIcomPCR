@@ -21,8 +21,8 @@ CSpectrumWidget::CSpectrumWidget(QWidget *parent) :
     background->attach(qwtPlot);
     //connect(spectro, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotClicked(QPoint)));
     rasterData =new WaterfallData();
-    rasterArray=new double[512*512]; // waterfall size is FFT usable bin * 2 for both channels so 512 * height
-    rasterData->setRangeX(1.0,512.0);
+    rasterArray=new double[(int)FFTSIZE*WATERFALL_MAX]; // waterfall size is FFT usable bin * 2 for both channels so 512 * height
+    rasterData->setRangeX(0.0,FFTSIZE);
     rasterData->setRangeY(1.0,WATERFALL_MAX);
 
     setPlotterType(eScope);
@@ -65,7 +65,7 @@ void CSpectrumWidget::slotRawSamples(double *xval, double *yval,int size)
             // save line by line so
             //Faster
             memcpy(&rasterArray[line * size],&average[0], size*sizeof(double));
-            rasterData->setData(rasterArray,512,WATERFALL_MAX);
+            rasterData->setData(rasterArray,FFTSIZE,WATERFALL_MAX);
             waterfall->setData(rasterData);
             line++;
         } else {
@@ -120,6 +120,7 @@ void CSpectrumWidget::setAxis(int x1, int x2, int y1, int y2)
     this->x2 = x2;
     qwtPlot->setAxisScale(QwtPlot::xBottom,x1,x2);
     qwtPlot->setAxisScale(QwtPlot::yLeft,y1,y2);
+    xScaleDraw->setParams(SAMPLERATE,FFTSIZE,refreshrate);
 }
 
 void CSpectrumWidget::setPlotterType(ePlotter type)
@@ -130,41 +131,22 @@ void CSpectrumWidget::setPlotterType(ePlotter type)
     switch(type) {
         case eFFT:
                 spectro->detach();
-                //if(xScaleDraw) { delete xScaleDraw; xScaleDraw =new TimeScaleDraw(); }
-                //if(yScaleDraw) { delete yScaleDraw; yScaleDraw =new PowerScaleDraw(); }
-                //qwtPlot->setAxisScaleDraw(QwtPlot::yLeft, yScaleDraw);
-                //qwtPlot->setAxisScaleDraw(QwtPlot::xBottom, xScaleDraw);
                 qwtPlot->setAxisTitle(QwtPlot::yLeft, "Power [Db]");
-                //qwtPlot->setAxisScaleDraw(QwtPlot::yLeft, yScaleDraw);
-                //qwtPlot->setAxisFont(QwtPlot::xBottom, QFont("Helvetica",8,3));
-                //qwtPlot->setAxisFont(QwtPlot::yLeft, QFont("Helvetica",8,3));
-                //qwtPlot->setAxisScaleDraw(QwtPlot::xBottom, xScaleDraw);
                 yScaleDraw->setType(TimeScaleDraw::ePower);
+                xScaleDraw->setParams(SAMPLERATE,FFTSIZE,refreshrate);
                 xScaleDraw->setType(TimeScaleDraw::eFrequency);
                 spectro->attach(qwtPlot);
                 qwtPlot->plotLayout()->setAlignCanvasToScales(true);
                 qwtPlot->replot();
-                //qwtPlot->axisWidget(QwtPlot::xBottom)->repaint();
-                //qwtPlot->axisWidget(QwtPlot::yLeft)->repaint();
             break;
         case eScope:
                  spectro->detach();
-                 //if(xScaleDraw) { delete xScaleDraw; xScaleDraw =new TimeScaleDraw(); }
-                 //if(yScaleDraw) { delete yScaleDraw; yScaleDraw =new PowerScaleDraw(); }
-                 //qwtPlot->setAxisScaleDraw(QwtPlot::yLeft, yScaleDraw);
-                 //qwtPlot->setAxisScaleDraw(QwtPlot::xBottom, xScaleDraw);
                  qwtPlot->setAxisTitle(QwtPlot::yLeft, "Power [Db]");
-                 //qwtPlot->setAxisScaleDraw(QwtPlot::yLeft, yScaleDraw);
-                 //qwtPlot->setAxisFont(QwtPlot::xBottom, QFont("Helvetica",8,3));
-                 //qwtPlot->setAxisFont(QwtPlot::yLeft, QFont("Helvetica",8,3));
-                 //qwtPlot->setAxisScaleDraw(QwtPlot::xBottom, xScaleDraw);
                  yScaleDraw->setType(TimeScaleDraw::ePower);
                  xScaleDraw->setType(TimeScaleDraw::eTime);
                  qwtPlot->plotLayout()->setAlignCanvasToScales(true);
                  spectro->attach(qwtPlot);
                  qwtPlot->replot();
-                 //qwtPlot->axisWidget(QwtPlot::xBottom)->repaint();
-                 //qwtPlot->axisWidget(QwtPlot::yLeft)->repaint();
             break;
         case eWaterfall:
                  spectro->detach();
@@ -177,12 +159,11 @@ void CSpectrumWidget::setPlotterType(ePlotter type)
                  initColorBar();
                  qwtPlot->setAxisTitle(QwtPlot::yLeft, "Elapsed time [s]");
                  yScaleDraw->setType(TimeScaleDraw::eTimeInv);
+                 xScaleDraw->setParams(SAMPLERATE,FFTSIZE,refreshrate);
                  xScaleDraw->setType(TimeScaleDraw::eFrequency);
                  waterfall->attach(qwtPlot);
                  qwtPlot->plotLayout()->setAlignCanvasToScales(true);
                  qwtPlot->replot();
-                 //qwtPlot->axisWidget(QwtPlot::xBottom)->repaint();
-                 //qwtPlot->axisWidget(QwtPlot::yLeft)->repaint();
              break;
         default:
                 spectro->detach();
@@ -212,13 +193,13 @@ void CSpectrumWidget::slotClicked(QPointF point)
         marker->setXValue(value);
     }
     marker->attach(qwtPlot);
-    emit frequency(value);
+    emit frequency(value*SAMPLERATE/FFTSIZE);
 }
 
 void CSpectrumWidget::slotBandWidth(double bw)
 {
-    qDebug() << "slotBandWidth bandwidth=" << bw;
-    emit bandwidth(bw);
+    //qDebug() << "slotBandWidth bandwidth=" << bw;
+    emit bandwidth(bw*SAMPLERATE/FFTSIZE);
 }
 
 void CSpectrumWidget::initColorMap(eColorMap colorMap)
@@ -270,7 +251,7 @@ void CSpectrumWidget::initColorBar()
 void CSpectrumWidget::setRefreshRate(int milliseconds)
 {
     refreshrate = milliseconds;
-    yScaleDraw->setParams(22050,512,milliseconds);
+    yScaleDraw->setParams(SAMPLERATE,FFTSIZE,milliseconds);
     qwtPlot->updateAxes();
     qwtPlot->replot();
 }

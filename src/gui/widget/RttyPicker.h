@@ -6,6 +6,7 @@
 #include <QWheelEvent>
 #include <qwt_plot_picker.h>
 #include <qwt_picker_machine.h>
+#include <consts.h>
 
 
 class RttyPicker : public QwtPlotPicker

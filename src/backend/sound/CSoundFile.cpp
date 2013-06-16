@@ -7,7 +7,8 @@ CSoundFile::CSoundFile(QObject *parent) :
     frames(0),
     running(false),
     loop(false),
-    blankCount(0)
+    blankCount(0),
+    timing(23)
 #ifdef WITH_SAMPLERATE
     ,converter(NULL)
 #endif
@@ -45,7 +46,7 @@ bool CSoundFile::Load(QString &fileName)
         channels = sfinfo.channels;
         samplerate = sfinfo.samplerate;
         frames = sfinfo.frames;
-        double oversample_factor = SAMPLERATE / samplerate;
+        double oversample_factor = SAMPLERATE*1.0 / samplerate*1.0;
         qDebug() << "Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames << " oversample ratio " << ceil(oversample_factor);
         // Init sample rate converter
         int error = 0;
@@ -53,7 +54,7 @@ bool CSoundFile::Load(QString &fileName)
         if (error != 0) {
             qDebug() << "Error creating sample rate converter : " << src_strerror(error);
         }
-
+        timing = 23; //(BUFFER_SIZE / channels) * (1 / SAMPLERATE)*1000;
         /* we can only cope with integer submultiples */
         // Init buffer size to read
         inputbuffer = new int16_t[BUFFER_SIZE];
@@ -66,10 +67,10 @@ bool CSoundFile::Load(QString &fileName)
         dataconv.data_out = outputbufferf;
         dataconv.src_ratio = oversample_factor;
         if (channels == 1) {
-            dataconv.input_frames = BUFFER_SIZE/ceil(oversample_factor);
+            dataconv.input_frames = BUFFER_SIZE/floor(oversample_factor);
             dataconv.output_frames = BUFFER_SIZE;
         } else {
-            dataconv.input_frames = FRAME_SIZE/ceil(oversample_factor);
+            dataconv.input_frames = FRAME_SIZE/floor(oversample_factor);
             dataconv.output_frames = FRAME_SIZE;
         }
         dataconv.end_of_input = 0;
@@ -111,7 +112,7 @@ bool CSoundFile::Read(int16_t *data, int offset)
     }
 
     this->DecodeBuffer(data,BUFFER_SIZE);
-    msleep(23); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+    msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
     return true;
 }
 
@@ -120,20 +121,30 @@ bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
 {
         sf_count_t c;
         // Read only small part of buffer to do over sampling
-        c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/ratio)/channels);
-        if (c!=(BUFFER_SIZE/ratio)/channels) {
+        c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/floor(ratio))/channels);
+        if (c!=(BUFFER_SIZE/floor(ratio))/channels) {
             /* rewind */
             sf_seek(pFile, 0, SEEK_SET);
             // At end of file send an empty buffer before next
-            c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/ratio)/channels);
+            c = sf_readf_float(pFile, inputbufferf, (BUFFER_SIZE/floor(ratio))/channels);
             // End of read
             loop = true;
         }
         // Calculate oversample conversion
         src_process(converter, &dataconv);
+        //qDebug() << "output 1 frames gen is " << dataconv.output_frames_gen << " from input used " << dataconv.input_frames_used;
         src_float_to_short_array(outputbufferf,data,BUFFER_SIZE);
         this->DecodeBuffer(data,BUFFER_SIZE);
-        msleep(23); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+        // sleep in ms is the size of buffer  * samplerate timming per channel
+        msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+        if (dataconv.input_frames_used == 0) {
+            // Calculate oversample conversion
+            src_process(converter, &dataconv);
+            //qDebug() << "output 2 frames gen is " << dataconv.output_frames_gen << " from input used " << dataconv.input_frames_used;
+            src_float_to_short_array(outputbufferf,data,BUFFER_SIZE);
+            this->DecodeBuffer(data,BUFFER_SIZE);
+            msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
+        }
         return true;
 }
 #endif
