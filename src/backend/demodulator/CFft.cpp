@@ -65,9 +65,8 @@ void CFFT::decode(int16_t *buffer, int size, double *xval, double *yval)
             in1[i][0] = window[i] * in1[i][0];
             in2[i][0] = window[i] * in2[i][0];
         }
-
-        fftw_execute(ch1);
-        fftw_execute(ch2);
+        fftw_execute_dft(ch1,in1,out1);
+        fftw_execute_dft(ch2,in2,out2);
 
         // fill back spectrum buffer
         for (int i=0; i < fftsize/2; i++) {
