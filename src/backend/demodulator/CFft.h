@@ -2,8 +2,6 @@
 #define CFFT_H
 
 #include <QObject>
-#include "generic/complex.h"
-#include "functions/idft.h"
 #include "CWindowFunc.h"
 #include <math.h>
 #include <stdint.h>

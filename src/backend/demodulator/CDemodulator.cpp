@@ -1,10 +1,5 @@
-#include "generic/complex.h"
-#include "functions/idft.h"
 #include <math.h>
 #include <QDebug>
-#ifdef FFTW
-    #include <fftw3.h>
-#endif
 #include "CDemodulator.h"
 
 CDemodulator::CDemodulator(QObject *parent) :

@@ -9,15 +9,6 @@ extern "C" {
         long bytes = frameCount*2; // 256 Frames * 2 channels
         long avail = PaUtil_GetRingBufferWriteAvailable(&This->ringBuffer);
         PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
-        //This->DecodeBuffer((int16_t*)inputBuffer, frameCount);
-        /*
-        int16_t *out = (int16_t*)outputBuffer;
-        const int16_t *in = (const int16_t*)inputBuffer;
-        //memset(out, 0, bytes);
-        for (int i=0 ; i < frameCount; i++) {
-            *out++ = *in++;
-            *out++ = *in++;
-        }*/
         return paContinue;
     }
 

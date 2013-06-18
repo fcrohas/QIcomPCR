@@ -7,6 +7,9 @@
 #include <portaudio.h>
 #include <pa_ringbuffer.h>
 #endif
+#ifdef WITH_SPEEX
+#include <speex/speex.h>
+#endif
 
 extern "C" {
     typedef struct{

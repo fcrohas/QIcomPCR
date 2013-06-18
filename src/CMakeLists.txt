@@ -7,6 +7,7 @@ option(WITH_PULSEAUDIO "Build with PulseAudio support" OFF)
 option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
 option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
 option(WITH_SAMPLERATE "Build with resample capabilities support" ON)
+option(WITH_SPEEX "Build with Speex library for streaming sound support" ON)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -53,7 +54,9 @@ if(WITH_SNDFILE)
     add_definitions(-DWITH_SNDFILE)
 endif(WITH_SNDFILE)
 
-
+if(WITH_SPEEX)
+    add_definitions(-DWITH_SPEEX)
+endif(WITH_SPEEX)
 
 set(qicompcr_SRCS
     main.cpp
