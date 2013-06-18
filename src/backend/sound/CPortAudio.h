@@ -54,6 +54,10 @@ private:
     void selectOutputDevice(QString device);
     void Initialize();
     int16_t *ringBufferData;
+#ifdef WITH_SPEEX
+    SpeexBits bits;
+    void *enc_state;
+#endif
 };
 
 #endif // CPORTAUDIO_H

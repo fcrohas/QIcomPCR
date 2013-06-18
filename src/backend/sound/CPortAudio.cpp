@@ -103,16 +103,35 @@ void CPortAudio::Initialize()
 void CPortAudio::run()
 {
     Initialize();
+#ifdef WITH_SPEEX
+    // Frame size for speex
+    int frame_size = 0;
+    int quality = 5; // Speex quality encoder
+    int nbBytes = 0;
+    // Speex initalization
+    speex_bits_init(&bits);
+    enc_state = speex_encoder_init(&speex_nb_mode);
+    speex_encoder_ctl(enc_state,SPEEX_SET_QUALITY,&quality);
+    speex_encoder_ctl(enc_state,SPEEX_GET_FRAME_SIZE,&frame_size);
+    qDebug() << "frame size for speex is " << frame_size;
+#endif
     // Work on RingBuffer until end
     int16_t *data = new int16_t[BUFFER_SIZE];
     memset(data,0,BUFFER_SIZE);
     while(running) {
         while(PaUtil_GetRingBufferReadAvailable(&ringBuffer)<BUFFER_SIZE) { Pa_Sleep(10); }
         int readCount = PaUtil_ReadRingBuffer(&ringBuffer,data,BUFFER_SIZE);
-        //qDebug() << "Read byte available = " << PaUtil_GetRingBufferReadAvailable(&ringBuffer);
+#ifdef WITH_SPEEX
+        speex_bits_reset(&bits);
+        speex_encode_int(enc_state, data, &bits);
+        //nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
+#endif
         DecodeBuffer(data,BUFFER_SIZE);
-        //memset(data,0,BUFFER_SIZE);
     }
+#ifdef WITH_SPEEX
+    speex_bits_destroy(&bits);
+    speex_encoder_destroy(enc_state);
+#endif
     delete [] data;
     terminate();
 }
@@ -146,7 +165,6 @@ QHash<QString,int> CPortAudio::getDeviceList()
     numDevices = Pa_GetDeviceCount();
     if( numDevices < 0 )
     {
-        //qDebug() << QString("ERROR: Pa_CountDevices returned 0x%1\n").arg(numDevices );
         error = numDevices;
         qDebug() <<   QString("PortAudio Pa_CountDevices error: %1\n").arg(Pa_GetErrorText( error ) );
         return deviceList;
@@ -156,8 +174,6 @@ QHash<QString,int> CPortAudio::getDeviceList()
     {
         deviceInfo = Pa_GetDeviceInfo( i );
         deviceList.insert(deviceInfo->name, i);
-        //qDebug() << QString("%2 deviceInfo: %1\n").arg(deviceInfo->name ).arg(i);
-        //qDebug() << QString("%2 device hostApi: %1\n").arg(Pa_GetHostApiInfo( deviceInfo->hostApi )->name  ).arg(i);
     }
     return deviceList;
 }

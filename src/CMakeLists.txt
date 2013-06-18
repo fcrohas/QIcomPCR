@@ -339,6 +339,10 @@ if(WIN32)
 endif(WIN32)
 endif(WITH_SAMPLERATE)
 
+if(WITH_SPEEX)
+    set(3RDPARTY ${3RDPARTY} speex)
+endif(WITH_SPEEX)
+
 
 target_link_libraries(
       ${PROGNAME}
