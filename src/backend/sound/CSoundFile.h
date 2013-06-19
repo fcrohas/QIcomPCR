@@ -2,11 +2,11 @@
 #define CSOUNDFILE_H
 #include "ISound.h"
 #include <sndfile.h>
+#include <consts.h>
 #ifdef WITH_SAMPLERATE
 #include <samplerate.h>
 #endif
 #define FRAME_SIZE 256
-#define BUFFER_SIZE FRAME_SIZE*2
 
 class CSoundFile : public ISound
 {

@@ -41,7 +41,7 @@ void CIIR::lowpass(double frequency)
 {
     update = true;
     // 3 dB cutoff correction
-    double c = pow(pow(pow(2,1/N) - 0.75,0.5) - 0.5,-0.5)/sqrt(3);
+    double c = pow(pow(pow(2.0,1/N) - 0.75,0.5) - 0.5,-0.5)/sqrt(3.0);
     // polynomial coefficients
     double g = 3.0;
     double p = 3.0;
@@ -73,7 +73,7 @@ void CIIR::highpass(double frequency)
 {
     update = true;
     // 3 dB cutoff correction
-    double c = pow(pow(pow(2,1/N) - 0.75,0.5) - 0.5,0.5)*sqrt(3);
+    double c = pow(pow(pow(2.0,1/N) - 0.75,0.5) - 0.5,0.5)*sqrt(3.0);
     // polynomial coefficients
     double g = 3.0;
     double p = 3.0;

@@ -11,6 +11,9 @@ $(document).ready(function(){
 
     // Build remote control 
     remote = new RemoteControl();
+	
+	// Build sound streaming 
+	sound = new SoundControl();
     
     //Build Frequency Table maangement
     freqTable = new FrequencyTable();
@@ -36,5 +39,8 @@ $(document).ready(function(){
     
     // Connect remote to device
     remote.connect();
+	
+	// Connect sound streaming
+	sound.connect();
 
 });

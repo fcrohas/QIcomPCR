@@ -81,6 +81,7 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/gui/widget/ThresholdPicker.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.cpp
     ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.cpp
@@ -134,6 +135,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/gui/widget/ThresholdPicker.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.h
+    ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.h
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.h
@@ -244,6 +246,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/libsndfile/include
   ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/include
   ${CMAKE_SOURCE_DIR}/3rdparty/fftw3
+  ${CMAKE_SOURCE_DIR}/3rdparty/speex/include
   ${CMAKE_SOURCE_DIR}/3rdparty/acarsd
 )
 
@@ -340,7 +343,12 @@ endif(WIN32)
 endif(WITH_SAMPLERATE)
 
 if(WITH_SPEEX)
+if(UNIX)
     set(3RDPARTY ${3RDPARTY} speex)
+endif(UNIX)
+if(WIN32)
+        set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeex.lib)
+endif(WIN32)
 endif(WITH_SPEEX)
 
 

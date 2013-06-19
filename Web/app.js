@@ -9,10 +9,11 @@ var express = require('express')
   , http = require('http')
   , path = require('path')
   , io = require('socket.io')
-  , net = require('net');
-  //, ffmpeg = require('fluent-ffmpeg');
+  , net = require('net')
+  , binaryjs = require('binaryjs');
 
 var app = express();
+var BinaryServer = binaryjs.BinaryServer;
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -37,22 +38,8 @@ app.get('/users', user.list);
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
-/*
-var proc = new ffmpeg({ source: rootfile, priority: 10 })
-.toFormat('ogg')
-//.withVideoBitrate('1500k')
-//.withVideoCodec('libx264')
-//.withSize('720x?')
-.withAudioBitrate('64k')
-.withAudioCodec('libfaac')
-.saveToFile(newfile, function(stdout, stderr) {
-    console.log('file has been converted succesfully');
-    lock = false;
-    console.log(stdout);
-    console.log(stderr);
-    callback();
-});*/
 
+var binarySocket = new BinaryServer({ server: server, path :'/stream' });
 var socket = io.listen(server); 
 
 
@@ -72,7 +59,7 @@ socket.on('connection', function (client){
   //client.send('QIcomPCR closed');
   // Add a 'close' event handler for the client socket
   icompcr.on('close', function() {
-    console.log('Connection closed');
+    console.log('Data connection closed');
     client.send('QIcomPCR closed');
     icompcr.destroy();
   });
@@ -80,7 +67,6 @@ socket.on('connection', function (client){
   // data is what the server sent to this socket
   icompcr.on('data', function(data) {
     client.send(data );
-    
   });
 
   client.on('message', function (msg) {
@@ -91,3 +77,22 @@ socket.on('connection', function (client){
   });
 });
 
+binarySocket.on('connection', function(client) {
+  console.log('Someone connected!');
+  client.on('stream', function(stream) {
+    console.log('client stream started!');
+  });
+  var stream = client.createStream('speex sound incomming');
+  var soundpcr = new net.Socket();
+  soundpcr.connect(8889, HOST, function() {
+  });
+  soundpcr.on('data', function(data) {
+    stream.write(data );
+  });
+  soundpcr.on('close', function() {
+    console.log('Sound connection closed');
+    client.send('QIcomPCR closed');
+	stream.end();
+    soundpcr.destroy();
+  });  
+});
