@@ -15,23 +15,23 @@ var SoundControl = Backbone.Model.extend({
     onConnect: function() {
       this.on('disconnect', this.model.onDisconnect);      
     },
-	onStream: function(stream,meta)  {
-	  console.log('meta : '+meta);
-	  codec = new Speex({
-			benchmark: false
-		  , quality: 2
-		  , complexity: 2
-		  , bits_size: 15		  
-	  });
-	  console.log('Speex initialized');	  
-	  stream.on('data', function(data) {
-		  Speex.util.play(codec.decode(data));
-		  console.log('data received and played');	  
-		  //codec.close();
-	  });
-      this.model.set('state', 'Playing');	
-	},
-	onDisconnect : function() {
-	  this.model.set('state', 'Stopped');	
-	}
+    onStream: function(stream,meta)  {
+      console.log('meta : '+meta);
+      codec = new Speex({
+		    benchmark: false
+	      , quality: 2
+	      , complexity: 2
+	      , bits_size: 15		  
+      });
+      console.log('Speex initialized');	  
+      stream.on('data', function(data) {
+	      //Speex.util.play(codec.decode(data));
+	      console.log('data received and played');	  
+	      //codec.close();
+      });
+  this.model.set('state', 'Playing');	
+    },
+    onDisconnect : function() {
+      this.model.set('state', 'Stopped');	
+    }
 });	

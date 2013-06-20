@@ -6,6 +6,7 @@
 #ifdef WITH_SAMPLERATE
 #include <samplerate.h>
 #endif
+#include "CSoundStream.h"
 #define FRAME_SIZE 256
 
 class CSoundFile : public ISound
@@ -33,6 +34,7 @@ private:
     bool loop;
     int blankCount;
     int timing;
+    CSoundStream *soundStream;
 #ifdef WITH_SAMPLERATE
     float *inputbufferf;
     float *outputbufferf;

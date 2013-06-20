@@ -82,20 +82,33 @@ binarySocket.on('connection', function(client) {
   client.on('stream', function(stream) {
     console.log('client stream started!');
   });
-  var stream = client.createStream('speex sound incomming');
   var soundpcr = new net.Socket();
+  var stream; // = client.createStream('speex sound incomming');  
   soundpcr.connect(8889, HOST, function() {
     console.log('CONNECTED TO: ' + HOST + ':8889');
     // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-	//soundpcr.write('I am Chuck Norris!');  
+    //soundpcr.write('I am Chuck Norris!'); 
+    stream = client.createStream('speex sound incomming');  
+
   });
+    //
+
   soundpcr.on('data', function(data) {
-    stream.write(data );
+    console.log('data received from qicompcr');
+    soundpcr.pipe(stream,{end : false});  
+    //stream.write(data );
+    //stream.end();
+    //client.send(data);
   });
+/*  
+  soundpcr.on('end', function() {
+    stream.end();
+  });
+  */
   soundpcr.on('close', function() {
     console.log('Sound connection closed');
     client.send('QIcomPCR closed');
-	stream.end();
+    stream.end();
     soundpcr.destroy();
   });  
 });

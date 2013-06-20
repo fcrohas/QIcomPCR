@@ -38,7 +38,7 @@ $(document).ready(function(){
     viewer = new ViewerView({ el : '#scope', model:remote});
     
     // Connect remote to device
-    remote.connect();
+    //remote.connect();
 	
 	// Connect sound streaming
 	sound.connect();

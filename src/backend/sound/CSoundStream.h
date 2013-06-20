@@ -24,7 +24,7 @@ public slots:
     void startRead();
 
 private:
-    QTcpServer server;
+    QTcpServer *server;
     QTcpSocket* client;
     bool connected;
 #ifdef WITH_SPEEX
