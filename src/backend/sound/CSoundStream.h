@@ -5,10 +5,13 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include "ISound.h"
+#include <stdint.h>
 #include "consts.h"
+#ifdef WITH_SPEEX
+#include <speex/speex.h>
+#endif
 
-class CSoundStream : public ISound
+class CSoundStream : public QObject
 {
     Q_OBJECT
 public:
@@ -24,6 +27,13 @@ private:
     QTcpServer server;
     QTcpSocket* client;
     bool connected;
+#ifdef WITH_SPEEX
+    SpeexBits bits;
+    void *enc_state;
+    char *byte_ptr;
+    int nbBytes;
+#endif
+
 };
 
 #endif // CSOUNDSTREAM_H

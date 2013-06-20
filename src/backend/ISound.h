@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <sndfile.h>
+#include "CSoundStream.h"
 #include "CDemodulator.h"
 
 class ISound : public QThread
@@ -11,6 +12,7 @@ class ISound : public QThread
     Q_OBJECT
 public:
     explicit ISound(QObject *parent = 0);
+    ~ISound();
 
     // Demodulator
     void SetDemodulator(CDemodulator *value);
@@ -30,6 +32,7 @@ public slots:
 
 private:
     CDemodulator *demod;
+    CSoundStream *soundStream;
     SNDFILE*	pFile;
     QString data;
 };

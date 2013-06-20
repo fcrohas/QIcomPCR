@@ -4,7 +4,12 @@ ISound::ISound(QObject *parent) :
     QThread(parent)
   ,pFile(NULL)
 {
+    soundStream = new CSoundStream();
+}
 
+ISound::~ISound()
+{
+    delete soundStream;
 }
 
 void ISound::SetDemodulator(CDemodulator *value)
@@ -25,6 +30,7 @@ void ISound::DecodeBuffer(int16_t *buffer, int size)
         bytewrite = sf_writef_short(pFile, buffer, size/2);
     }
     demod->slotDataBuffer(buffer, size);
+    soundStream->encode(buffer,size);
 }
 
 void ISound::setRunning(bool value)

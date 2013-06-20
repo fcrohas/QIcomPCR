@@ -85,6 +85,9 @@ binarySocket.on('connection', function(client) {
   var stream = client.createStream('speex sound incomming');
   var soundpcr = new net.Socket();
   soundpcr.connect(8889, HOST, function() {
+    console.log('CONNECTED TO: ' + HOST + ':8889');
+    // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
+	//soundpcr.write('I am Chuck Norris!');  
   });
   soundpcr.on('data', function(data) {
     stream.write(data );
