@@ -7,7 +7,7 @@
 #include <samplerate.h>
 #endif
 #include "CSoundStream.h"
-#define FRAME_SIZE 256
+
 
 class CSoundFile : public ISound
 {

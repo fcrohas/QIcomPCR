@@ -4,7 +4,20 @@ var SoundControl = Backbone.Model.extend({
 		state: 'Stopped'
     },
     initialize: function() { 
+      this.codec = new Speex({
+		    benchmark: false
+	      , quality: 2
+	      , complexity: 2
+	      , bits_size: 15		  
+      });
+	  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	  this.context = new AudioContext();
+	  this.source = this.context.createBufferSource(); // creates a sound source	  
+	  this.source.connect(this.context.destination);       // connect the source to the context's destination (the speakers)	  
     },
+	disconnect: function() {
+	      codec.close();
+	},
     // Socket.IO management
     connect: function() {
 		this.socket = new BinaryClient('ws://'+$(location).attr('hostname')+':'+$(location).attr('port')+'/stream');
@@ -16,18 +29,17 @@ var SoundControl = Backbone.Model.extend({
       this.on('disconnect', this.model.onDisconnect);      
     },
     onStream: function(stream,meta)  {
-      console.log('meta : '+meta);
-      codec = new Speex({
-		    benchmark: false
-	      , quality: 2
-	      , complexity: 2
-	      , bits_size: 15		  
-      });
+	  //var player = this.model.codec;
+	  stream.source = this.model.source;
+	  stream.context = this.model.context;
+	  stream.codec  = this.model.codec;
+      //console.log('meta : '+meta);
       //console.log('Speex initialized');	  
       stream.on('data', function(data) {
-	      Speex.util.play(codec.decode(data));
-	      //console.log('data received and played');	  
-	      codec.close();
+			//Speex.util.play(this.player.decode(data));
+			this.source.buffer = this.context.decodeAudioData(this.codec.decode(data),function() {}, function(error) { console.log(error);});   // tell the source which sound to play
+			this.source.start(0); 
+			//console.log('data received and played');	  
       });
   this.model.set('state', 'Playing');	
     },

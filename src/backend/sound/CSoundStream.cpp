@@ -41,11 +41,15 @@ void CSoundStream::acceptConnection()
         // Frame size for speex
         int frame_size = 0;
         int quality = 2; // Speex quality encoder
+        int complexity = 2; // Speex complexity encoder
+        int samplerate = SAMPLERATE;
         int nbBytes = 0;
         // Speex initalization
         speex_bits_init(&bits);
         enc_state = speex_encoder_init(speex_lib_get_mode(SPEEX_MODEID_NB));
         speex_encoder_ctl(enc_state,SPEEX_SET_QUALITY,&quality);
+        speex_encoder_ctl(enc_state,SPEEX_SET_SAMPLING_RATE,&samplerate);
+        speex_encoder_ctl(enc_state,SPEEX_SET_COMPLEXITY,&complexity);
         speex_encoder_ctl(enc_state,SPEEX_GET_FRAME_SIZE,&frame_size);
         qDebug() << "frame size for speex is " << frame_size;
 #endif
