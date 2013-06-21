@@ -23,11 +23,11 @@ var SoundControl = Backbone.Model.extend({
 	      , complexity: 2
 	      , bits_size: 15		  
       });
-      console.log('Speex initialized');	  
+      //console.log('Speex initialized');	  
       stream.on('data', function(data) {
-	      //Speex.util.play(codec.decode(data));
-	      console.log('data received and played');	  
-	      //codec.close();
+	      Speex.util.play(codec.decode(data));
+	      //console.log('data received and played');	  
+	      codec.close();
       });
   this.model.set('state', 'Playing');	
     },

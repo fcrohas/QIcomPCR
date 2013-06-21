@@ -41,6 +41,8 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 
 var binarySocket = new BinaryServer({ server: server, path :'/stream' });
 var socket = io.listen(server); 
+// Hack for binary js to work
+socket.set("destroy upgrade",false);
 
 
 var HOST = '127.0.0.1';
@@ -86,29 +88,16 @@ binarySocket.on('connection', function(client) {
   var stream; // = client.createStream('speex sound incomming');  
   soundpcr.connect(8889, HOST, function() {
     console.log('CONNECTED TO: ' + HOST + ':8889');
-    // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-    //soundpcr.write('I am Chuck Norris!'); 
-    stream = client.createStream('speex sound incomming');  
 
   });
-    //
 
   soundpcr.on('data', function(data) {
-    console.log('data received from qicompcr');
-    soundpcr.pipe(stream,{end : false});  
-    //stream.write(data );
-    //stream.end();
-    //client.send(data);
+    client.send(data);
   });
-/*  
-  soundpcr.on('end', function() {
-    stream.end();
-  });
-  */
+
   soundpcr.on('close', function() {
     console.log('Sound connection closed');
-    client.send('QIcomPCR closed');
-    stream.end();
+    //client.send('QIcomPCR closed');
     soundpcr.destroy();
   });  
 });
