@@ -4,16 +4,11 @@ var SoundControl = Backbone.Model.extend({
 		state: 'Stopped'
     },
     initialize: function() { 
-      this.codec = new Speex({
-		    benchmark: false
-	      , quality: 2
-	      , complexity: 2
-	      , bits_size: 15		  
-      });
-	  window.AudioContext = window.AudioContext || window.webkitAudioContext;
-	  this.context = new AudioContext();
-	  this.source = this.context.createBufferSource(); // creates a sound source	  
-	  this.source.connect(this.context.destination);       // connect the source to the context's destination (the speakers)	  
+		// Use SpeexAudio Applet
+		//var attributes = { id:'SpeexAudio',	code:'org.lilisoft/Main',  width:0, height:0};
+		//var parameters = { } ;
+		//deployJava.runApplet(attributes, parameters, '1.6');		
+		//this.audio = SpeexAudio.getAudio();
     },
 	disconnect: function() {
 	      codec.close();
@@ -29,17 +24,11 @@ var SoundControl = Backbone.Model.extend({
       this.on('disconnect', this.model.onDisconnect);      
     },
     onStream: function(stream,meta)  {
-	  //var player = this.model.codec;
-	  stream.source = this.model.source;
-	  stream.context = this.model.context;
-	  stream.codec  = this.model.codec;
-      //console.log('meta : '+meta);
-      //console.log('Speex initialized');	  
+	  // WebSocket stream received
+	  stream.audio = this.audio;
       stream.on('data', function(data) {
-			//Speex.util.play(this.player.decode(data));
-			this.source.buffer = this.context.decodeAudioData(this.codec.decode(data),function() {}, function(error) { console.log(error);});   // tell the source which sound to play
-			this.source.start(0); 
-			//console.log('data received and played');	  
+			// Send received speex data to audio applet
+			audio.setData(data);
       });
   this.model.set('state', 'Playing');	
     },
