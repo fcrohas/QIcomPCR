@@ -7,6 +7,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 import org.xiph.speex.*;
+import netscape.javascript.*;
 
 public class Audio {
 
@@ -59,8 +60,16 @@ public class Audio {
 		}
 	}
 	
-	public void setData(byte[] value) {
-		samples = value;
+	public void setData(JSObject value) {
+		// Get array buffer object
+        Object len = value.getMember("length");
+        if (len instanceof Number){
+          // if length is ok
+          int n = ((Number)len).intValue();
+          for (int i = 0; i < n; ++i){
+              samples[i] = (Byte) value.getSlot(i);
+          }
+        }
 		play();
 	}
 	

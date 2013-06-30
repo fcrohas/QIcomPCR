@@ -28,8 +28,10 @@ public class Main extends Applet {
     	
     }	
     
-    public void getAudio(byte[] data) {
+    public void getAudio(JSObject data) {
+    	System.out.println("getaudio method called");
     	sound.setData(data);
+    	System.out.println("done");
     }
 	
 }
