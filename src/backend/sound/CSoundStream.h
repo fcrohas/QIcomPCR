@@ -32,6 +32,8 @@ private:
     void *enc_state;
     char *byte_ptr;
     int nbBytes;
+    int16_t *audiol;
+    int16_t *audior;
 #endif
 
 };

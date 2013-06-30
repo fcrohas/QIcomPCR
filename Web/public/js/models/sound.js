@@ -4,11 +4,6 @@ var SoundControl = Backbone.Model.extend({
 		state: 'Stopped'
     },
     initialize: function() { 
-		// Use SpeexAudio Applet
-		//var attributes = { id:'SpeexAudio',	code:'org.lilisoft/Main',  width:0, height:0};
-		//var parameters = { } ;
-		//deployJava.runApplet(attributes, parameters, '1.6');		
-		//this.audio = SpeexAudio.getAudio();
     },
 	disconnect: function() {
 	      codec.close();
@@ -19,16 +14,23 @@ var SoundControl = Backbone.Model.extend({
 		this.socket.model = this;
 		this.socket.on('open', this.onConnect);
 		this.socket.on('stream', this.onStream);
+		// Use SpeexAudio Applet
+		var attributes = { id:'SpeexAudio', code:'com.lilisoft.Main.class',  width:100, height:50};
+		var parameters = {jnlp_href: 'SpeexAudio.jnlp'} ;
+		deployJava.runApplet(attributes, parameters, '1.6');		
+		this.audio = SpeexAudio;
+		//this.audio = document.getElementById("SpeexAudio").getAudio();
+		//this.audio.init();
     },
     onConnect: function() {
       this.on('disconnect', this.model.onDisconnect);      
     },
     onStream: function(stream,meta)  {
-	  // WebSocket stream received
-	  stream.audio = this.audio;
+      // WebSocket stream received
+      stream.audio = this.audio;
       stream.on('data', function(data) {
-			// Send received speex data to audio applet
-			audio.setData(data);
+	  // Send received speex data to audio applet
+	  this.audio.getAudio(data);
       });
   this.model.set('state', 'Playing');	
     },

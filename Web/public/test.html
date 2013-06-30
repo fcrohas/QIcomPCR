@@ -1,0 +1,39 @@
+<html>
+<head>
+  <script src="http://www.java.com/js/deployJava.js"></script> 
+      <embed id="deployJavaPlugin" type="application/java-deployment-toolkit" hidden="true">
+  <script src="/js/xaudio.js"></script>
+  <script src="/js/pcmdata.min.js"></script>
+  <script src="/js/binary.min.js"></script>
+  <script src="/js/speex.min.js"></script>
+  <script src="/js/socket.io.js"></script>
+  <script src="/js/jquery-1.9.1.min.js"></script><!-- Downloaded Jquery -->
+
+  <script>
+      var socket = new BinaryClient('ws://'+$(location).attr('hostname')+':'+$(location).attr('port')+'/stream');
+      // Use SpeexAudio Applet
+      var attributes = { id:'SpeexAudio', code:'com.lilisoft.Main.class',  width:100, height:50};
+      var parameters = {jnlp_href: 'SpeexAudio.jnlp'} ;
+      deployJava.runApplet(attributes, parameters, '1.6');		
+      audio = SpeexAudio;
+      buffer = new Int8Array(256);
+      socket.on('stream', function(stream,meta)  {
+	// WebSocket stream received
+	stream.audio = audio;
+	stream.on('data', function(data) {
+	    // Send received speex data to audio applet
+	    for (var i=0; i< data.length;i++) {
+	      buffer[i] = data[i];
+	    }
+	    this.audio.getAudio(buffer);
+	})
+      });
+  
+  </script>
+</head>
+<body>
+    <applet id="SpeexAudio" code="com.lilisoft.Main.class" archive="SpeexAudio.jar" mayscript height="1" width="1" MAYSCRIPT>
+	  <!--param name="jnlp_href" value="SpeexAudio.jnlp"-->
+    </applet>
+</body>
+</html>

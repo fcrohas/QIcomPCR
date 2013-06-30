@@ -1,10 +1,12 @@
 package com.lilisoft;
 
 import java.applet.Applet;
+import netscape.javascript.*;
 
 @SuppressWarnings("serial")
 public class Main extends Applet {
 	
+	private Audio sound;
 	static final String appletInfo = "SpeexAudio Stream playing Applet";
 
 	public String getAppletInfo() {
@@ -13,6 +15,8 @@ public class Main extends Applet {
 	
 	public void init() {
 		// Do init here if needed
+		sound = new Audio();
+		sound.init();
 	}
 	
 	public void start()
@@ -24,8 +28,8 @@ public class Main extends Applet {
     	
     }	
     
-    public Audio getAudio() {
-    	return new Audio();
+    public void getAudio(byte[] data) {
+    	sound.setData(data);
     }
 	
 }

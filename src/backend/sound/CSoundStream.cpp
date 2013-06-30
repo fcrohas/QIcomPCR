@@ -15,6 +15,8 @@ CSoundStream::CSoundStream(QObject *parent) :
     connected = false;
 #ifdef WITH_SPEEX
     byte_ptr = new char[MAX_NB_BYTES];
+    audior = new int16_t[MAX_NB_BYTES];
+    audiol = new int16_t[MAX_NB_BYTES];
 #endif
 }
 
@@ -25,6 +27,8 @@ CSoundStream::~CSoundStream()
     if (enc_state != NULL)
         speex_encoder_destroy(enc_state);
     delete [] byte_ptr;
+    delete [] audiol;
+    delete [] audior;
 #endif
     server->close();
 }
@@ -69,7 +73,10 @@ void CSoundStream::encode(int16_t *data, int size)
 #ifdef WITH_SPEEX
   if (connected) {
     speex_bits_reset(&bits);
-    speex_encode_int(enc_state, data, &bits);
+    for (int i=0; i<size;i+=2) {
+        audiol[i] = data[i];
+    }
+    speex_encode_int(enc_state, audiol, &bits);
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
     client->write(byte_ptr,nbBytes);
     // no Event loop so do it manually

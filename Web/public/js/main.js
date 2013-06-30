@@ -40,7 +40,7 @@ $(document).ready(function(){
     // Connect remote to device
     remote.connect();
 	
-	// Connect sound streaming
-	sound.connect();
+    // Connect sound streaming
+    sound.connect();
 
 });

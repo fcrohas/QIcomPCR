@@ -42,7 +42,15 @@
     <link href="/stylesheets/slider.css" type="text/css" rel="stylesheet" media="screen"></link>
 </head>
 <body>
-	<applet id="SpeexAudio" code="com.lilisoft/Main.class" archive="SpeexAudio.jar" height="0" width="0"></applet>
+    <applet id="SpeexAudio" code="com.lilisoft.Main.class" archive="SpeexAudio.jar" mayscript height="1" width="1">
+	  <!--param name="jnlp_href" value="SpeexAudio.jnlp"-->
+    </applet>
+    <!--embed id="SpeexAudio"
+	  type="application/x-java-applet;version=1.6"
+	  width="256" height="256" 
+	  archive="SpeexAudio.jar"
+	  code="SpeexAudio"
+	  pluginspage="http://java.com/download/"/-->    
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
