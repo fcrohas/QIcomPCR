@@ -2,7 +2,8 @@
 
 
 CSoundStream::CSoundStream(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    client(NULL)
 #ifdef WITH_SPEEX
   ,enc_state(NULL)
 #endif
@@ -40,6 +41,7 @@ void CSoundStream::acceptConnection()
       client = server->nextPendingConnection();
       qDebug() << "Connect server socker event acceptConnection()";
       connect(client, SIGNAL(readyRead()), this, SLOT(startRead()));
+      connect(client,SIGNAL(disconnected()), this, SLOT(disconnected()));
       connected = true;
 #ifdef WITH_SPEEX
         // Frame size for speex
@@ -78,9 +80,16 @@ void CSoundStream::encode(int16_t *data, int size)
     }
     speex_encode_int(enc_state, audiol, &bits);
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
-    client->write(byte_ptr,nbBytes);
+    client->write(byte_ptr,size);
     // no Event loop so do it manually
     client->flush();
   }
 #endif
+}
+
+void CSoundStream::disconnected()
+{
+    qDebug() << "client disconnected";
+    //client->close();
+    connected = false;
 }

@@ -1,5 +1,7 @@
 package com.lilisoft;
 
+import java.nio.ByteBuffer;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -20,6 +22,7 @@ public class Audio {
 	private SourceDataLine speaker = null;
 	
 	public void init() {
+
 		speexDecoder = new SpeexDecoder();
 		// arg1 is quality 0 for narrow band
 		// arg2 is samplerate 8000 as defautl
@@ -28,15 +31,18 @@ public class Audio {
 	    boolean state = speexDecoder.init(0,8000,1,false);
 	    if (state) {
 	    	// Init Bits struct
+	    	bits = new Bits();
 	    	bits.init();
 	    }
-		
+
 		samples = new byte[256];
 		decoded = new byte[256];
 		
 		packetOffset = 0;
 		packetSize = 256;
+
 		// Get sound audio
+		
 		try {
 		    DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, getAudioFormat(256));
 		    speaker = (SourceDataLine) AudioSystem.getLine(speakerInfo);
@@ -49,11 +55,9 @@ public class Audio {
 	public void play() {
 		try
 		{
-	
 			speexDecoder.processData(samples, packetOffset, packetSize);
 			speexDecoder.getProcessedData(decoded, 0);
 			speaker.write(decoded, 0, speexDecoder.getProcessedDataByteSize());
-	
 		}
 		catch (Exception e)
 		{
@@ -66,13 +70,19 @@ public class Audio {
         if (len instanceof Number){
           // if length is ok
           int n = ((Number)len).intValue();
-          for (int i = 0; i < n; ++i){
-              samples[i] = (Byte) value.getSlot(i);
+          for (int i = 0; i < n; i++){
+        	  if (value.getSlot(i) instanceof Integer) {
+            	  samples[i] = (byte)((Integer)value.getSlot(i) & 0xff);
+            	  System.out.println(samples[i]);
+        	  }
+        	  //System.out.println(value.getSlot(i));
+              //Double s = (Double) value.getSlot(i);
+              //samples[i] = ByteBuffer.allocate(8).putDouble(s).array()[0];
           }
         }
 		play();
 	}
-	
+
 	private AudioFormat getAudioFormat(float sample) {
 	    int sampleSizeBits = 16;
 	    int channels = 1;

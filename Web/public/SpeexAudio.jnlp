@@ -34,18 +34,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jnlp spec="1.0+" codebase="" href="">
     <information>
-        <title>Math Applet - JavaScript to Java LiveConnect</title>
-        <vendor>Sun</vendor>
+        <title>Speex Audio Playing Applet</title>
+        <vendor>Lilisoft.com</vendor>
     </information>
     <resources>
         <!-- Application Resources -->
-        <j2se version="1.7+"
+        <j2se version="1.6"
               href="http://java.sun.com/products/autodl/j2se"/>
         <jar href="SpeexAudio.jar" main="true" />
 
     </resources>
     <applet-desc
-         name="Spexx Audio Playing Applet"
+         name="Speex Audio Playing Applet"
          main-class="com.lilisoft.Main"
          width="1"
          height="1">

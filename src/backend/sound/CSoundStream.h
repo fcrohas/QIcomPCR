@@ -22,6 +22,7 @@ public:
 public slots:
     void acceptConnection();
     void startRead();
+    void disconnected();
 
 private:
     QTcpServer *server;
