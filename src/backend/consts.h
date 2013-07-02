@@ -5,7 +5,7 @@
 #define FFTSIZE 512.0
 #define FRAME_SIZE 512
 #define BUFFER_SIZE 1024 // This is frame size * channels
-#define MAX_NB_BYTES 512
+#define MAX_NB_BYTES 256
 
 
 #endif // CONSTS_H

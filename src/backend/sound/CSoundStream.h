@@ -35,6 +35,10 @@ private:
     int nbBytes;
     int16_t *audiol;
     int16_t *audior;
+    // Frame size for speex
+    int frame_size;
+    int offset;
+    int lastpos;
 #endif
 
 };
