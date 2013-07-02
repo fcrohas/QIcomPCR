@@ -17,7 +17,9 @@ var SoundControl = Backbone.Model.extend({
 	this.context = new AudioContext();
 	this.source = this.context.createBufferSource(0); // creates a sound source    
 	this.source.connect(this.context.destination);       // connect the source to the context's destination (the speakers)    
-	this.buffer = this.context.createBuffer(1, 4096, 22050);
+	this.buffer = this.context.createBuffer(1, 160, 22050); // 60s buffer
+	this.ringbuffer = new Int16Array(4096);
+	this.ringsize = 0;
       // *******************************************************
     },
     disconnect: function() {
@@ -51,6 +53,8 @@ var SoundControl = Backbone.Model.extend({
       stream.context = this.model.context;
       stream.codec  = this.model.codec; 
       stream.buffer = this.model.buffer;
+      //stream.ringbuffer = this.model.ringbuffer;
+      //stream.ringsize = this.model.ringsize;
       stream.on('data', function(data) {
 	  // ******************  HTML5 VERSION *****************
 	  // Get buffer pointer to channel 0
@@ -59,15 +63,14 @@ var SoundControl = Backbone.Model.extend({
 	  var audioData = new Int8Array(data);
 	  // Decode Speex buffer
 	  try {
-		  var decoded = this.codec.decode(audioData);
-		  // Copie it to source buffer
-		  console.log(decoded.length);
-		  for (var i=0; i<decoded.length;i++) {
-			buf[i] = decoded[i];
-		  }
-		  this.source.buffer = this.buffer;   // tell the source which sound to play
-		  console.log(this.source.buffer);	  
-		  this.source.noteOn(0);//this.context.currentTime); 	
+		var decoded = this.codec.decode(audioData); // to Int16 decoding buffer
+		//console.log("Ring buffer size is " + this.ringsize);
+		for (var i=0; i<160;i++) {
+		      buf[i] = decoded[i];
+		}
+		this.source.buffer = this.buffer;   // tell the source which sound to play
+		//console.log(this.source.buffer);	  
+		this.source.noteOn(0); 	
 	  } catch (e) {
 		console.log(e.message);
 	  }
