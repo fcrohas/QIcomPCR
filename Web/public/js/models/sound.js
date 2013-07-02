@@ -58,15 +58,19 @@ var SoundControl = Backbone.Model.extend({
 	  // Convert ArrayBuffer to Int8Array
 	  var audioData = new Int8Array(data);
 	  // Decode Speex buffer
-	  var decoded = this.codec.decode(audioData);
-	  // Copie it to source buffer
-	  console.log(decoded.length);
-	  for (var i=0; i<decoded.length;i++) {
-	    buf[i] = decoded[i];
+	  try {
+		  var decoded = this.codec.decode(audioData);
+		  // Copie it to source buffer
+		  console.log(decoded.length);
+		  for (var i=0; i<decoded.length;i++) {
+			buf[i] = decoded[i];
+		  }
+		  this.source.buffer = this.buffer;   // tell the source which sound to play
+		  console.log(this.source.buffer);	  
+		  this.source.noteOn(0);//this.context.currentTime); 	
+	  } catch (e) {
+		console.log(e.message);
 	  }
-	  this.source.buffer = this.buffer;   // tell the source which sound to play
-	  console.log(this.source.buffer);	  
-	  this.source.noteOn(0);//this.context.currentTime); 	
 	  // ******************  APPLET VERSION *****************
 	  // ****************** See SpeexAudio.jar **************
 	  // Send received speex data to audio applet      
