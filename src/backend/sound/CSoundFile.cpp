@@ -53,8 +53,9 @@ bool CSoundFile::Load(QString &fileName)
         if (error != 0) {
             qDebug() << "Error creating sample rate converter : " << src_strerror(error);
         }
-        int sampletiming = 1 / SAMPLERATE;
-        timing = (BUFFER_SIZE / channels) * sampletiming *1000; // millisecond of a buffer size per channel
+        double sampletiming = 1.0 / SAMPLERATE;
+        timing = (BUFFER_SIZE / channels) * sampletiming *500; // millisecond of a buffer size per channel
+        qDebug() << "buffer time is " << timing;
         /* we can only cope with integer submultiples */
         // Init buffer size to read
         inputbuffer = new int16_t[BUFFER_SIZE];

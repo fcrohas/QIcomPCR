@@ -103,15 +103,20 @@ void CPortAudio::Initialize()
 void CPortAudio::run()
 {
     Initialize();
+    // Sound streaming
+    soundStream = new CSoundStream();
     // Work on RingBuffer until end
     int16_t *data = new int16_t[BUFFER_SIZE];
     memset(data,0,BUFFER_SIZE);
     while(running) {
         while(PaUtil_GetRingBufferReadAvailable(&ringBuffer)<BUFFER_SIZE) { Pa_Sleep(10); }
         int readCount = PaUtil_ReadRingBuffer(&ringBuffer,data,BUFFER_SIZE);
+        soundStream->acceptConnection();
         DecodeBuffer(data,BUFFER_SIZE);
+        soundStream->encode(data,BUFFER_SIZE);
     }
     delete [] data;
+    delete soundStream;
     terminate();
 }
 

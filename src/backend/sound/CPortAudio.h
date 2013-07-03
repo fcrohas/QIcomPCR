@@ -10,6 +10,7 @@
 #ifdef WITH_SPEEX
 #include <speex/speex.h>
 #endif
+#include "CSoundStream.h"
 
 extern "C" {
     typedef struct{
@@ -54,6 +55,7 @@ private:
     void selectOutputDevice(QString device);
     void Initialize();
     int16_t *ringBufferData;
+    CSoundStream *soundStream;
 };
 
 #endif // CPORTAUDIO_H

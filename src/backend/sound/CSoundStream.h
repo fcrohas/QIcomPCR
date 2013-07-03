@@ -33,12 +33,16 @@ private:
     void *enc_state;
     char *byte_ptr;
     int nbBytes;
-    int16_t *audiol;
-    int16_t *audior;
+    int16_t *speexBuffer;
+    int16_t *stereoBuffer;
     // Frame size for speex
     int frame_size;
     int offset;
     int lastpos;
+    int speexPos;
+    int speexSize;
+    int stereoPos;
+    int stereoSize;
 #endif
 
 };

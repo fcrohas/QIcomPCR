@@ -6,7 +6,10 @@ CSoundStream::CSoundStream(QObject *parent) :
     client(NULL),
     frame_size(0),
     offset(1),
-    lastpos(0)
+    speexPos(0),
+    speexSize(0),
+    stereoPos(0),
+    stereoSize(0)
 #ifdef WITH_SPEEX
   ,enc_state(NULL)
 #endif
@@ -19,8 +22,8 @@ CSoundStream::CSoundStream(QObject *parent) :
     connected = false;
 #ifdef WITH_SPEEX
     byte_ptr = new char[MAX_NB_BYTES];
-    audior = new int16_t[MAX_NB_BYTES*2];
-    audiol = new int16_t[MAX_NB_BYTES*2];
+    stereoBuffer = new int16_t[MAX_NB_BYTES*2];
+    speexBuffer = new int16_t[MAX_NB_BYTES*2];
 #endif
 }
 
@@ -31,8 +34,8 @@ CSoundStream::~CSoundStream()
     if (enc_state != NULL)
         speex_encoder_destroy(enc_state);
     delete [] byte_ptr;
-    delete [] audiol;
-    delete [] audior;
+    delete [] speexBuffer;
+    delete [] stereoBuffer;
 #endif
     server->close();
 }
@@ -40,7 +43,7 @@ CSoundStream::~CSoundStream()
 void CSoundStream::acceptConnection()
 {
   // Wait for connection in each loop
-  if ((!connected) && (server->waitForNewConnection(10))) {
+  if ((!connected) && (server->waitForNewConnection(1))) {
       client = server->nextPendingConnection();
       qDebug() << "Connect server socker event acceptConnection()";
       connect(client, SIGNAL(readyRead()), this, SLOT(startRead()));
@@ -48,19 +51,23 @@ void CSoundStream::acceptConnection()
       connected = true;
 #ifdef WITH_SPEEX
         int quality = 8; // Speex quality encoder
-        int complexity = 2; // Speex complexity encoder
+        int complexity = 3; // Speex complexity encoder
         int samplerate = SAMPLERATE;
         int nbBytes = 0;
-        int enhance = 1;
+        int vbr = 0;
+        float vbrquality = 5.0;
+        int bitrate = 0;
         // Speex initalization
         speex_bits_init(&bits);
         enc_state = speex_encoder_init(speex_lib_get_mode(SPEEX_MODEID_NB));
         speex_encoder_ctl(enc_state,SPEEX_SET_QUALITY,&quality);
+        speex_encoder_ctl(enc_state,SPEEX_SET_VBR,&vbr);
         speex_encoder_ctl(enc_state,SPEEX_SET_SAMPLING_RATE,&samplerate);
-        //speex_encoder_ctl(enc_state,SPEEX_SET_COMPLEXITY,&complexity);
+        speex_encoder_ctl(enc_state,SPEEX_SET_COMPLEXITY,&complexity);
         speex_encoder_ctl(enc_state,SPEEX_GET_FRAME_SIZE,&frame_size);
-        speex_encoder_ctl(enc_state,SPEEX_SET_ENH,&enhance);
-        qDebug() << "frame size for speex is " << frame_size;
+        speex_encoder_ctl(enc_state,SPEEX_GET_BITRATE,&bitrate);
+        speex_encoder_ctl(enc_state,SPEEX_SET_VBR_QUALITY,&vbrquality);
+        qDebug() << "frame size for speex is " << frame_size << " bitrate " << bitrate;
 #endif
   }
 }
@@ -81,61 +88,51 @@ void CSoundStream::encode(int16_t *data, int size)
     // offset in buffer size at the moment
     // 256 / 160 = 1.6 so only one loop send and store the remaining bytes
     // if previous buffer
-    int monopos = 0;
-    int delta = 0;
-    if ( lastpos > 0) {
-        // copy current audio and process
-        for (int i=0,j=0; j<lastpos+1;i+=2,j++) {
-            // copy to mono buffer
-            audiol[j] = audior[i];
-            // save position to concat new before compress
-            monopos = j;
+    if ( speexSize > 0) {
+        // Now if needed loop to sent chunk of frame_size
+        while (speexSize >= frame_size) {
+            // compress buffer
+            speex_bits_reset(&bits);
+            speex_encode_int(enc_state, speexBuffer, &bits);
+            nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
+            client->write(byte_ptr,nbBytes);
+            // no Event loop so do it manually
+            client->flush();
+            // new size
+            // Copy remaining
+            for (int i=frame_size,j=0; i<speexSize;i++,j++) {
+                // copy to stereo buffer
+                speexBuffer[j] = speexBuffer[i]; // remove latest frame_size sent from the buffer
+                speexPos = j;
+            }
+            // block but should never append the case of speexPos = 0
+            speexPos = speexPos + 1;
+            speexSize = speexPos;
         }
-        monopos = monopos + 1;
+
     }
-    qDebug() << "Remaining samples mono count from last call is " << monopos << " buffer stereo size is " << size << " lastpos " << lastpos;
-    // if remaining is > frame_size then compres and send it before next salve
-    // compress buffer
-    while (monopos >= frame_size) {
-        speex_bits_reset(&bits);
-        speex_encode_int(enc_state, audiol, &bits);
-        nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
-        client->write(byte_ptr,nbBytes);
-        // no Event loop so do it manually
-        client->flush();
-        // Copy remaining
-        //delta = monopos - frame_size; // remaining sample on a mono buffer
-        qDebug() << "Remaining samples on processed audiol buffer  " << monopos-delta << " with a frame size " << frame_size;
-        // copy not used
-        for (int i=frame_size+1,j=0; i<monopos;i++,j++) {
-            // copy to stereo buffer
-            audiol[j] = audiol[i]; // copy end of buffer to next buffer
-            monopos = j;
-        }
-        // new monopos and loop again if still another frame to process
-        monopos = monopos+1;
-    }
-    qDebug() << "Remaining samples mono count after processed old buffer from last call is " << monopos << " buffer stereo size is " << size;
     // compress buffer
     speex_bits_reset(&bits);
-    for (int i=0,j=monopos; i<size;i+=2,j++) {
-        audiol[j] = data[i];
+    for (int i=0,j=speexPos; i<size;i+=2,j++) {
+        speexBuffer[j] = data[i];
+        speexPos = j;
     }
-    speex_encode_int(enc_state, audiol, &bits);
+    speexPos = speexPos + 1;  // newt sample will go there
+    speexSize = speexPos; // size is +1 from last position
+    // Encode and send
+    speex_encode_int(enc_state, speexBuffer, &bits);
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
     client->write(byte_ptr,nbBytes);
     // no Event loop so do it manually
     client->flush();
-    delta = (frame_size-monopos)*2; // remaining sample on a stereo buffer
-    qDebug() << "Remaining samples on data buffer to save " << size-delta << " with a frame size " << frame_size;
-    // copy not used
-    for (int i=delta,j=0; i<size;i++,j++) {
+    // copy from l
+    for (int i=frame_size,j=0; i<speexSize;i++,j++) { // copy from end of frame to speex buffer size
         // copy to stereo buffer
-        audior[j] = data[i]; // copy end of buffer to next buffer
-        lastpos = j; // register how much bits leave in buffer to be processed
+        speexBuffer[j] = speexBuffer[i]; // remove latest frame_size sent from the buffer
+        speexPos = j;
     }
-    qDebug() << "saved samples count for next call is " << lastpos;
-
+    speexPos = speexPos + 1;  // newt sample will go there
+    speexSize = speexPos;
   }
 #endif
 }
