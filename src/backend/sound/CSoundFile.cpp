@@ -53,7 +53,8 @@ bool CSoundFile::Load(QString &fileName)
         if (error != 0) {
             qDebug() << "Error creating sample rate converter : " << src_strerror(error);
         }
-        timing = 23; //(BUFFER_SIZE / channels) * (1 / SAMPLERATE)*1000;
+        int sampletiming = 1 / SAMPLERATE;
+        timing = (BUFFER_SIZE / channels) * sampletiming *1000; // millisecond of a buffer size per channel
         /* we can only cope with integer submultiples */
         // Init buffer size to read
         inputbuffer = new int16_t[BUFFER_SIZE];
@@ -144,6 +145,7 @@ bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
             //qDebug() << "output 2 frames gen is " << dataconv.output_frames_gen << " from input used " << dataconv.input_frames_used;
             src_float_to_short_array(outputbufferf,data,BUFFER_SIZE);
             this->DecodeBuffer(data,BUFFER_SIZE);
+            soundStream->encode(data,BUFFER_SIZE);
             msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
         }
         return true;
@@ -196,7 +198,7 @@ void CSoundFile::run()
                 blankCount = 0;
             }
             this->DecodeBuffer(data,BUFFER_SIZE);
-            msleep(15);
+            msleep(timing);
 
         }
     }

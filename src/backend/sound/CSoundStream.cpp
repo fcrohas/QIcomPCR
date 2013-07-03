@@ -87,7 +87,7 @@ void CSoundStream::encode(int16_t *data, int size)
         // copy current audio and process
         for (int i=0,j=0; i<lastpos+1;i+=2,j++) {
             // copy to mono buffer
-            audiol[j] = audior[i+1];
+            audiol[j] = audior[i];
             // save position to concat new before compress
             monopos = j;
         }
@@ -111,13 +111,13 @@ void CSoundStream::encode(int16_t *data, int size)
             audiol[j] = audiol[i]; // copy end of buffer to next buffer
         }
         // new monopos and loop again if still another frame to process
-        monopos = delta;
+        monopos = delta+1;
     }
     //qDebug() << "Remaining samples mono count after processed old buffer from last call is " << monopos << " buffer stereo size is " << size;
     // compress buffer
     speex_bits_reset(&bits);
     for (int i=0,j=monopos; i<size;i+=2,j++) {
-        audiol[j] = data[i+1];
+        audiol[j] = data[i];
     }
     speex_encode_int(enc_state, audiol, &bits);
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
