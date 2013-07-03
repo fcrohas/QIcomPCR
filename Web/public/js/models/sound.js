@@ -72,7 +72,7 @@ var SoundControl = Backbone.Model.extend({
 		}
 		//console.log(this.ringbuffer);		
 		this.ringsize = this.ringsize + decoded.length +1;
-		if (this.ringsize > 110250) {
+		if (this.ringsize >= 110250) {
 			this.playBuffer();
 			// Copy datas over 110250
 			for (var i=110250,j=0; i < this.ringsize; i++,j++) {
