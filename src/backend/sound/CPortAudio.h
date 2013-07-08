@@ -56,6 +56,8 @@ private:
     void Initialize();
     int16_t *ringBufferData;
     CSoundStream *soundStream;
+    QThread *audioEncode;
+    QThread *dataDecode;
 };
 
 #endif // CPORTAUDIO_H

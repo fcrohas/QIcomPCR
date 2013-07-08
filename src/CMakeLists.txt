@@ -344,7 +344,7 @@ endif(WITH_SAMPLERATE)
 
 if(WITH_SPEEX)
 if(UNIX)
-    set(3RDPARTY ${3RDPARTY} speex)
+    set(3RDPARTY ${3RDPARTY} speex speexdsp)
 endif(UNIX)
 if(WIN32)
         set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeex.lib ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeexdsp.lib)

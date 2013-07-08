@@ -9,9 +9,10 @@ CSoundStream::CSoundStream(QObject *parent) :
     speexPos(0),
     speexSize(0),
     stereoPos(0),
-    stereoSize(0)
+    stereoSize(0),
 #ifdef WITH_SPEEX
-  ,enc_state(NULL)
+    enc_state(NULL),
+    resample(false)
 #endif
 {
     qDebug() << "Connect server socker event newConnection()";
@@ -24,7 +25,19 @@ CSoundStream::CSoundStream(QObject *parent) :
     byte_ptr = new char[MAX_NB_BYTES];
     stereoBuffer = new int16_t[MAX_NB_BYTES*2];
     speexBuffer = new int16_t[MAX_NB_BYTES*2];
+    resampler = new int16_t[BUFFER_SIZE];
 #endif
+    // Initialize a ring buffer
+    if (ringBufferData)
+        delete[] ringBufferData;
+    ringBufferData = new int16_t[524288];
+    PaUtil_InitializeRingBuffer(&ringBuffer, sizeof(int16_t) , 524288, ringBufferData);
+    // Init a resampler
+    if (resample) {
+        int speex_err = 0;
+        mspeex_src_state = speex_resampler_init(2,SAMPLERATE,11025,5,&speex_err);
+        qDebug() << "Speex resampler error : " << speex_resampler_strerror(speex_err);
+    }
 }
 
 CSoundStream::~CSoundStream()
@@ -43,16 +56,21 @@ CSoundStream::~CSoundStream()
 void CSoundStream::acceptConnection()
 {
   // Wait for connection in each loop
-  if ((!connected) && (server->waitForNewConnection(1))) {
+  if ((!connected) && (server->waitForNewConnection(5))) {
       client = server->nextPendingConnection();
       qDebug() << "Connect server socker event acceptConnection()";
       connect(client, SIGNAL(readyRead()), this, SLOT(startRead()));
       connect(client,SIGNAL(disconnected()), this, SLOT(disconnected()));
       connected = true;
 #ifdef WITH_SPEEX
-        int quality = 8; // Speex quality encoder
+        int quality = 4; // Speex quality encoder
         int complexity = 3; // Speex complexity encoder
-        int samplerate = SAMPLERATE;
+        int samplerate = 0;
+        if (resample==true) {
+            samplerate = 11025;
+        } else {
+            samplerate = SAMPLERATE;
+        }
         int nbBytes = 0;
         int vbr = 0;
         float vbrquality = 5.0;
@@ -142,4 +160,38 @@ void CSoundStream::disconnected()
     qDebug() << "client disconnected";
     //client->close();
     connected = false;
+}
+
+void CSoundStream::setData(int16_t *data, int size)
+{
+    // Write data to ringbuffer
+    if (connected) {
+        long avail = PaUtil_GetRingBufferWriteAvailable(&ringBuffer);
+        if (resample) {
+            spx_uint32_t buf_len = size;
+            spx_uint32_t bufout_len;
+            // other code eg. using bass to feed "buf" and set buf_len etc. but this part is correct.
+            spx_uint32_t speex_err = 0;
+            speex_err = speex_resampler_process_interleaved_int(mspeex_src_state,data,&buf_len,resampler,&bufout_len);
+            //qDebug() << "output buffer size " << bufout_len;
+            PaUtil_WriteRingBuffer(&ringBuffer, resampler, (avail<bufout_len)?avail:bufout_len);
+        } else {
+            PaUtil_WriteRingBuffer(&ringBuffer, data, (avail<size)?avail:size);
+        }
+    }
+}
+
+void CSoundStream::doWork()
+{
+    acceptConnection();
+    if (connected) {
+        // do some byte available for work ?
+        int avail = PaUtil_GetRingBufferReadAvailable(&ringBuffer);
+        // Encode only if enought is available
+        if (avail > BUFFER_SIZE) {
+            PaUtil_ReadRingBuffer(&ringBuffer,(void*)stereoBuffer,(avail<BUFFER_SIZE)?avail:BUFFER_SIZE);
+            // Encode the data and send it
+            encode(stereoBuffer,(avail<BUFFER_SIZE)?avail:BUFFER_SIZE);
+        }
+    }
 }

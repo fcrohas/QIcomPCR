@@ -35,6 +35,7 @@ private:
     int blankCount;
     int timing;
     CSoundStream *soundStream;
+    QThread *audioEncode;
 #ifdef WITH_SAMPLERATE
     float *inputbufferf;
     float *outputbufferf;

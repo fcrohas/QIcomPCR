@@ -105,18 +105,25 @@ void CPortAudio::run()
     Initialize();
     // Sound streaming
     soundStream = new CSoundStream();
+    audioEncode = new QThread();
+    soundStream->moveToThread(audioEncode);
+    audioEncode->start();
     // Work on RingBuffer until end
     int16_t *data = new int16_t[BUFFER_SIZE];
     memset(data,0,BUFFER_SIZE);
     while(running) {
         while(PaUtil_GetRingBufferReadAvailable(&ringBuffer)<BUFFER_SIZE) { Pa_Sleep(10); }
         int readCount = PaUtil_ReadRingBuffer(&ringBuffer,data,BUFFER_SIZE);
-        soundStream->acceptConnection();
         DecodeBuffer(data,BUFFER_SIZE);
-        soundStream->encode(data,BUFFER_SIZE);
+        // add data to ringbuffer of the encoder
+        soundStream->setData(data,BUFFER_SIZE);
+        // Start the workker function;
+        QMetaObject::invokeMethod(soundStream, "doWork");
     }
     delete [] data;
+    audioEncode->terminate();
     delete soundStream;
+    delete audioEncode;
     terminate();
 }
 

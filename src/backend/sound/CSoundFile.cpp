@@ -46,16 +46,16 @@ bool CSoundFile::Load(QString &fileName)
         samplerate = sfinfo.samplerate;
         frames = sfinfo.frames;
         double oversample_factor = SAMPLERATE*1.0 / samplerate*1.0;
-        qDebug() << "Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames << " oversample ratio " << ceil(oversample_factor);
+        qDebug() << QThread::currentThreadId() << " Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames << " oversample ratio " << ceil(oversample_factor);
         // Init sample rate converter
         int error = 0;
         converter =  src_new( SRC_SINC_BEST_QUALITY , channels, &error);
         if (error != 0) {
-            qDebug() << "Error creating sample rate converter : " << src_strerror(error);
+            qDebug() << QThread::currentThreadId() << " Error creating sample rate converter : " << src_strerror(error);
         }
         double sampletiming = 1.0 / SAMPLERATE;
-        timing = (BUFFER_SIZE / channels) * sampletiming *500; // millisecond of a buffer size per channel
-        qDebug() << "buffer time is " << timing;
+        timing = (BUFFER_SIZE / channels) * sampletiming *1000; // millisecond of a buffer size per channel
+        qDebug() << QThread::currentThreadId() << " buffer time is " << timing;
         /* we can only cope with integer submultiples */
         // Init buffer size to read
         inputbuffer = new int16_t[BUFFER_SIZE];
@@ -113,7 +113,10 @@ bool CSoundFile::Read(int16_t *data, int offset)
     }
 
     this->DecodeBuffer(data,BUFFER_SIZE);
-    soundStream->encode(data,BUFFER_SIZE);
+    // add data to ringbuffer of the encoder
+    soundStream->setData(data,BUFFER_SIZE);
+    // Start the workker function;
+    QMetaObject::invokeMethod(soundStream, "doWork");//, Qt::QueuedConnection);
     msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
     return true;
 }
@@ -137,7 +140,10 @@ bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
         //qDebug() << "output 1 frames gen is " << dataconv.output_frames_gen << " from input used " << dataconv.input_frames_used;
         src_float_to_short_array(outputbufferf,data,BUFFER_SIZE);
         this->DecodeBuffer(data,BUFFER_SIZE);
-        soundStream->encode(data,BUFFER_SIZE);
+        // add data to ringbuffer of the encoder
+        soundStream->setData(data,BUFFER_SIZE);
+        // Start the workker function;
+        QMetaObject::invokeMethod(soundStream, "doWork");
         // sleep in ms is the size of buffer  * samplerate timming per channel
         msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
         if (dataconv.input_frames_used == 0) {
@@ -146,7 +152,10 @@ bool CSoundFile::ReadOverSample(int16_t *data, int offset, double ratio)
             //qDebug() << "output 2 frames gen is " << dataconv.output_frames_gen << " from input used " << dataconv.input_frames_used;
             src_float_to_short_array(outputbufferf,data,BUFFER_SIZE);
             this->DecodeBuffer(data,BUFFER_SIZE);
-            soundStream->encode(data,BUFFER_SIZE);
+            // add data to ringbuffer of the encoder
+            soundStream->setData(data,BUFFER_SIZE);
+            // Start the workker function;
+            QMetaObject::invokeMethod(soundStream, "doWork");
             msleep(timing); // Give how much millisecond we wait before next salve of BUFFER_SIZE/2 samples per channels
         }
         return true;
@@ -166,7 +175,11 @@ void CSoundFile::setRunning(bool value)
 void CSoundFile::run()
 {
     // Sound streaming
+    //qDebug() << QThread::currentThreadId() << " File reading thread";
     soundStream = new CSoundStream();
+    audioEncode = new QThread();
+    soundStream->moveToThread(audioEncode);
+    audioEncode->start();
     // Wait for event to process
     // Allocate data file for decoder
     int16_t *data = new int16_t[BUFFER_SIZE];
@@ -178,7 +191,6 @@ void CSoundFile::run()
         // to simulate sound card reading
         // and better
         int i=0;
-        soundStream->acceptConnection();
         // Read all buffer
         if (oversample_factor == 1.0) {
             Read(data,i);
@@ -204,7 +216,10 @@ void CSoundFile::run()
         }
     }
     delete [] data;
+    audioEncode->terminate();
     delete soundStream;
+    delete audioEncode;
+    terminate();
 }
 
 
