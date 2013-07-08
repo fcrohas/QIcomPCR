@@ -46,16 +46,16 @@ bool CSoundFile::Load(QString &fileName)
         samplerate = sfinfo.samplerate;
         frames = sfinfo.frames;
         double oversample_factor = SAMPLERATE*1.0 / samplerate*1.0;
-        qDebug() << QThread::currentThreadId() << " Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames << " oversample ratio " << ceil(oversample_factor);
+        qDebug() << " Information channels count is " << channels << " samplerate is " << samplerate << " frames count is " << frames << " oversample ratio " << ceil(oversample_factor);
         // Init sample rate converter
         int error = 0;
         converter =  src_new( SRC_SINC_BEST_QUALITY , channels, &error);
         if (error != 0) {
-            qDebug() << QThread::currentThreadId() << " Error creating sample rate converter : " << src_strerror(error);
+            qDebug() << " Error creating sample rate converter : " << src_strerror(error);
         }
         double sampletiming = 1.0 / SAMPLERATE;
         timing = (BUFFER_SIZE / channels) * sampletiming *1000; // millisecond of a buffer size per channel
-        qDebug() << QThread::currentThreadId() << " buffer time is " << timing;
+        qDebug() << " buffer time is " << timing;
         /* we can only cope with integer submultiples */
         // Init buffer size to read
         inputbuffer = new int16_t[BUFFER_SIZE];
