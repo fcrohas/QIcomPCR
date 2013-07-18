@@ -9,7 +9,8 @@ var RemoteControl = Backbone.Model.extend({
       ifshift  : 128,
       modulation: "FM",
       data: "0",
-      scopeRate: "1"
+      scopeRate: "1",
+      bandwidth : 3  // around 120 hz at 22050 hz
     },
     initialize: function() { 
   

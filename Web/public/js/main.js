@@ -35,7 +35,7 @@ $(document).ready(function(){
     frequencystep = new FrequencyStepView({ el: '#frequencystep', frequencytable:freqTable, model:remote });
 
     // Viewer
-    viewer = new ViewerView({ el : '#scope', model:remote});
+    viewer = new ViewerView2D({ el : '#scope', model:remote});
     
     // Connect remote to device
     remote.connect();

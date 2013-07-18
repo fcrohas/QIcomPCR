@@ -24,8 +24,6 @@ var SoundControl = Backbone.Model.extend({
       if (this.get('isApplet') == false) {
 	this.context = new AudioContext();
 	this.source = this.context.createBufferSource(0); // creates a sound source    
-	this.source.connect(this.context.destination);       // connect the source to the context's destination (the speakers)    
-	// Get buffer pointer to channel 0
 	this.buffer = this.context.createBuffer(1, this.maxBufferSize, 22050); //  5s buffer	
 	if (this.get('resample') == true) {
 	  this.resampleControl = new Resampler(11025,22050,1,512,true);
@@ -33,6 +31,7 @@ var SoundControl = Backbone.Model.extend({
 	// for ring buffer allocate twice the size
 	this.ringbuffer = new Float32Array(this.maxBufferSize*2); 
 	this.ringsize = 0;
+	this.starttime = 0;
       }
     },
     disconnect: function() {
@@ -112,16 +111,19 @@ var SoundControl = Backbone.Model.extend({
     },
     playBuffer : function() {
 	//try {
-		console.log("Play Buffer");
+		console.log("Play Buffer");      
+		// Get buffer pointer to channel 0
 		var buf = this.buffer.getChannelData(0);
 		//console.log("Ring buffer size is " + this.ringsize);
 		for (var i=0; i<this.maxBufferSize;i++) {
-			  buf[i] = this.ringbuffer[i];
+		    buf[i] = this.ringbuffer[i];
 		}
 		this.source.buffer = this.buffer;   // tell the source which sound to play
 		//console.log(this.source.buffer);	  
 		this.source.loop = false;
-		this.source.start(0); 
+		this.source.connect(this.context.destination);       // connect the source to the context's destination (the speakers)    
+		this.source.noteOn(this.starttime); 
+		this.starttime += this.buffer.duration;
 	/*} catch (e) {
 		console.log(e.message);
 	}*/

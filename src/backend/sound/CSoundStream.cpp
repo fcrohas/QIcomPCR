@@ -10,6 +10,7 @@ CSoundStream::CSoundStream(QObject *parent) :
     speexSize(0),
     stereoPos(0),
     stereoSize(0),
+    ringBufferData(NULL),
 #ifdef WITH_SPEEX
     enc_state(NULL),
     resample(false)

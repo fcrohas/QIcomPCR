@@ -81,6 +81,11 @@ var ViewerView = Backbone.View.extend({
 	}
 	this.line = this.line + 1;
   },
+  memcpy : function (dst, dstOffset, src, srcOffset, length) {
+      var dstU8 = new Uint8Array(dst, dstOffset, length);
+      var srcU8 = new Uint8Array(src, srcOffset, length);
+      dstU8.set(srcU8);
+  },
   powertoggle: function()
   {
     if (this.power == true) {
@@ -99,7 +104,7 @@ var ViewerView = Backbone.View.extend({
   setup : function() {
 	this.size(256, 200);
 	this.frameRate(5);
-	this.datas = new Array(this.height*this.width);
+	this.datas = new Uint8Array(this.height*this.width);
 	//this.img = this.createImage(256,400,this.RGB);
 	//this.img = this.loadImage("img/flipCounter-medium.png");
 	this.background(0);
