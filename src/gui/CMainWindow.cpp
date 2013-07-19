@@ -266,7 +266,7 @@ void CMainWindow::slotReceivedData(QString data)
         value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
         if ((ok) /* && (ui->radio1->isChecked())*/) {
             display->setSignal(0,value);
-            remote->sendData(QString("SA%1").arg(value));
+            remote->sendData(QString("@SA%1@").arg(value));
         }
         found = true;
     }
@@ -277,20 +277,20 @@ void CMainWindow::slotReceivedData(QString data)
         value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
         if ((ok) /* && (ui->radio2->isChecked())*/) {
             display->setSignal(1,value);
-            remote->sendData(QString("SB%1").arg(value));
+            remote->sendData(QString("@SB%1@").arg(value));
         }
         found = true;
     }
     if (data.contains("H100")) {
         statusBar()->showMessage(tr("Offline"));
         status->setState(false);
-        remote->sendData(QString("PWROFF"));
+        remote->sendData(QString("@PWROFF@"));
         found = true;
     }
     if (data.contains("H101")) {
         statusBar()->showMessage(tr("Online"));
         status->setState(true);
-        remote->sendData(QString("PWRON"));
+        remote->sendData(QString("@PWRON@"));
         found = true;
     }
     if (data.contains("NE")) {
@@ -299,7 +299,7 @@ void CMainWindow::slotReceivedData(QString data)
     }
     if (!found) {
         dbgWin->slotDebugSerial(data);
-        remote->sendData(QString("DBG\r\n%1").arg(data));
+        remote->sendData(QString("@DBG\r\n%1@").arg(data));
     }
 
 
@@ -497,6 +497,7 @@ void CMainWindow::slotDemodulatorData(QString data)
     //ui->decoderText->append(data);
     QScrollBar *sb = ui->decoderText->verticalScrollBar();
     sb->setValue(sb->maximum());
+    remote->sendData(QString("@DEM\t%1@").arg(data));
 }
 
 void CMainWindow::slotDecoderChange(int value)

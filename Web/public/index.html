@@ -14,6 +14,13 @@
 	font:16px/26px Georgia, Garamond, Serif;
 	overflow:auto;      
       }
+      .scrollboxhalf {
+	height:50%;
+	width:90%;
+	border:1px solid #ccc;
+	font:16px/26px Georgia, Garamond, Serif;
+	overflow:auto;      
+      }
       #signal {
 	width:25%;
       }
@@ -31,6 +38,11 @@
 	-webkit-border-radius: 25px;
 	-moz-border-radius: 25px;
 	border-radius: 25px;        
+      }
+      canvas {
+	width: 640px;
+	height: 256px;
+	cursor: none;
       }
       .slider-selection {
 	background: #BABABA;
@@ -77,10 +89,12 @@
 	  <div id="signal"></div>
 	  <div id="frequency"></div>	  
 	  <div id="frequencystep"></div>
-	  <div id="scope"></div>
 	  <!-- audio controls src="http://localhost:8000/"></audio -->
 	</div>
-	<div class="tab-pane" id="demod">...</div>
+	<div class="tab-pane" id="demod">
+	  <div id="dmodwin"></div>
+	  <div id="scope"></div>
+	</div>
 	<div class="tab-pane" id="debug">
 	  <div id="dbgwin"></div>
 	</div>
@@ -122,7 +136,8 @@
     <script src="/js/views/radio.js"></script><!-- Debug Window widget -->    
     <script src="/js/views/frequency.js"></script><!-- Debug Window widget -->
     <script src="/js/views/frequencystep.js"></script><!-- Debug Window widget -->
-    <script src="/js/views/viewer2d.js"></script><!-- Scope widget 2D -->    
+    <script src="/js/views/viewer2d.js"></script><!-- Scope widget 2D -->
+    <script src="/js/views/decoder.js"></script><!-- Decoder widget -->        
 
     <script src="/js/main.js"></script>
     
@@ -137,6 +152,11 @@
       <div class="scrollbox"></div>
     </script>
 
+    <!-- Templating Demodulator window Widget-->
+    <script type="text/template" id="decoderTemplate">
+      <div class="scrollboxhalf"></div>
+    </script>
+    
     <!-- Templating Status Widget-->
     <script type="text/template" id="statusTemplate">
       Last status :<span id="statuscmd"></span>

@@ -1,9 +1,13 @@
 var RemoteControl = Backbone.Model.extend({
     defaults : {
+      commandPath :'/command',
+      dataPath :'/data',
       signal1 : 0,
       signal2 : 0,
-      state   : "unknown",
+      statecmd: "unknown",
+      statedata: "unknown",
       debug   : "",
+      decodedText : "",
       power   : false,
       frequency: 106500000,
       ifshift  : 128,
@@ -17,20 +21,32 @@ var RemoteControl = Backbone.Model.extend({
     },
     // Socket.IO management
     connect: function() {
-	this.socket = io.connect();
-	this.socket.model = this;
-	this.socket.on('connect', this.onConnect);
-	this.socket.on('message', this.onMessage);
+	this.cmd = io.connect('http://'+window.location.host+this.get('commandPath'));
+	this.data = io.connect('http://'+window.location.host+this.get('dataPath'));
+	this.cmd.model = this;
+	this.cmd.on('connect', this.onConnectCmd);
+	this.cmd.on('message', this.onMessage);
+	this.data.model = this;
+	this.data.on('connect', this.onConnectData);
+	this.data.on('message', this.onData);
 	this.on('change:frequency', this.setFrequency);
 	this.on('change:scopeRate', this.setScopeRate);
     },
-    onConnect: function() {
+    onConnectCmd: function() {
       //console.log(this.model);
-      this.model.set('state', 'Connected');
+      this.model.set('statecmd', 'Connected');
       this.on('disconnect', this.model.onDisconnect);      
     },
-    onDisconnect: function() {
-      this.model.set('state', 'Disconnected');
+    onConnectData: function() {
+      //console.log(this.model);
+      this.model.set('statedata', 'Connected');
+      this.on('disconnect', this.model.onDisconnect);      
+    },
+    onDisconnectCmd: function() {
+      this.model.set('statecmd', 'Disconnected');
+    },
+    onDisconnectData: function() {
+      this.model.set('statedata', 'Disconnected');
     },
     onMessage: function(msg) {
       if (msg.substring(0,2) == 'SA') {
@@ -42,6 +58,9 @@ var RemoteControl = Backbone.Model.extend({
       if (msg.substring(0,3) == 'DBG') {
 	this.model.set('debug', msg.substring(3));
       }
+      if (msg.substring(0,4) == 'DEM\t') {
+	this.model.set('decodedText', msg.substring(4));
+      }
       if (msg.substring(0,6) == 'PWROFF') {
 	this.model.set('power', false);
       }
@@ -52,37 +71,42 @@ var RemoteControl = Backbone.Model.extend({
 	this.model.set('data', msg.substring(2));
       }
     },
+    onData: function(msg) {
+      if (msg.substring(0,2) == 'WT') {
+	this.model.set('data', msg.substring(2));
+      }
+    },
     // Remote controller event
     togglePower: function() {
       if (this.get('power') == false) {
-	this.socket.send('PWRON');
+	this.cmd.send('PWRON');
       } else {
-	this.socket.send('PWROFF');
+	this.cmd.send('PWROFF');
       }
       this.set('power', !this.get('power'));
     },
     setFrequency: function(model) {
       var value = model.get('frequency');
       if ((value != undefined) && (value !='')) {
-	this.socket.send('FREQ'+value);
+	this.cmd.send('FREQ'+value);
       }
     },
     setModulation: function(value) {
-      this.socket.send('MOD'+value);
+      this.cmd.send('MOD'+value);
     },
     setIFShift: function(value) {
-      this.socket.send('IF'+value);
+      this.cmd.send('IF'+value);
     },
     setFilter: function(value) {
-      this.socket.send('FILTER'+value);
+      this.cmd.send('FILTER'+value);
     },
     setScope: function(value) {
       if (value == true)
-	this.socket.send('WT'+this.get("scopeRate"));
+	this.cmd.send('WT'+this.get("scopeRate"));
       else
-	this.socket.send('WTOFF');
+	this.cmd.send('WTOFF');
     },
     setScopeRate: function(model) {
-	this.socket.send('WT'+model.get("scopeRate"));
+	this.cmd.send('WT'+model.get("scopeRate"));
     }
 });

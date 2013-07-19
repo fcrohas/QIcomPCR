@@ -46,34 +46,82 @@ socket.set("destroy upgrade",false);
 
 
 var HOST = '127.0.0.1';
-var PORT = 8888;
+var PORTCMD = 8888;
+var SOUND = 8889;
 
+// Sound tcp port connection
+// this is a separate port as it is a specific thread
+var soundpcr = new net.Socket();
+soundpcr.connect(SOUND, HOST, function() {
+  console.log('CONNECTED TO: ' + HOST + ':' + SOUND);
 
-socket.on('connection', function (client){ 
-  var icompcr = new net.Socket();
-  icompcr.connect(PORT, HOST, function() {
+});
 
-    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
-    // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-    icompcr.write('I am Chuck Norris!');
+soundpcr.on('close', function() {
+  console.log('Sound connection closed');
+  soundpcr.destroy();
+});  
 
-  });
-  //client.send('QIcomPCR closed');
-  // Add a 'close' event handler for the client socket
-  icompcr.on('close', function() {
-    console.log('Data connection closed');
-    client.send('QIcomPCR closed');
-    icompcr.destroy();
-  });
+// Cmd/data tcp port connection
+var icompcr = new net.Socket();
+icompcr.connect(PORTCMD, HOST, function() {
+
+  console.log('CONNECTED TO: ' + HOST + ':' + PORTCMD);
+  // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
+  icompcr.write('I am Chuck Norris!');
+
+});
+// Add a 'close' event handler for the client socket
+icompcr.on('close', function() {
+  console.log('Data connection closed');
+  icompcr.destroy();
+});
+
+socket.of('/command').on('connection', function (client){ 
   // Add a 'data' event handler for the client socket
   // data is what the server sent to this socket
   icompcr.on('data', function(data) {
-    client.send(data );
+    // discard frame starting with WT
+    var msg = new String(data);
+    // try to find if multiple frame are here
+    var frame = msg.split('@');
+    for (var i=0; i < frame.length; i++) {
+      if (frame[i] !='') {
+	if (frame[i].substring(0,2) != 'WT') {
+	  client.volatile.send(frame[i]);
+	}
+      }
+    }
   });
 
   client.on('message', function (msg) {
    icompcr.write(msg);
-  }) ;
+  });
+
+  client.on('disconnect', function () {
+  });
+});
+
+socket.of('/data').on('connection', function (client){ 
+  // Add a 'data' event handler for the client socket
+  // data is what the server sent to this socket
+  icompcr.on('data', function(data) {
+    // Allow only waterfall frame 
+    var msg = new String(data);    
+    // try to find if multiple frame are here
+    var frame = msg.split('@');
+    for (var i=0; i < frame.length; i++) {
+      if (frame[i] !='') {
+	if (frame[i].substring(0,2) == 'WT') {
+	  client.volatile.send(frame[i]);
+	}
+      }
+    }
+  });
+
+  client.on('message', function (msg) {
+    icompcr.write(msg);
+  });
 
   client.on('disconnect', function () {
   });
@@ -84,20 +132,9 @@ binarySocket.on('connection', function(client) {
   client.on('stream', function(stream) {
     console.log('client stream started!');
   });
-  var soundpcr = new net.Socket();
-  var stream; // = client.createStream('speex sound incomming');  
-  soundpcr.connect(8889, HOST, function() {
-    console.log('CONNECTED TO: ' + HOST + ':8889');
-
-  });
 
   soundpcr.on('data', function(data) {
     client.send(data);
   });
 
-  soundpcr.on('close', function() {
-    console.log('Sound connection closed');
-    //client.send('QIcomPCR closed');
-    soundpcr.destroy();
-  });  
 });

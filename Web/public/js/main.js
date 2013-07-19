@@ -12,8 +12,8 @@ $(document).ready(function(){
     // Build remote control 
     remote = new RemoteControl();
 	
-	// Build sound streaming 
-	sound = new SoundControl();
+    // Build sound streaming 
+    sound = new SoundControl();
     
     //Build Frequency Table maangement
     freqTable = new FrequencyTable();
@@ -26,6 +26,9 @@ $(document).ready(function(){
     
     //Bind debug window
     debugWindow = new DebugView({ el: '#dbgwin', model:remote});
+
+    //Bind decoder window
+    demodWindow = new DecoderView({ el: '#dmodwin', model:remote});
     
     //Bind radio control buttons
     radioCmd = new RadioCmd({ el: '#control', model:remote});
