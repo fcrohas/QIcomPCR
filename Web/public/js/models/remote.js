@@ -6,6 +6,8 @@ var RemoteControl = Backbone.Model.extend({
       signal2 : 0,
       statecmd: "unknown",
       statedata: "unknown",
+      selectedFrequency: -1,
+      selectedBandwidth: 120, // around 120 hz
       debug   : "",
       decodedText : "",
       power   : false,
@@ -13,8 +15,7 @@ var RemoteControl = Backbone.Model.extend({
       ifshift  : 128,
       modulation: "FM",
       data: "0",
-      scopeRate: "1",
-      bandwidth : 3  // around 120 hz at 22050 hz
+      scopeRate: "1"
     },
     initialize: function() { 
   
@@ -31,6 +32,8 @@ var RemoteControl = Backbone.Model.extend({
 	this.data.on('message', this.onData);
 	this.on('change:frequency', this.setFrequency);
 	this.on('change:scopeRate', this.setScopeRate);
+	this.on('change:selectedFrequency', this.setSelectedFrequency);
+	this.on('change:selectedBandwidth', this.setSelectedBandwidth);
     },
     onConnectCmd: function() {
       //console.log(this.model);
@@ -90,6 +93,14 @@ var RemoteControl = Backbone.Model.extend({
       if ((value != undefined) && (value !='')) {
 	this.cmd.send('FREQ'+value);
       }
+    },
+    setSelectedFrequency: function() {
+      var value = this.get('selectedFrequency');
+      this.cmd.send('SFREQ'+value);
+    },
+    setSelectedBandwidth: function() {
+      var value = this.get('selectedBandwidth');
+      this.cmd.send('SFRQW'+value);
     },
     setModulation: function(value) {
       this.cmd.send('MOD'+value);

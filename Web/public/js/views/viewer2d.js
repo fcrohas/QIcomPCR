@@ -9,7 +9,7 @@ var ViewerView2D = Backbone.View.extend({
     this.currentx = 0;
     this.fixedx = -1;
     this.fixedy = -1;
-    this.bandwidth = this.model.get("bandwidth");
+    this.bandwidth = 3;
   },
   //template: _.template($("#signalTemplate").html(), this.model),
   render: function() {
@@ -122,10 +122,10 @@ var ViewerView2D = Backbone.View.extend({
 	var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 	// get bandwidth
 	this.bandwidth += delta;
-	// set it back
-	this.model.set(this.bandwidth);
 	// Redraw all
 	this.onMouseMove(e);
+	// Set Selected bandwidth
+	this.model.set('selectedBandwidth',this.bandwidth * 22050.0 / 512.0);
   },
   onClick : function(event) {
     this.fixedx = event.offsetX;
@@ -135,6 +135,8 @@ var ViewerView2D = Backbone.View.extend({
 	this.drawFrequency(this.fixedx,this.fixedy);
 	this.drawBandwidth(this.fixedx,this.fixedy);
     }
+    // Set Selected frequency
+    this.model.set('selectedFrequency',this.fixedx * 22050.0 / 512.0);
   },
   drawFrequency : function(x,y) {
       // Save image before drawing

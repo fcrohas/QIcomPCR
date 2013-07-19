@@ -83,6 +83,14 @@ void CRemoteControl::decode(char *buffer)
         if (modulation == "USB") emit sigModulation(CCommand::eUSB);
         if (modulation == "CW")  emit sigModulation(CCommand::eCW);
     } else
+    if (decodedString.startsWith("SFREQ")) {
+        QString frequency = decodedString.replace("SFREQ","");
+        emit sigSelectFrequency(frequency.toDouble());
+    } else
+    if (decodedString.startsWith("SFRQW")) {
+        QString width = decodedString.replace("SFRQW","");
+        emit sigSelectBandwidth(width.toDouble());
+    } else
     if (decodedString.startsWith("NBON")) {
         emit sigNoiseBlanker(true);
     } else

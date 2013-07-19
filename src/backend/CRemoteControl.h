@@ -80,6 +80,9 @@ class CRemoteControl: public QObject
       // set Squelch
       void sigSquelch(uint value);
 
+      // Frequency
+      void sigSelectFrequency(double value);
+      void sigSelectBandwidth(double value);
 };
 
 #endif // CREMOTECONTROL_H
