@@ -32,11 +32,14 @@ $(document).ready(function(){
     
     //Bind radio control buttons
     radioCmd = new RadioCmd({ el: '#control', model:remote});
-    
+
     // Bind frequency
     frequency = new FrequencyView({ el: '#frequency', frequencytable:freqTable, model:remote });
     frequencystep = new FrequencyStepView({ el: '#frequencystep', frequencytable:freqTable, model:remote });
 
+    //Bind radio control buttons
+    radioDisplay = new Display({ el: '#mainDisplay', frequencytable:freqTable, model:remote});
+    
     // Viewer
     viewer = new ViewerView2D({ el : '#scope', model:remote});
     

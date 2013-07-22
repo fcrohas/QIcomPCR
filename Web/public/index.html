@@ -18,8 +18,14 @@
 	height:50%;
 	width:90%;
 	border:1px solid #ccc;
-	font:16px/26px Georgia, Garamond, Serif;
-	overflow:auto;      
+	font:14px/18px Courier, Serif;
+	overflow:auto;   
+	font-family:Courier;
+	color: #00CC00;
+	background: #000000;
+	border: 3px double #CCCCCC;
+	padding: 10px;	
+	line-height: 10px; 
       }
       #signal {
 	width:25%;
@@ -32,6 +38,7 @@
 	      /*position:relative;*/
 	      background-color:#f00;
       }
+      .btn-group-vertical .btn {width:100%;}
       #scope1 {
 	border:1px solid #000;
         background-color:#000;
@@ -84,11 +91,20 @@
       
       <div class="tab-content">
 	<div class="tab-pane active" id="cmd">
-	  <div id="control"></div>
-	  <div id="status"></div>
+	  <div class="row">
+	    <div class="span2">
+	    </div>
+	    <div class="span8">
+	      <div id="mainDisplay"></div>
+	    </div>
+	    <div class="span2">
+	      <div id="control"></div>
+	    </div>
+	  </div>
+	  <!--div id="status"></div>
 	  <div id="signal"></div>
 	  <div id="frequency"></div>	  
-	  <div id="frequencystep"></div>
+	  <div id="frequencystep"></div-->
 	  <!-- audio controls src="http://localhost:8000/"></audio -->
 	</div>
 	<div class="tab-pane" id="demod">
@@ -137,7 +153,8 @@
     <script src="/js/views/frequency.js"></script><!-- Debug Window widget -->
     <script src="/js/views/frequencystep.js"></script><!-- Debug Window widget -->
     <script src="/js/views/viewer2d.js"></script><!-- Scope widget 2D -->
-    <script src="/js/views/decoder.js"></script><!-- Decoder widget -->        
+    <script src="/js/views/decoder.js"></script><!-- Decoder widget -->
+    <script src="/js/views/display.js"></script><!-- Display widget -->        
 
     <script src="/js/main.js"></script>
     
@@ -154,7 +171,42 @@
 
     <!-- Templating Demodulator window Widget-->
     <script type="text/template" id="decoderTemplate">
-      <div class="scrollboxhalf"></div>
+	<div class="row">
+	 <div class="span3">
+	  <div class="span1">
+	    <div class="btn-group">
+	      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+		Channel
+		<span class="caret"></span>
+	      </button>
+	      <ul class="dropdown-menu">
+		<li><a href="#">0</a></li>
+		<li><a href="#">1</a></li>
+		<li><a href="#">2</a></li>
+	      </ul>
+	    </div>
+	  </div>
+	  <div class="span1">
+	    <div class="btn-group">
+	      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+		Decoder
+		<span class="caret"></span>
+	      </button>
+	      <ul class="dropdown-menu">
+		<li><a href="#">None</a></li>
+		<li><a href="#">Acars</a></li>
+		<li><a href="#">Acars GPL</a></li>
+		<li><a href="#">CW</a></li>
+		<li><a href="#">RTTY</a></li>
+	      </ul>
+	    </div>
+	  </div>
+	 </div>
+	</div>
+	<div class="scrollboxhalf">
+	  <div id="content"></div>
+	  <div class="cursor"></div>
+	</div>
     </script>
     
     <!-- Templating Status Widget-->
@@ -163,10 +215,17 @@
     </script>
     
     <!-- Templating Radio buttons Widget-->
-    <script type="text/template" id="radioTemplate">
+    <script type="text/template" id="controlTemplate">
       <button type="button" class="btn power" data-toggle="button" >Power</button>
+      <div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox">
+	  <button class="btn nb">Noise Blanker</button>
+	  <button class="btn agc">Auto Gain Control</button>
+	  <button class="btn vsc">Voice Squelch</button>
+      </div>
+    </script>    
+    <script type="text/template" id="radioTemplate">
       <div class="btn-toolbar">
-	<div class="btn-group" data-toggle="buttons-radio">
+	<div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
 	    <button class="btn wfm">Wide FM</button>
 	    <button class="btn fm">FM</button>
 	    <button class="btn am">AM</button>
@@ -174,17 +233,12 @@
 	    <button class="btn lsb">LSB</button>
 	    <button class="btn cw">CW</button>	
 	</div>
-	<div class="btn-group" data-toggle="buttons-radio">
+	<div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
 	    <button class="btn 28k">2.8k</button>
 	    <button class="btn 6k">6k</button>
 	    <button class="btn 15k">15k</button>
 	    <button class="btn 50k">50k</button>
 	    <button class="btn 230k">230k</button>	
-	</div>
-	<div class="btn-group" data-toggle="buttons-checkbox">
-	    <button class="btn nb">Noise Blanker</button>
-	    <button class="btn agc">Auto Gain Control</button>
-	    <button class="btn vsc">Voice Squelch</button>
 	</div>
       </div>
     </script>    
@@ -192,6 +246,11 @@
       <div>
 	<div id="digits"></div>
 	<div id="control"></div>
+      </div>
+    </script>
+    <script type="text/template" id="displayTemplate">
+      <div>
+	<div id="display"></div>
       </div>
     </script>
     <script type="text/template" id="viewerTemplate">

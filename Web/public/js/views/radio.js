@@ -1,6 +1,6 @@
 var RadioCmd = Backbone.View.extend({
   initialize: function() {
-    this.listenTo(this.model, "change:state", this.setStatus);
+    this.listenTo(this.model, "change:statecmd", this.setStatus);
     this.listenTo(this.model, "change:power", this.setpower);
     this.render();
   },
@@ -46,19 +46,19 @@ var RadioCmd = Backbone.View.extend({
     this.model.setModulation('CW');
   },
   toggle230k: function(event) {
-    this.model.setFilter('230K');
+    this.model.setFilter(230000);
   },
   toggle50k: function(event) {
-    this.model.setFilter('50K');
+    this.model.setFilter(50000);
   },
   toggle15k: function(event) {
-    this.model.setFilter('15K');
+    this.model.setFilter(15000);
   },
   toggle6k: function(event) {
-    this.model.setFilter('6K');
+    this.model.setFilter(6000);
   },
   toggle28k: function(event) {
-    this.model.setFilter('28K');
+    this.model.setFilter(2800);
   },
   setStatus : function() {
   },

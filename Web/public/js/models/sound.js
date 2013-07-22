@@ -122,7 +122,7 @@ var SoundControl = Backbone.Model.extend({
 		//console.log(this.source.buffer);	  
 		this.source.loop = false;
 		this.source.connect(this.context.destination);       // connect the source to the context's destination (the speakers)    
-		this.source.noteOn(this.starttime); 
+		this.source.noteOn(0); 
 		this.starttime += this.buffer.duration;
 	/*} catch (e) {
 		console.log(e.message);
