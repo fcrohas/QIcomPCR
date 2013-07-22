@@ -18,11 +18,11 @@ var SoundControl = Backbone.Model.extend({
       });
       window.AudioContext = window.AudioContext || window.webkitAudioContext;
       if ( (window.AudioContext == null) || (window.AudioContext == undefined)) {
-	this.set('isApplet',false);
+	this.set('isApplet',true);
       }
       this.maxBufferSize = this.get('maxBufferSize');
       if (this.get('isApplet') == false) {
-	this.context = new AudioContext();
+	this.context = new window.AudioContext();
 	this.source = this.context.createBufferSource(0); // creates a sound source    
 	this.buffer = this.context.createBuffer(1, this.maxBufferSize, 22050); //  5s buffer	
 	if (this.get('resample') == true) {
