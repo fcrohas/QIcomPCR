@@ -180,6 +180,7 @@ void CMainWindow::connectSignals()
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
     connect(remote,SIGNAL(sigChannel(int)), cmd, SLOT(slotChannelChange(int)));
     connect(remote,SIGNAL(sigDecoder(int)), cmd, SLOT(slotDecoderChange(int)));
+    connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
     connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     // Connect load file

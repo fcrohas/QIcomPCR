@@ -5,19 +5,32 @@ var FrequencyTable = Backbone.Model.extend({
     value : 10
   },
   initialize : function() {
+    this.on('change:position',this.setValue);
     
   },
   increaseStep : function() {
     var position = this.get('position') + 1;
     var step = this.get('step');
-    this.set('value', step[position]);
+    // Block out of bound
+    if (position == step.length)
+	position = step.length -1;
     this.set('position', position);
   },
   decreaseStep : function() {
     var position = this.get('position') - 1;
-    var step = this.get('step');
-    this.set('value', step[position]);
+    // Block out of bound
+    if (position < 0)
+	position = 0;
     this.set('position', position);
+  },
+  setValue: function(model) {
+    var step = this.get('step');
+    model.set('value', step[model.get("position")]);    
+  },
+  setPositionFromValue: function(value) {
+    var step = this.get('step');
+    if (step.indexOf(value) != -1)
+	this.set('position',step.indexOf(value));
   }
 
 });

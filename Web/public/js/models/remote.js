@@ -36,7 +36,9 @@ var RemoteControl = Backbone.Model.extend({
 	this.data.model = this;
 	this.data.on('connect', this.onConnectData);
 	this.data.on('message', this.onData);
-	this.on('change:frequency', this.setFrequency);
+	this.on('change:frequency1', this.setFrequency);
+	this.on('change:frequency2', this.setFrequency);
+	this.on('change:radio', this.setRadio);
 	this.on('change:scopeRate', this.setScopeRate);
 	this.on('change:selectedFrequency', this.setSelectedFrequency);
 	this.on('change:selectedBandwidth', this.setSelectedBandwidth);
@@ -95,7 +97,7 @@ var RemoteControl = Backbone.Model.extend({
       this.set('power', !this.get('power'));
     },
     setFrequency: function(model) {
-      var value = model.get('frequency');
+      var value = model.get('frequency'+model.get('radio'));
       if ((value != undefined) && (value !='')) {
 	this.cmd.send('FREQ'+value);
       }
@@ -128,5 +130,8 @@ var RemoteControl = Backbone.Model.extend({
     },
     setScopeRate: function(model) {
 	this.cmd.send('WT'+model.get("scopeRate"));
+    },
+    setRadio: function(model) {
+      this.cmd.send('RADIO'+(model.get("radio")-1));
     }
 });

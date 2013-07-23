@@ -83,6 +83,7 @@ class CRemoteControl: public QObject
       // Frequency
       void sigSelectFrequency(double value);
       void sigSelectBandwidth(double value);
+
 };
 
 #endif // CREMOTECONTROL_H

@@ -59,11 +59,11 @@ void CRemoteControl::decode(char *buffer)
     } else
     if (decodedString.startsWith("FILTER")) {
         QString filter = decodedString.replace("FILTER","");
-        if (filter == "230K") emit sigFilter(CCommand::e230k);
-        if (filter == "50K")  emit sigFilter(CCommand::e50k);
-        if (filter == "15K")  emit sigFilter(CCommand::e15k);
-        if (filter == "6K")   emit sigFilter(CCommand::e6k);
-        if (filter == "28K")  emit sigFilter(CCommand::e28k);
+        if (filter == "230000") emit sigFilter(CCommand::e230k);
+        if (filter == "50000")  emit sigFilter(CCommand::e50k);
+        if (filter == "15000")  emit sigFilter(CCommand::e15k);
+        if (filter == "6000")   emit sigFilter(CCommand::e6k);
+        if (filter == "2800")  emit sigFilter(CCommand::e28k);
     } else
     if (decodedString.startsWith("FREQ")) {
         QString frequency = decodedString.replace("FREQ","");
@@ -96,6 +96,10 @@ void CRemoteControl::decode(char *buffer)
     } else
     if (decodedString.startsWith("NBOFF")) {
         emit sigNoiseBlanker(true);
+    } else
+    if (decodedString.startsWith("RADIO")) {
+        QString radio= decodedString.replace("RADIO","");
+        emit sigRadio(radio.toInt());
     } else
     if (decodedString.startsWith("WT")) {
         QString params = decodedString.replace("WT","");

@@ -16,10 +16,7 @@ $(document).ready(function(){
     sound = new SoundControl();
     
     //Build Frequency Table maangement
-    freqTable = new FrequencyTable();
-    
-    //Bind remote control signal strength
-    signal = new SignalStrength({ el: '#signal', model:remote});
+    freqTable = new FrequencyTable({control:remote});
     
     //Bind status
     status = new StatusView({ el: '#status', model:remote});
@@ -32,10 +29,6 @@ $(document).ready(function(){
     
     //Bind radio control buttons
     radioCmd = new RadioCmd({ el: '#control', model:remote});
-
-    // Bind frequency
-    frequency = new FrequencyView({ el: '#frequency', frequencytable:freqTable, model:remote });
-    frequencystep = new FrequencyStepView({ el: '#frequencystep', frequencytable:freqTable, model:remote });
 
     //Bind radio control buttons
     radioDisplay = new Display({ el: '#mainDisplay', frequencytable:freqTable, model:remote});
