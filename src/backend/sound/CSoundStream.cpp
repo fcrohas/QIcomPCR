@@ -57,7 +57,7 @@ CSoundStream::~CSoundStream()
 void CSoundStream::acceptConnection()
 {
   // Wait for connection in each loop
-  if ((!connected) && (server->waitForNewConnection(5))) {
+  if ((!connected) && (server->waitForNewConnection(1000))) {
       client = server->nextPendingConnection();
       qDebug() << "Connect server socker event acceptConnection()";
       connect(client, SIGNAL(readyRead()), this, SLOT(startRead()));

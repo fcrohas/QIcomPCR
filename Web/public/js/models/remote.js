@@ -64,10 +64,10 @@ var RemoteControl = Backbone.Model.extend({
     },
     onMessage: function(msg) {
       if (msg.substring(0,2) == 'SA') {
-	this.model.set('signal1', msg.substring(2));
+	//this.model.set('signal1', msg.substring(2));
       }
       if (msg.substring(0,2) == 'SB') {
-	this.model.set('signal2', msg.substring(2));
+	//this.model.set('signal2', msg.substring(2));
       }
       if (msg.substring(0,3) == 'DBG') {
 	this.model.set('debug', msg.substring(3));
