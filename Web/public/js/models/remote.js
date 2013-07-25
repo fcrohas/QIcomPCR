@@ -21,7 +21,10 @@ var RemoteControl = Backbone.Model.extend({
       modulation2: "FM",
       filter2: 15000,
       data: "0",
-      scopeRate: "1"
+      scopeRate: "1",
+	  nb: false,
+	  agc: false,
+	  vsc: false
     },
     initialize: function() { 
   
@@ -90,16 +93,16 @@ var RemoteControl = Backbone.Model.extend({
     // Remote controller event
     togglePower: function() {
       if (this.get('power') == false) {
-	this.cmd.send('PWRON');
+		this.cmd.send('PWRON');
       } else {
-	this.cmd.send('PWROFF');
+		this.cmd.send('PWROFF');
       }
       this.set('power', !this.get('power'));
     },
     setFrequency: function(model) {
       var value = model.get('frequency'+model.get('radio'));
       if ((value != undefined) && (value !='')) {
-	this.cmd.send('FREQ'+value);
+		this.cmd.send('FREQ'+value);
       }
     },
     setSelectedFrequency: function() {
@@ -124,14 +127,38 @@ var RemoteControl = Backbone.Model.extend({
     },
     setScope: function(value) {
       if (value == true)
-	this.cmd.send('WT'+this.get("scopeRate"));
+		this.cmd.send('WT'+this.get("scopeRate"));
       else
-	this.cmd.send('WTOFF');
+		this.cmd.send('WTOFF');
     },
     setScopeRate: function(model) {
-	this.cmd.send('WT'+model.get("scopeRate"));
+		this.cmd.send('WT'+model.get("scopeRate"));
     },
     setRadio: function(model) {
       this.cmd.send('RADIO'+(model.get("radio")-1));
-    }
+    },
+	toggleAGC: function() {
+      if (this.get('agc') == false) {
+		this.cmd.send('AGCON');
+      } else {
+		this.cmd.send('AGCOFF');
+      }
+      this.set('agc', !this.get('agc'));
+	},
+	toggleNB: function() {
+      if (this.get('nb') == false) {
+		this.cmd.send('NBON');
+      } else {
+		this.cmd.send('NBOFF');
+      }
+      this.set('nb', !this.get('nb'));
+	},
+	toggleVSC: function() {
+      if (this.get('vsc') == false) {
+		this.cmd.send('VSCON');
+      } else {
+		this.cmd.send('VSCOFF');
+      }
+      this.set('vsc', !this.get('vsc'));
+	}	
 });

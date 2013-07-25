@@ -1,8 +1,50 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+	padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 }
-
-a {
-  color: #00B7FF;
+.scrollbox {
+	height:90%;
+	width:90%;
+	border:1px solid #ccc;
+	font:16px/26px Georgia, Garamond, Serif;
+	overflow:auto;      
+}
+.scrollboxhalf {
+	height:50%;
+	width:90%;
+	border:1px solid #ccc;
+	font:14px/18px Courier, Serif;
+	overflow:auto;   
+	font-family:Courier;
+	color: #00CC00;
+	background: #000000;
+	border: 3px double #CCCCCC;
+	padding: 10px;	
+	line-height: 10px; 
+}
+#signal {
+	width:25%;
+}
+.counter1 {
+  width:44px;
+  height:31px;
+  border:1px solid #000;
+  overflow:hidden;
+  /*position:relative;*/
+  background-color:#f00;
+}
+.btn-group-vertical .btn {width:100%;}
+#scope1 {
+	border:1px solid #000;
+	background-color:#000;
+	-webkit-border-radius: 25px;
+	-moz-border-radius: 25px;
+	border-radius: 25px;        
+}
+canvas {
+	width: 640px;
+	height: 256px;
+	cursor: none;
+}
+.slider-selection {
+	background: #BABABA;
 }

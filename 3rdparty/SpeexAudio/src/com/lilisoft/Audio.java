@@ -28,7 +28,7 @@ public class Audio {
 		// arg2 is samplerate 8000 as defautl
 		// arg3 is channels number only one for me
 		// arg4 is enhanced mode activated or not
-	    boolean state = speexDecoder.init(0,8000,1,false);
+	    boolean state = speexDecoder.init(0,22050,1,true);
 	    if (state) {
 	    	// Init Bits struct
 	    	bits = new Bits();
@@ -61,6 +61,7 @@ public class Audio {
 		}
 		catch (Exception e)
 		{
+			 System.out.println("test "+e.getMessage());
 		}
 	}
 	
@@ -73,11 +74,8 @@ public class Audio {
           for (int i = 0; i < n; i++){
         	  if (value.getSlot(i) instanceof Integer) {
             	  samples[i] = (byte)((Integer)value.getSlot(i) & 0xff);
-            	  System.out.println(samples[i]);
+            	  //System.out.println(samples[i]);
         	  }
-        	  //System.out.println(value.getSlot(i));
-              //Double s = (Double) value.getSlot(i);
-              //samples[i] = ByteBuffer.allocate(8).putDouble(s).array()[0];
           }
         }
 		play();

@@ -35,7 +35,7 @@ if(WITH_PULSEAUDIO)
 endif(WITH_PULSEAUDIO)
 
 if(WITH_PORTAUDIO)
-    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.cpp ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/pa_ringbuffer.c)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.cpp )
     add_definitions(-DWITH_PORTAUDIO)
 endif(WITH_PORTAUDIO)
 
@@ -61,6 +61,7 @@ endif(WITH_SPEEX)
 set(qicompcr_SRCS
     main.cpp
     CApplication.cpp
+    ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/pa_ringbuffer.c
     ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.cpp

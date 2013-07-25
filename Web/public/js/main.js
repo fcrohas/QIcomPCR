@@ -31,6 +31,9 @@ $(document).ready(function(){
     radioCmd = new RadioCmd({ el: '#control', model:remote});
 
     //Bind radio control buttons
+    radioCmd = new ControlsCmd({ el: '#controlleft', model:remote});
+	
+    //Bind radio control buttons
     radioDisplay = new Display({ el: '#mainDisplay', frequencytable:freqTable, model:remote});
     
     // Viewer

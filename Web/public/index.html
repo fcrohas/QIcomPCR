@@ -3,61 +3,9 @@
     <meta charset="utf-8">
     <title>Web Interface for QIcomPCR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style type="text/css">
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-      .scrollbox {
-	height:90%;
-	width:90%;
-	border:1px solid #ccc;
-	font:16px/26px Georgia, Garamond, Serif;
-	overflow:auto;      
-      }
-      .scrollboxhalf {
-	height:50%;
-	width:90%;
-	border:1px solid #ccc;
-	font:14px/18px Courier, Serif;
-	overflow:auto;   
-	font-family:Courier;
-	color: #00CC00;
-	background: #000000;
-	border: 3px double #CCCCCC;
-	padding: 10px;	
-	line-height: 10px; 
-      }
-      #signal {
-	width:25%;
-      }
-      .counter1 {
-	      width:44px;
-	      height:31px;
-	      border:1px solid #000;
-	      overflow:hidden;
-	      /*position:relative;*/
-	      background-color:#f00;
-      }
-      .btn-group-vertical .btn {width:100%;}
-      #scope1 {
-	border:1px solid #000;
-        background-color:#000;
-	-webkit-border-radius: 25px;
-	-moz-border-radius: 25px;
-	border-radius: 25px;        
-      }
-      canvas {
-	width: 640px;
-	height: 256px;
-	cursor: none;
-      }
-      .slider-selection {
-	background: #BABABA;
-      }
-    </style>
+	<link href="/stylesheets/style.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/bootstrap-responsive.min.css" type="text/css" rel="stylesheet" media="screen"></link>
-    <link href="/stylesheets/knobKnob.css" type="text/css" rel="stylesheet" media="screen"></link>
     <link href="/stylesheets/slider.css" type="text/css" rel="stylesheet" media="screen"></link>
 </head>
 <body>
@@ -93,6 +41,7 @@
 	<div class="tab-pane active" id="cmd">
 	  <div class="row">
 	    <div class="span2">
+			<div id="controlleft"></div>
 	    </div>
 	    <div class="span8">
 	      <div id="mainDisplay"></div>
@@ -101,11 +50,6 @@
 	      <div id="control"></div>
 	    </div>
 	  </div>
-	  <!--div id="status"></div>
-	  <div id="signal"></div>
-	  <div id="frequency"></div>	  
-	  <div id="frequencystep"></div-->
-	  <!-- audio controls src="http://localhost:8000/"></audio -->
 	</div>
 	<div class="tab-pane" id="demod">
 	  <div id="dmodwin"></div>
@@ -123,7 +67,6 @@
     <script src="/js/pcmdata.min.js"></script>
     <script src="/js/binary.min.js"></script>
     <script src="/js/speex.min.js"></script>
-    <!--script src="/js/speex.js"></script-->
     <script src="/js/socket.io.js"></script>
     <script src="/js/jquery-1.9.1.min.js"></script><!-- Downloaded Jquery -->
     <script src="/js/bootstrap.min.js"></script><!-- Downloaded Bootstrap -->
@@ -131,8 +74,6 @@
     <script src="/js/underscore-min.js"></script><!-- Downloaded Underscore -->
     <script src="/js/backbone-min.js"></script><!-- Downloaded Backbone -->
     <script src="/js/raphael-min.js"></script><!-- Downloaded Raphael -->
-    <script src="/js/knob/transform.js"></script>
-    <script src="/js/knob/knobKnob.jquery.js"></script>
     <script src="/js/bootstrap-slider.js"></script>
 
     
@@ -142,17 +83,12 @@
     <script src="/js/views/dbgwin.js"></script><!-- Debug Window widget -->
     <script src="/js/views/status.js"></script><!-- Debug Window widget -->
     <script src="/js/views/radio.js"></script><!-- Debug Window widget -->    
+	<script src="/js/views/controls.js"></script><!-- Debug Window widget -->    
     <script src="/js/views/viewer2d.js"></script><!-- Scope widget 2D -->
     <script src="/js/views/decoder.js"></script><!-- Decoder widget -->
     <script src="/js/views/display.js"></script><!-- Display widget -->        
 
     <script src="/js/main.js"></script>
-    
-    <!-- Templating Signal Widget-->
-    <script type="text/template" id="signalTemplate">
-      <div id="signal1">Channel 1 power<div class="progress"><div class="bar bar-danger" style="width: 0%;"></div><div class="bar bar-warning" style="width: 0%;"></div><div class="bar bar-success" style="width: 0%;"></div></div></div>
-      <div id="signal2">Channel 2 power<div class="progress"><div class="bar bar-danger" style="width: 0%;"></div><div class="bar bar-warning" style="width: 0%;"></div><div class="bar bar-success" style="width: 0%;"></div></div></div>      
-    </script>
     
     <!-- Templating Debug window Widget-->
     <script type="text/template" id="debugTemplate">
@@ -234,12 +170,6 @@
 	</div>
       </div>
     </script>    
-    <script type="text/template" id="frequencyTemplate">
-      <div>
-	<div id="digits"></div>
-	<div id="control"></div>
-      </div>
-    </script>
     <script type="text/template" id="displayTemplate">
       <div>
 	<div id="display"></div>
