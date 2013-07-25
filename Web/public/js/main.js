@@ -27,6 +27,9 @@ $(document).ready(function(){
     //Bind decoder window
     demodWindow = new DecoderView({ el: '#dmodwin', model:remote});
     
+    //Bind left knobs controls
+    controkKnobs = new ControlsView({ el:'#knobs', model:remote});
+    
     //Bind radio control buttons
     radioCmd = new RadioCmd({ el: '#control', model:remote});
 
