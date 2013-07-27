@@ -22,9 +22,11 @@ var RemoteControl = Backbone.Model.extend({
       filter2: 15000,
       data: "0",
       scopeRate: "1",
-	  nb: false,
-	  agc: false,
-	  vsc: false
+      nb: false,
+      agc: false,
+      vsc: false,
+      decoder: "none",
+      channel:0
     },
     initialize: function() { 
   
@@ -44,7 +46,8 @@ var RemoteControl = Backbone.Model.extend({
 	this.on('change:radio', this.setRadio);
 	this.on('change:scopeRate', this.setScopeRate);
 	this.on('change:selectedFrequency', this.setSelectedFrequency);
-	this.on('change:selectedBandwidth', this.setSelectedBandwidth);
+	this.on('change:decoder', this.setDecoder);
+	this.on('change:channel', this.setChannel);
     },
     onConnectCmd: function() {
       //console.log(this.model);
@@ -64,10 +67,14 @@ var RemoteControl = Backbone.Model.extend({
     },
     onMessage: function(msg) {
       if (msg.substring(0,2) == 'SA') {
-	//this.model.set('signal1', msg.substring(2));
+	if (Math.abs(this.model.get("signal1")-parseInt(msg.substring(2),10)) > 10) {
+	  this.model.set('signal1', msg.substring(2));
+	}
       }
       if (msg.substring(0,2) == 'SB') {
-	//this.model.set('signal2', msg.substring(2));
+	if (Math.abs(this.model.get("signal2")-parseInt(msg.substring(2),10)) > 10) {
+	  this.model.set('signal2', msg.substring(2));
+	}
       }
       if (msg.substring(0,3) == 'DBG') {
 	this.model.set('debug', msg.substring(3));
@@ -137,28 +144,34 @@ var RemoteControl = Backbone.Model.extend({
     setRadio: function(model) {
       this.cmd.send('RADIO'+(model.get("radio")-1));
     },
-	toggleAGC: function() {
+    toggleAGC: function() {
       if (this.get('agc') == false) {
 		this.cmd.send('AGCON');
       } else {
 		this.cmd.send('AGCOFF');
       }
       this.set('agc', !this.get('agc'));
-	},
-	toggleNB: function() {
+    },
+    toggleNB: function() {
       if (this.get('nb') == false) {
 		this.cmd.send('NBON');
       } else {
 		this.cmd.send('NBOFF');
       }
       this.set('nb', !this.get('nb'));
-	},
-	toggleVSC: function() {
+    },
+    toggleVSC: function() {
       if (this.get('vsc') == false) {
 		this.cmd.send('VSCON');
       } else {
 		this.cmd.send('VSCOFF');
       }
       this.set('vsc', !this.get('vsc'));
-	}	
+    },
+    setChannel: function(model) {
+      console.log("channel set to "+model.get("channel"));
+    },
+    setDecoder: function(model) {
+      console.log("decoder set to "+model.get("decoder"));
+    }
 });

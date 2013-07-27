@@ -1,7 +1,6 @@
 var ViewerView2D = Backbone.View.extend({
   initialize: function() {
     //this.listenTo(this.model, "change:data", this.getData);
-    this.render();
     this.power = false;
     this.line = 0;
     this.drawdata = false;
@@ -10,18 +9,23 @@ var ViewerView2D = Backbone.View.extend({
     this.fixedx = -1;
     this.fixedy = -1;
     this.bandwidth = 3;
+    this.channel = 0;
+    this.fft = 512;
+    this.render();    
   },
   //template: _.template($("#signalTemplate").html(), this.model),
   render: function() {
     this.template = _.template($("#viewerTemplate").html(), this.model);
     this.$el.html(this.template);
     this.context = canvas.getContext('2d');
+    canvas.style.width="100%";    
     this.imageData = this.context.createImageData(512, 256);
     this.overlay = this.context.createImageData(512, 256);    
     this.height = this.imageData.height;
     this.width = this.imageData.width;
     this.model.view = this;
     this.model.on('change:data', this.setData);
+    this.model.on('change:channel', this.channelChange);
     return this;
   },
   events: {
@@ -38,9 +42,24 @@ var ViewerView2D = Backbone.View.extend({
 	var data = model.get("data");
 	var imageData = this.view.overlay;
 	var length = parseInt(data.substring(0,4),16); // this is the length of array
+	var offset = length / 2;
+	var size = length / 2;
+	if (this.channel == 0) {
+	  offset = 0;
+	  size=length;
+	  data = data.substr(4);
+	}
+	if (this.channel == 1) {
+	  offset = 0;
+	  data = data.substr(4);
+	}
+	if (this.channel == 2) {
+	  data = data.substr(4+offset*2);
+	}
+	canvas.width=size;
 	var lines = 1 ;	  
-	for(var i=0; i<length; i++) {
-		var value = parseInt(data.substr(4+i*2,2),16);
+	for(var i=0; i<size; i++) {
+		var value = parseInt(data.substr(i*2,2),16);
 		index = (i + this.view.line * this.view.width) * 4;
 		if (value <= 12 ) {
 			imageData.data[index + 0] = 0;
@@ -125,7 +144,7 @@ var ViewerView2D = Backbone.View.extend({
 	// Redraw all
 	this.onMouseMove(e);
 	// Set Selected bandwidth
-	this.model.set('selectedBandwidth',this.bandwidth * 22050.0 / 512.0);
+	this.model.set('selectedBandwidth',this.bandwidth * 22050.0 / this.fft);
   },
   onClick : function(event) {
     this.fixedx = event.offsetX;
@@ -136,7 +155,7 @@ var ViewerView2D = Backbone.View.extend({
 	this.drawBandwidth(this.fixedx,this.fixedy);
     }
     // Set Selected frequency
-    this.model.set('selectedFrequency',this.fixedx * 22050.0 / 512.0);
+    this.model.set('selectedFrequency',this.fixedx * 22050.0 / this.fft);
   },
   drawFrequency : function(x,y) {
       // Save image before drawing
@@ -162,5 +181,9 @@ var ViewerView2D = Backbone.View.extend({
       ctx.moveTo(x+side,this.height);
       ctx.lineTo(x+side,0);
       ctx.stroke();
+  },
+  channelChange: function(model) {
+      this.channel = model.get("channel");
+      console.log(this.channel);
   }
 });

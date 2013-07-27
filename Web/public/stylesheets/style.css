@@ -44,7 +44,5 @@ canvas {
 	width: 640px;
 	height: 256px;
 	cursor: none;
-}
-.slider-selection {
-	background: #BABABA;
+	background-color:#000;
 }

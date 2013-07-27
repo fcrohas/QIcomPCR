@@ -41,7 +41,7 @@
 	<div class="tab-pane active" id="cmd">
 	  <div class="row">
 	    <div class="span2">
-			<div id="controlleft"></div>
+		<div id="controlleft"></div>
 	    </div>
 	    <div class="span8">
 	      <div id="mainDisplay"></div>
@@ -100,7 +100,7 @@
 	<div class="row">
 	 <div class="span3">
 	  <div class="span1">
-	    <div class="btn-group">
+	    <div class="btn-group" id="channel">
 	      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
 		Channel
 		<span class="caret"></span>
@@ -113,7 +113,7 @@
 	    </div>
 	  </div>
 	  <div class="span1">
-	    <div class="btn-group">
+	    <div class="btn-group" id="decoder">
 	      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
 		Decoder
 		<span class="caret"></span>
@@ -142,32 +142,42 @@
     
     <!-- Templating Radio buttons Widget-->
     <script type="text/template" id="controlTemplate">
-      <button type="button" class="btn power" data-toggle="button" >Power</button>
-      <div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox">
-	  <button class="btn nb">Noise Blanker</button>
-	  <button class="btn agc">Auto Gain Control</button>
-	  <button class="btn vsc">Voice Squelch</button>
-      </div>
+      <fieldset>
+	<legend>Power</legend>
+	<button type="button" class="btn power" data-toggle="button" >Power</button>
+      </fieldset>
+      <fieldset>
+	<legend>General</legend>
+	<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox">
+	    <button class="btn nb">Noise Blanker</button>
+	    <button class="btn agc">Auto Gain Control</button>
+	    <button class="btn vsc">Voice Squelch</button>
+	</div>
+      </fieldset>
     </script>    
     <script type="text/template" id="radioTemplate">
       <div class="btn-toolbar btn-group-vertical">
-	<label class="modulation-mode">Modulations</label>
-	<div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
-	    <button class="btn wfm">Wide FM</button>
-	    <button class="btn fm">FM</button>
-	    <button class="btn am">AM</button>
-	    <button class="btn usb">USB</button>
-	    <button class="btn lsb">LSB</button>
-	    <button class="btn cw">CW</button>	
-	</div>
-	<label class="filter-width">Filters</label>
-	<div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
-	    <button class="btn 28k">2.8k</button>
-	    <button class="btn 6k">6k</button>
-	    <button class="btn 15k">15k</button>
-	    <button class="btn 50k">50k</button>
-	    <button class="btn 230k">230k</button>	
-	</div>
+	<fieldset>
+	  <legend>Modulations</legend>
+	  <div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
+	      <button class="btn wfm">Wide FM</button>
+	      <button class="btn fm">FM</button>
+	      <button class="btn am">AM</button>
+	      <button class="btn usb">USB</button>
+	      <button class="btn lsb">LSB</button>
+	      <button class="btn cw">CW</button>	
+	  </div>
+	</fieldset>
+	<fieldset>
+	  <legend>Filters</legend>
+	  <div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
+	      <button class="btn 28k">2.8k</button>
+	      <button class="btn 6k">6k</button>
+	      <button class="btn 15k">15k</button>
+	      <button class="btn 50k">50k</button>
+	      <button class="btn 230k">230k</button>	
+	  </div>
+	</fieldset>
       </div>
     </script>    
     <script type="text/template" id="displayTemplate">
@@ -197,9 +207,13 @@
 		</ul>
 	      </div>	 
 	  </div>
-	  <p><canvas id="canvas" width="512" height="256"></canvas></p>
-	</div>  
-       </div>
+	 </div>
+	</div>
+	<div class="row">
+	  <div class="span12">
+	    <p><canvas id="canvas" width="512" height="256"></canvas></p>
+	  </div>
+	</div>
       </div>
     </script>
 </body>

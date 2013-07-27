@@ -247,11 +247,11 @@ var Display = Backbone.View.extend({
     this.redraw(this.paper);
   },
   setSignal: function(model) {
-    var radio = model.get("radio");
-    if (radio == 1)
-	this.signal1 = model.get("signal1");
-    else if (radio == 2)
-	this.signal2 = model.get("signal2");
+    //var radio = model.get("radio");
+    //if (radio == 1)
+    this.signal1 = model.get("signal1");
+    //else if (radio == 2)
+    this.signal2 = model.get("signal2");
     this.redraw(this.paper);
   },
   setIFShift: function(model) {

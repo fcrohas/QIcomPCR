@@ -153,7 +153,10 @@ QHash<QString,int> CPortAudio::getDeviceList()
     int error;
     int numDevices;
     deviceList.clear();
+    Pa_Terminate();
+    Pa_Initialize();
     numDevices = Pa_GetDeviceCount();
+    qDebug() << "device count " << numDevices;
     if( numDevices < 0 )
     {
         error = numDevices;
@@ -164,6 +167,7 @@ QHash<QString,int> CPortAudio::getDeviceList()
     for( int i=0; i<numDevices; i++ )
     {
         deviceInfo = Pa_GetDeviceInfo( i );
+        qDebug() << QString("device name %1").arg(deviceInfo->name);
         deviceList.insert(deviceInfo->name, i);
     }
     return deviceList;
