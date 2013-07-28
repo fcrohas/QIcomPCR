@@ -18,7 +18,7 @@ var ViewerView2D = Backbone.View.extend({
     this.template = _.template($("#viewerTemplate").html(), this.model);
     this.$el.html(this.template);
     this.context = canvas.getContext('2d');
-    canvas.style.width="100%";    
+    //canvas.style.width="100%";    
     this.imageData = this.context.createImageData(512, 256);
     this.overlay = this.context.createImageData(512, 256);    
     this.height = this.imageData.height;

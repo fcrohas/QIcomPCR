@@ -169,9 +169,16 @@ var RemoteControl = Backbone.Model.extend({
       this.set('vsc', !this.get('vsc'));
     },
     setChannel: function(model) {
-      console.log("channel set to "+model.get("channel"));
+      this.cmd.send('CHAN'+model.get("channel"));
     },
     setDecoder: function(model) {
-      console.log("decoder set to "+model.get("decoder"));
+      var decoder = model.get("decoder");
+      var pos = 0;
+      if (decoder == "None") pos=0;
+      if (decoder == "Acars") pos=1;					  
+      if (decoder == "Acars GPL") pos=2;
+      if (decoder == "CW") pos=3;
+      if (decoder == "RTTY") pos=4;					  					  
+      this.cmd.send('DEC'+pos);      
     }
 });

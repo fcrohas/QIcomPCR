@@ -101,6 +101,14 @@ void CRemoteControl::decode(char *buffer)
         QString radio= decodedString.replace("RADIO","");
         emit sigRadio(radio.toInt());
     } else
+    if (decodedString.startsWith("CHAN")) {
+        QString value= decodedString.replace("CHAN","");
+        emit sigChannel(value.toInt());
+    } else
+    if (decodedString.startsWith("DEC")) {
+        QString value= decodedString.replace("DEC","");
+        emit sigDecoder(value.toInt());
+    } else
     if (decodedString.startsWith("WT")) {
         QString params = decodedString.replace("WT","");
         if (params == "OFF") {

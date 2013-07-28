@@ -4,7 +4,7 @@ var SoundControl = Backbone.Model.extend({
 		state: 'Stopped',
 		maxBufferSize : 110250, // 5s ring buffer
 		isApplet : false,
-		resample : false,
+		resample : true,
 		directplay: true
     },
     initialize: function() { 
@@ -20,22 +20,22 @@ var SoundControl = Backbone.Model.extend({
 			// ******************  HTML5 VERSION *****************
 			this.codec = new Speex({
 				benchmark: false
-				, quality: 4
+				, quality: 8
 				, enh : 1
-				, complexity : 3
+				, complexity : 2
 			});
 			this.context = new window.AudioContext();
 			this.source = this.context.createBufferSource(0); // creates a sound source    
 			this.source.onended = this.playBufferEnded;
 			this.gainNode = this.context.createGain();
 			this.gainNode.gain.value = 1.0;
-			this.buffer = this.context.createBuffer(1, 2048, 22050); //  5s buffer	
+			this.buffer = this.context.createBuffer(1, 16384, 22050); //  5s buffer	
 			if (this.get('resample') == true) {
 			  this.resampleControl = new Resampler(11025,22050,1,512,true);
 			}
 			// Build a filler thread to fill audiobuffer loop after each playing
 			if (this.directplay == false) {
-				this.filler = this.context.createScriptProcessor(2048, 1, 1); 
+				this.filler = this.context.createScriptProcessor(16384, 1, 1); 
 				this.filler.onaudioprocess = this.getRingBufferData;
 			}
 			// for ring buffer allocate twice the size
@@ -152,17 +152,19 @@ var SoundControl = Backbone.Model.extend({
 		}
 		// Assign buffer
 		this.source.buffer = this.buffer;   // tell the source which sound to play
-		// Do loop audio buffer
-		this.source.loop = true;
 		// Connect a filler process for audio buffer
 		if (this.directplay == false) {	
 			this.source.connect(this.filler);
 			this.filler.connect(this.context.destination);
+			// Do loop audio buffer
+			this.source.loop = false;
 		}	else {
 			// Connect the source to the context's destination (the speakers)    
 			// Connect to destination
 			this.source.connect(this.gainNode);
 			this.gainNode.connect(this.context.destination);
+			// Do loop audio buffer
+			this.source.loop = true;
 		}
 		// Add a timer to fill buffer only every buffer duration ms
 		setInterval(this.playDirectBuffer, this.buffer.duration*1000);
@@ -184,7 +186,7 @@ var SoundControl = Backbone.Model.extend({
 				    curpos = i;
 			    } else {
 				    // else get the rest from pos 0 of buffer
-				    output[i] = this.main.ringbuffer[i-(curpos+1)];				
+				    output[i] = this.main.ringbuffer[i-(curpos+1)];
 			    }
 		    }
 		    // Adjust new offset in ring buffer

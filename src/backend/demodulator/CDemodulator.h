@@ -38,12 +38,14 @@ public slots:
     void slotThreshold(int value);
     void slotSetCorrelationLength(int value);
     void slotChangeWindowFunction(CFFT::windowFunction fct);
+    void slotSetChannel(int channel);
 
 private:
     QList<IDemodulator*> list;
     double *xval;
     double *yval;
     int bufferBlock;
+    int selectedChannel;
     uchar *data8bitsl;
     int16_t *data16bitsl;
     uchar *data8bitsr;

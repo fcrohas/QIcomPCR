@@ -178,8 +178,8 @@ void CMainWindow::connectSignals()
     connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
     connect(remote,SIGNAL(sigModulation(uint)), cmd, SLOT(setModulation(uint)));
     connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
-    connect(remote,SIGNAL(sigChannel(int)), cmd, SLOT(slotChannelChange(int)));
-    connect(remote,SIGNAL(sigDecoder(int)), cmd, SLOT(slotDecoderChange(int)));
+    connect(remote,SIGNAL(sigChannel(int)), this, SLOT(slotChannelChange(int)));
+    connect(remote,SIGNAL(sigDecoder(int)), this, SLOT(slotDecoderChange(int)));
     connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
     connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
@@ -535,6 +535,8 @@ void CMainWindow::slotDecoderChange(int value)
 void CMainWindow::slotChannelChange(int value)
 {
     qDebug() << "CMainWindow::slotChannelChange(" << value << ")";
+    demodulator->slotSetChannel(value);
+    ui->channel->setCurrentIndex (value);
     //demodulator->slotSetDemodulator(ui->decoderList->currentIndex(), value, 16384);
 }
 

@@ -9,7 +9,8 @@ CDemodulator::CDemodulator(QObject *parent) :
     data8bitsl(NULL),
     data8bitsr(NULL),
     data16bitsl(NULL),
-    data16bitsr(NULL)
+    data16bitsr(NULL),
+    selectedChannel(0)
 {
     fftw = new CFFT(this,FFTSIZE);
     list.append(new IDemodulator()); // 0 just dummy
@@ -122,9 +123,15 @@ void CDemodulator::slotSendData(QString data)
     emit sendData(data);
 }
 
+void CDemodulator::slotSetChannel(int channel)
+{
+    selectedChannel = channel;
+}
+
 void CDemodulator::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
 {
     // first remove it
+    selectedChannel = channel;
     delete list[channel];
     // Create the new one
     switch(demod) {

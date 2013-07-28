@@ -13,7 +13,7 @@ CSoundStream::CSoundStream(QObject *parent) :
     ringBufferData(NULL),
 #ifdef WITH_SPEEX
     enc_state(NULL),
-    resample(false)
+    resample(true)
 #endif
 {
     qDebug() << "Connect server socker event newConnection()";
@@ -36,7 +36,7 @@ CSoundStream::CSoundStream(QObject *parent) :
     // Init a resampler
     if (resample) {
         int speex_err = 0;
-        mspeex_src_state = speex_resampler_init(2,SAMPLERATE,11025,5,&speex_err);
+        mspeex_src_state = speex_resampler_init(2,SAMPLERATE,DOWNSAMPLE,5,&speex_err);
         qDebug() << "Speex resampler error : " << speex_resampler_strerror(speex_err);
     }
 }
@@ -64,11 +64,11 @@ void CSoundStream::acceptConnection()
       connect(client,SIGNAL(disconnected()), this, SLOT(disconnected()));
       connected = true;
 #ifdef WITH_SPEEX
-        int quality = 4; // Speex quality encoder
-        int complexity = 3; // Speex complexity encoder
+        int quality = 8; // Speex quality encoder
+        int complexity = 2; // Speex complexity encoder
         int samplerate = 0;
         if (resample==true) {
-            samplerate = 11025;
+            samplerate = DOWNSAMPLE;
         } else {
             samplerate = SAMPLERATE;
         }

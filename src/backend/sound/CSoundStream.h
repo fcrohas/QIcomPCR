@@ -11,6 +11,7 @@
 #ifdef WITH_SPEEX
 #include <speex/speex.h>
 #include <speex/speex_resampler.h>
+#define DOWNSAMPLE 11025
 #endif
 
 class CSoundStream : public QObject
