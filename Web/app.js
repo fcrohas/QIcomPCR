@@ -10,7 +10,9 @@ var express = require('express')
   , path = require('path')
   , io = require('socket.io')
   , net = require('net')
-  , binaryjs = require('binaryjs');
+  , binaryjs = require('binaryjs')
+  , _ = require('underscore')._
+  , backbone = require('backbone');
 
 var app = express();
 var BinaryServer = binaryjs.BinaryServer;
