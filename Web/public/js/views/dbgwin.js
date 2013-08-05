@@ -16,4 +16,4 @@ var DebugView = Backbone.View.extend({
 	}
   }
 
-});
+}); 

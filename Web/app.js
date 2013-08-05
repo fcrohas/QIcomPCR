@@ -9,13 +9,13 @@ var express = require('express')
   , http = require('http')
   , path = require('path')
   , io = require('socket.io')
-  , net = require('net')
-  , binaryjs = require('binaryjs')
-  , _ = require('underscore')._
-  , backbone = require('backbone');
+  , net = require('net');
+
+exports.Backbone = Backbone = require('backbone');
+
+var soundserver = require('./models/soundserver.js');
 
 var app = express();
-var BinaryServer = binaryjs.BinaryServer;
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -35,13 +35,13 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
-app.get('/users', user.list);
+app.get('/users', user.list);     
 
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
-var binarySocket = new BinaryServer({ server: server, path :'/stream' });
+//var binarySocket = new BinaryServer({ server: server, path :'/stream' });
 var socket = io.listen(server); 
 // Hack for binary js to work
 socket.set("destroy upgrade",false);
@@ -63,6 +63,9 @@ soundpcr.on('close', function() {
   console.log('Sound connection closed');
   soundpcr.destroy();
 });  
+
+var sound = new soundserver.SoundServer();
+sound.start(server,soundpcr);
 
 // Cmd/data tcp port connection
 var icompcr = new net.Socket();
@@ -129,14 +132,3 @@ socket.of('/data').on('connection', function (client){
   });
 });
 
-binarySocket.on('connection', function(client) {
-  console.log('Someone connected!');
-  client.on('stream', function(stream) {
-    console.log('client stream started!');
-  });
-
-  soundpcr.on('data', function(data) {
-    client.send(data);
-  });
-
-});

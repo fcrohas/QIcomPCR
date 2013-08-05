@@ -104,9 +104,9 @@ var SoundControl = Backbone.Model.extend({
     },
     addToRingBuffer : function(data) {
 		// Convert ArrayBuffer to Int8Array
-		this.audioData = new Int8Array(data);
+		var audioData = new Int8Array(data);
 		// Decode Speex buffer
-		var decoded = this.codec.decode(this.audioData); // to Int16 decoding buffer
+		var decoded = this.codec.decode(audioData); // to Int16 decoding buffer
 		if ((decoded ==null) || (decoded == undefined))
 		      return;
 		// resample
@@ -141,7 +141,7 @@ var SoundControl = Backbone.Model.extend({
 		    this.playBuffer();
 		    this.playing = true;
 		}
-		this.audioData = null;
+		//delete audioData;
     },
     playBuffer : function() {
 		// Get buffer pointer to channel 0

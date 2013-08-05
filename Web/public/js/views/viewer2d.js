@@ -10,7 +10,7 @@ var ViewerView2D = Backbone.View.extend({
     this.fixedy = -1;
     this.bandwidth = 3;
     this.channel = 0;
-    this.fft = 512;
+    this.fft = 1024;
     this.render();    
   },
   //template: _.template($("#signalTemplate").html(), this.model),
@@ -29,12 +29,12 @@ var ViewerView2D = Backbone.View.extend({
     return this;
   },
   events: {
-            "click button.start": "powertoggle",
-	    "click ul li a": "refresh",
-	    "mousemove canvas" : "onMouseMove",
-	    "click canvas" : "onClick",
-            "DOMMouseScroll": "MouseWheelHandler",
-	    "mousewheel":"MouseWheelHandler"
+      "click button.start": "powertoggle",
+      "click ul li a": "refresh",
+      "mousemove canvas" : "onMouseMove",
+      "click canvas" : "onClick",
+      "DOMMouseScroll": "MouseWheelHandler",
+      "mousewheel":"MouseWheelHandler"
   },
   setData: function(model)
   {
