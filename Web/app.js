@@ -8,12 +8,13 @@ var express = require('express')
   , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
-  , io = require('socket.io')
-  , net = require('net');
+  , net = require('net')
+  , io = require('socket.io');
 
 exports.Backbone = Backbone = require('backbone');
 
 var soundserver = require('./models/soundserver.js');
+var socketserver = require('./models/socketserver.js');
 
 var app = express();
 
@@ -40,12 +41,6 @@ app.get('/users', user.list);
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
-
-//var binarySocket = new BinaryServer({ server: server, path :'/stream' });
-var socket = io.listen(server); 
-// Hack for binary js to work
-socket.set("destroy upgrade",false);
-
 
 var HOST = '127.0.0.1';
 var PORTCMD = 8888;
@@ -82,53 +77,17 @@ icompcr.on('close', function() {
   icompcr.destroy();
 });
 
-socket.of('/command').on('connection', function (client){ 
-  // Add a 'data' event handler for the client socket
-  // data is what the server sent to this socket
-  icompcr.on('data', function(data) {
-    // discard frame starting with WT
-    var msg = new String(data);
-    // try to find if multiple frame are here
-    var frame = msg.split('@');
-    for (var i=0; i < frame.length; i++) {
-      if (frame[i] !='') {
-	if (frame[i].substring(0,2) != 'WT') {
-	  client.volatile.send(frame[i]);
-	}
-      }
-    }
-  });
+var socket = io.listen(server);
 
-  client.on('message', function (msg) {
-   icompcr.write(msg);
-  });
 
-  client.on('disconnect', function () {
-  });
-});
+// Create the websocket server for command channel
+var dataSocket = new socketserver.SocketServer({path:'/data', allowScopeFrame :true});
+// start it to host
+dataSocket.start(socket, icompcr);
 
-socket.of('/data').on('connection', function (client){ 
-  // Add a 'data' event handler for the client socket
-  // data is what the server sent to this socket
-  icompcr.on('data', function(data) {
-    // Allow only waterfall frame 
-    var msg = new String(data);    
-    // try to find if multiple frame are here
-    var frame = msg.split('@');
-    for (var i=0; i < frame.length; i++) {
-      if (frame[i] !='') {
-	if (frame[i].substring(0,2) == 'WT') {
-	  client.volatile.send(frame[i]);
-	}
-      }
-    }
-  });
 
-  client.on('message', function (msg) {
-    icompcr.write(msg);
-  });
-
-  client.on('disconnect', function () {
-  });
-});
+// Create the websocket server for command channel
+var cmdSocket = new socketserver.SocketServer({path:'/command', allowScopeFrame : false});
+// start it to host
+cmdSocket.start(socket, icompcr);
 

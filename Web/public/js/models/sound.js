@@ -2,7 +2,7 @@ var SoundControl = Backbone.Model.extend({
     defaults : {
 		path : '/stream',
 		state: 'Stopped',
-		maxBufferSize : 110250, // 5s ring buffer
+		maxBufferSize : 22050, // 5s ring buffer
 		isApplet : false,
 		resample : true,
 		directplay: true

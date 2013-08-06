@@ -10,14 +10,16 @@ exports.SoundServer = Backbone.Model.extend({
 	start : function(server, soundpcr) {
 		this.BinaryServer = binaryjs.BinaryServer;
 		this.binarySocket = new this.BinaryServer({ server: server, path : this.get("path") });
-		this.binarySocket.on('connection', this.onConnect);
-		this.soundpcr = soundpcr;		
+		this.soundpcr = soundpcr;
+		this.soundpcr.model = this;		
 		this.binarySocket.model = this;
+		this.binarySocket.on('connection', this.onConnect);		
 	},
 	onConnect :	function(client) {
-	  client.on('stream', this.model.onStream);
 	  console.log("Sound client connected");
-	  client.soundpcr.on('data', client.onData);
+	  this.model.client = client;
+	  client.on('stream', this.model.onStream);
+	  this.model.soundpcr.on('data', this.model.onData);
 	},
 	onStream : function(stream) {
 	    console.log('client stream started!');
