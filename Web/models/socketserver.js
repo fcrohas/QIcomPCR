@@ -4,6 +4,7 @@ exports.SocketServer = Backbone.Model.extend({
 		allowScopeFrame : false
 	},
 	initialize : function() {
+		this.connected = false;
 	},
 	start : function(socket, icompcr) {
 		// Socket io
@@ -22,34 +23,39 @@ exports.SocketServer = Backbone.Model.extend({
 	},
 	onConnect :	function(client) {
 		console.log("client connected to "+this.model.get('path')+" allowScopeFrame:"+this.model.allowScopeFrame);
-		this.model.client = client;
+		client.allowScopeFrame = this.model.allowScopeFrame;	
+		client.model = this.model;	
 		client.icompcr = this.model.icompcr;
-		client.allowScopeFrame = this.model.allowScopeFrame;		
 		// event for incomming message from Web Client
 		client.on('message', this.model.onNode2Icom);
 		client.on('disconnect', this.model.onDisconnect);
 		// event for incomming message from device
-		that = this;
-		client.icompcr.on('data', function(data) { that.model.onIcom2Node(data); });	  
+		var that = this;
+		this.model.icompcr.on('data', function(data) { that.model.onIcom2Node(data,client); });	  
+		this.model.connected = true;		
 	},
 	onNode2Icom : function(msg) {
 		console.log('client send message ('+msg+')');
 		this.icompcr.write(msg);
 	},
-	onIcom2Node : function(data) {
+	onIcom2Node : function(data,client) {
+		// Discard if no more client connected
+		if (client.model.connected == false)
+			return;
 	    // discard frame starting with WT
 	    var msg = new String(data);
 	    // try to find if multiple frame are here
 	    var frame = msg.split('@');
 	    for (var i=0; i < frame.length; i++) {
 	    	if (frame[i] !='') {
-		      	if ((frame[i].substring(0,2) != 'WT') || (this.allowScopeFrame == true) ) {
-		      	  this.client.volatile.send(frame[i]);
+		      	if ((frame[i].substring(0,2) != 'WT') || (client.allowScopeFrame == true) ) {
+		      	  client.volatile.send(frame[i]);
 		      	}
 	    	}
     	}
     },
     onDisconnect : function() {
+    	this.model.connected = false;
     	console.log('client disconnected');
     }
 });
