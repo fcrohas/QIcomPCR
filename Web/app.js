@@ -1,8 +1,7 @@
 /**
  * Module dependencies.
  */
-var http = require('http')
-  , io = require('socket.io');
+var io = require('socket.io');
 
 var HOST = '127.0.0.1'; // Icom PCR hosting machine
 var CMD = 8888; // default port for command / scope data
@@ -24,9 +23,7 @@ var appmodel = new apprequire.AppServer();
 var app = appmodel.start();
 
 // Attach webserver framework to http server
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
-});
+var server = appmodel.startHttpListener();
 
 // Start websocket listener on server
 var socket = io.listen(server);
@@ -44,7 +41,7 @@ var sound = new soundserver.SoundServer();
 sound.start(server,soundpcr);
 
 
-// Create the websocket server <-> TCP socket redirection for command channel
+// Create the websocket server <-> TCP socket redirection for data channel
 var dataSocket = new socketserver.SocketServer({path:'/data', allowScopeFrame :true});
 // start it to host
 dataSocket.start(socket, icompcr);

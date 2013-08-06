@@ -1,11 +1,13 @@
 var express = require('express')
   , routes = require('../routes')
   , user = require('../routes/user')
-  , path = require('path');
+  , path = require('path')
+  , http = require('http');
 
 exports.AppServer = Backbone.Model.extend({
 	defaults : {
-		debug : false
+		debug : false,
+		port : 3000
 	},
 	initialize : function() {
 	},
@@ -18,6 +20,9 @@ exports.AppServer = Backbone.Model.extend({
 		this.app.get('/', routes.index);
 		this.app.get('/users', user.list); 
 		return this.app;
+	},
+	startHttpListener : function() {
+		return http.createServer(this.app).listen(this.app.get('port'), this.onListener);
 	},
 	configure : function(){
 		this.set('port', process.env.PORT || 3000);
@@ -33,5 +38,8 @@ exports.AppServer = Backbone.Model.extend({
 	},
 	debugMode : function(){
 		this.use(express.errorHandler());
+	},
+	onListener : function(){
+		console.log("Express server listening ");
 	}
 });
