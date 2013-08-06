@@ -5,13 +5,16 @@ var express = require('express')
 
 exports.AppServer = Backbone.Model.extend({
 	defaults : {
+		debug : false
 	},
 	initialize : function() {
 	},
 	start : function() {
 		this.app = express();
 		this.app.configure(this.configure);
-		this.app.configure('development', this.debugMode);
+		if (this.get('debug')== true) {
+			this.app.configure('development', this.debugMode);
+		}
 		this.app.get('/', routes.index);
 		this.app.get('/users', user.list); 
 		return this.app;
