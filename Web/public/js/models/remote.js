@@ -29,25 +29,25 @@ var RemoteControl = Backbone.Model.extend({
       channel:0
     },
     initialize: function() { 
-  
+      this.skipUpdate = false;
     },
     // Socket.IO management
     connect: function() {
-	this.cmd = io.connect('http://'+window.location.host+this.get('commandPath'));
-	this.data = io.connect('http://'+window.location.host+this.get('dataPath'));
-	this.cmd.model = this;
-	this.cmd.on('connect', this.onConnectCmd);
-	this.cmd.on('message', this.onMessage);
-	this.data.model = this;
-	this.data.on('connect', this.onConnectData);
-	this.data.on('message', this.onData);
-	this.on('change:frequency1', this.setFrequency);
-	this.on('change:frequency2', this.setFrequency);
-	this.on('change:radio', this.setRadio);
-	this.on('change:scopeRate', this.setScopeRate);
-	this.on('change:selectedFrequency', this.setSelectedFrequency);
-	this.on('change:decoder', this.setDecoder);
-	this.on('change:channel', this.setChannel);
+    	this.cmd = io.connect('http://'+window.location.host+this.get('commandPath'));
+    	this.data = io.connect('http://'+window.location.host+this.get('dataPath'));
+    	this.cmd.model = this;
+    	this.cmd.on('connect', this.onConnectCmd);
+    	this.cmd.on('message', this.onMessage);
+    	this.data.model = this;
+    	this.data.on('connect', this.onConnectData);
+    	this.data.on('message', this.onData);
+    	this.on('change:frequency1', this.setFrequency);
+    	this.on('change:frequency2', this.setFrequency);
+    	this.on('change:radio', this.setRadio);
+    	this.on('change:scopeRate', this.setScopeRate);
+    	this.on('change:selectedFrequency', this.setSelectedFrequency);
+    	this.on('change:decoder', this.setDecoder);
+    	this.on('change:channel', this.setChannel);
     },
     onConnectCmd: function() {
       //console.log(this.model);
@@ -66,50 +66,64 @@ var RemoteControl = Backbone.Model.extend({
       this.model.set('statedata', 'Disconnected');
     },
     onMessage: function(msg) {
+      this.skipUpdate = false;
       if (msg.substring(0,2) == 'SA') {
-	if (Math.abs(this.model.get("signal1")-parseInt(msg.substring(2),10)) > 10) {
-	  this.model.set('signal1', msg.substring(2));
-	}
+      	if (Math.abs(this.model.get("signal1")-parseInt(msg.substring(2),10)) > 10) {
+      	  this.model.set('signal1', msg.substring(2));
+      	}
       }
       if (msg.substring(0,2) == 'SB') {
-	if (Math.abs(this.model.get("signal2")-parseInt(msg.substring(2),10)) > 10) {
-	  this.model.set('signal2', msg.substring(2));
-	}
+      	if (Math.abs(this.model.get("signal2")-parseInt(msg.substring(2),10)) > 10) {
+      	  this.model.set('signal2', msg.substring(2));
+      	}
       }
       if (msg.substring(0,3) == 'DBG') {
-	this.model.set('debug', msg.substring(3));
+      	this.model.set('debug', msg.substring(3));
       }
       if (msg.substring(0,4) == 'DEM\t') {
-	this.model.set('decodedText', msg.substring(4));
+      	this.model.set('decodedText', msg.substring(4));
       }
       if (msg.substring(0,6) == 'PWROFF') {
-	this.model.set('power', false);
+      	this.model.set('power', false);
       }
       if (msg.substring(0,5) == 'PWRON') {
-	this.model.set('power', true);
+      	this.model.set('power', true);
       }
       if (msg.substring(0,2) == 'WT') {
-	this.model.set('data', msg.substring(2));
+      	this.model.set('data', msg.substring(2));
       }
+      if (msg.substring(0,4) == 'FREQ') {
+        // This message are for other component
+        this.skipUpdate = true;
+        this.model.set('frequency'+this.model.get('radio'),new Number(msg.substring(4)));
+      }
+      /*
+      if (msg.substring(0,5) == 'RADIO') {
+        // This message are for other component
+        this.skipUpdate = true;
+        this.model.set('radio',new Number(msg.substring(5)));
+      }*/
     },
     onData: function(msg) {
       if (msg.substring(0,2) == 'WT') {
-	this.model.set('data', msg.substring(2));
+	       this.model.set('data', msg.substring(2));
       }
     },
     // Remote controller event
     togglePower: function() {
       if (this.get('power') == false) {
-		this.cmd.send('PWRON');
+		    this.cmd.send('PWRON');
       } else {
-		this.cmd.send('PWROFF');
+		    this.cmd.send('PWROFF');
       }
       this.set('power', !this.get('power'));
     },
     setFrequency: function(model) {
+      if (model.skipUpdate == true)
+          return;
       var value = model.get('frequency'+model.get('radio'));
       if ((value != undefined) && (value !='')) {
-		this.cmd.send('FREQ'+value);
+		    this.cmd.send('FREQ'+value);
       }
     },
     setSelectedFrequency: function() {
@@ -134,29 +148,31 @@ var RemoteControl = Backbone.Model.extend({
     },
     setScope: function(value) {
       if (value == true)
-		this.cmd.send('WT'+this.get("scopeRate"));
+		    this.cmd.send('WT'+this.get("scopeRate"));
       else
-		this.cmd.send('WTOFF');
+		    this.cmd.send('WTOFF');
     },
     setScopeRate: function(model) {
-		this.cmd.send('WT'+model.get("scopeRate"));
+		  this.cmd.send('WT'+model.get("scopeRate"));
     },
     setRadio: function(model) {
+      if (mdoel.skipUpdate == true)
+          return;
       this.cmd.send('RADIO'+(model.get("radio")-1));
     },
     toggleAGC: function() {
       if (this.get('agc') == false) {
-		this.cmd.send('AGCON');
+		    this.cmd.send('AGCON');
       } else {
-		this.cmd.send('AGCOFF');
+		    this.cmd.send('AGCOFF');
       }
       this.set('agc', !this.get('agc'));
     },
     toggleNB: function() {
       if (this.get('nb') == false) {
-		this.cmd.send('NBON');
+		    this.cmd.send('NBON');
       } else {
-		this.cmd.send('NBOFF');
+		    this.cmd.send('NBOFF');
       }
       this.set('nb', !this.get('nb'));
     },

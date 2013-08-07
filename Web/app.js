@@ -18,7 +18,7 @@ var socketserver = require('./models/socketserver.js');
 // Tcp client to icom pcr
 var tcpclient = require('./models/tcpsocket.js');
 
-// Instantiate webserver framework
+// Instantiate webserver frameworkmsg.substring(2)
 var appmodel = new apprequire.AppServer();
 var app = appmodel.start();
 
@@ -29,26 +29,21 @@ var server = appmodel.startHttpListener();
 var socket = io.listen(server);
 
 // Connect to pcr sound layer
-var pcr1 = new tcpclient.TcpSocket({host : HOST, port : SOUND});
-var soundpcr = pcr1.connect();
+var soundpcr = new tcpclient.TcpSocket({host : HOST, port : SOUND});
 
 // Connect to pcr command layer
-var pcr2 = new tcpclient.TcpSocket({host : HOST, port : CMD});
-var icompcr = pcr2.connect();
+var icompcr = new tcpclient.TcpSocket({host : HOST, port : CMD});
 
 // Create the binary websocket <-> TCP socket redirection for sound channel
 var sound = new soundserver.SoundServer();
 sound.start(server,soundpcr);
-
 
 // Create the websocket server <-> TCP socket redirection for data channel
 var dataSocket = new socketserver.SocketServer({path:'/data', allowScopeFrame :true});
 // start it to host
 dataSocket.start(socket, icompcr);
 
-
 // Create the websocket server <-> TCP socket redirection for command channel
 var cmdSocket = new socketserver.SocketServer({path:'/command', allowScopeFrame : false});
 // start it to host
 cmdSocket.start(socket, icompcr);
-

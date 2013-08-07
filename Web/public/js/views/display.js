@@ -27,6 +27,9 @@ var Display = Backbone.View.extend({
     this.listenTo(this.model, "change:frequency2", this.setFrequency);
     this.listenTo(this.model, "change:radio", this.setRadio);
     this.listenTo(this.model, "change:power", this.setpower);
+    this.listenTo(this.model, "change:nb", this.setnb);
+    this.listenTo(this.model, "change:agc", this.setagc);
+    this.listenTo(this.model, "change:vsc", this.setvsc);
     this.listenTo(freqTable, 'change:value',this.setStepSize);
     this.render();
   },
@@ -209,7 +212,6 @@ var Display = Backbone.View.extend({
     var left = this.width/4;
     var right = this.width*3/4;
     var top = this.height*2.3/3;
-    var StepSize = 12500;
     var label1 = paper.rect(left - 25.0, top - 10.0, 50.0, 20.0);
     label1.attr("fill","#9999FF");
     var t1 = paper.text(left,top, this.modulation1);
@@ -220,10 +222,36 @@ var Display = Backbone.View.extend({
     var t2 = paper.text(right,top, this.modulation2);
     t2.attr({ fill:"#000000",'font-size':15});
   },
+  drawOptions : function(paper) {
+    var left = this.width/2;
+    var top = 0;
+    if (this.agc == true) {
+        top = this.height*3/8;
+        var label1 = paper.rect(left - 15.0, top - 10.0, 50.0, 20.0);
+        label1.attr("fill","#9999FF");
+        var t1 = paper.text(left+5.0,top, "AGC");
+        t1.attr({ fill:"#000000",'font-size':15});
+    }
+    if (this.nb == true) {
+        top = this.height*4/8;
+        var label1 = paper.rect(left - 15.0, top - 10.0, 50.0, 20.0);
+        label1.attr("fill","#9999FF");
+        var t1 = paper.text(left+5.0,top, "NB");
+        t1.attr({ fill:"#000000",'font-size':15});
+    }
+    if (this.vsc == true) {
+        top = this.height*5/8;
+        var label1 = paper.rect(left - 15.0, top - 10.0, 50.0, 20.0);
+        label1.attr("fill","#9999FF");
+        var t1 = paper.text(left+5.0,top, "VSC");
+        t1.attr({ fill:"#000000",'font-size':15});
+    }
+
+  },
   redraw: function(paper) {
     // clear all
     paper.clear();
-    var background = paper.rect( 0, 0, this.width, this.height);
+    var background = paper.rect( 10, 10, this.width, this.height);
     background.attr("fill","#000000");
     // draw frequencies
     this.drawFrequency(paper);
@@ -237,6 +265,8 @@ var Display = Backbone.View.extend({
     this.drawStepSize(paper);
     // draw mode
     this.drawMode(paper);
+    // draw options
+    this.drawOptions(paper);
   },
   setFilter: function(model) {
     var radio = model.get("radio");
@@ -293,7 +323,7 @@ var Display = Backbone.View.extend({
     // cross-browser wheel delta
     var e = window.event || e; // old IE support
     var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-    var frequency = this.model.get("frequency"+this.model.get("radio"));
+    var frequency = new Number(this.model.get("frequency"+this.model.get("radio")));
     var freq = frequency + delta * freqTable.get('value');
     this.model.set("frequency"+this.model.get("radio"),freq);
   },
@@ -308,9 +338,21 @@ var Display = Backbone.View.extend({
   setStepSize: function(model) {
     var radio = model.get("control").get("radio");
     if (radio == 1)
-	this.stepsize1 = model.get('value');
+	   this.stepsize1 = model.get('value');
     else if (radio == 2)
-	this.stepsize2 = model.get('value');
+	   this.stepsize2 = model.get('value');
+    this.redraw(this.paper);
+  },
+  setagc : function(model) {
+    this.agc = model.get("agc");
+    this.redraw(this.paper);
+  },
+  setnb : function(model) {
+    this.nb = model.get("nb");
+    this.redraw(this.paper);
+  },
+  setvsc : function(model) {
+    this.vsc = model.get("vsc");
     this.redraw(this.paper);
   }
 });

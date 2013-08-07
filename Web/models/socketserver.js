@@ -12,13 +12,13 @@ exports.SocketServer = Backbone.Model.extend({
 		this.allowScopeFrame = this.get("allowScopeFrame");		
 		// Hack for binary js to work
 		this.socket.set("destroy upgrade",false);		
-		this.icompcr = icompcr;
+		this.icompcr = icompcr.pcr;
 		// Set properties per path
-		this.icompcr.model = this;		
+		//this.icompcr.model = this;		
 		// Scope frame is special case for heavyLoad
 		this.path = this.socket.of(this.get("path"));
 		this.path.model = this;
-		this.path.icompcr = icompcr;
+		this.path.icompcr = icompcr.pcr;
 		this.path.on('connection', this.onConnect);
 	},
 	onConnect :	function(client) {
@@ -37,6 +37,8 @@ exports.SocketServer = Backbone.Model.extend({
 	onNode2Icom : function(msg) {
 		console.log('client send message ('+msg+')');
 		this.icompcr.write(msg);
+		// Broadcast change to all user
+		this.broadcast.emit('message',msg);
 	},
 	onIcom2Node : function(data,client) {
 		// Discard if no more client connected
