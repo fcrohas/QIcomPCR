@@ -11,6 +11,7 @@ var ViewerView2D = Backbone.View.extend({
     this.bandwidth = 3;
     this.channel = 0;
     this.fft = 1024;
+    this.skipChange = false;
     this.render();    
   },
   //template: _.template($("#signalTemplate").html(), this.model),
@@ -24,8 +25,11 @@ var ViewerView2D = Backbone.View.extend({
     this.height = this.imageData.height;
     this.width = this.imageData.width;
     this.model.view = this;
+    this.listenTo(this.model,'change:selectedFrequency', this.onFrequencyChange);
+    this.listenTo(this.model,'change:selectedBandwidth', this.onBandwidthChange);
+    this.listenTo(this.model,'change:changeAllowed', this.onChangeAllowed);
+    this.listenTo(this.model,'change:channel', this.channelChange);
     this.model.on('change:data', this.setData);
-    this.model.on('change:channel', this.channelChange);
     return this;
   },
   events: {
@@ -124,35 +128,41 @@ var ViewerView2D = Backbone.View.extend({
   },
   onMouseMove: function(event) {
     if (!this.drawdata) {
-	this.currentx = event.offsetX;
-	this.currenty = event.offsetY;
-	this.context.putImageData(this.overlay, 0, 0);    		  
-	this.drawFrequency(this.currentx,this.currenty);
-	this.drawBandwidth(this.currentx,this.currenty);
-	if ((this.fixedx!=-1) && (this.fixedy!=-1)) {
-	  this.drawFrequency(this.fixedx,this.fixedy);
-	  this.drawBandwidth(this.fixedx,this.fixedy);
-	}
+    	this.currentx = event.offsetX;
+    	this.currenty = event.offsetY;
+    	this.context.putImageData(this.overlay, 0, 0);    		  
+    	this.drawFrequency(this.currentx,this.currenty);
+    	this.drawBandwidth(this.currentx,this.currenty);
+    	if ((this.fixedx!=-1) && (this.fixedy!=-1)) {
+    	  this.drawFrequency(this.fixedx,this.fixedy);
+    	  this.drawBandwidth(this.fixedx,this.fixedy);
+    	}
     }
   },
   MouseWheelHandler : function (e) {
-	// cross-browser wheel delta
-	var e = window.event || e; // old IE support
-	var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-	// get bandwidth
-	this.bandwidth += delta;
-	// Redraw all
-	this.onMouseMove(e);
-	// Set Selected bandwidth
-	this.model.set('selectedBandwidth',this.bandwidth * 22050.0 / this.fft);
+    if ( this.skipChange == true) {
+        return;
+    }
+  	// cross-browser wheel delta
+  	var e = window.event || e; // old IE support
+  	var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+  	// get bandwidth
+  	this.bandwidth += delta;
+  	// Redraw all
+  	this.onMouseMove(e);
+  	// Set Selected bandwidth
+  	this.model.set('selectedBandwidth',this.bandwidth * 22050.0 / this.fft);
   },
   onClick : function(event) {
+    if ( this.skipChange == true) {
+      return;
+    }
     this.fixedx = event.offsetX;
     this.fixedy = event.offsetY;
     if ((!this.drawdata) && (this.fixedx!=-1) && (this.fixedy!=-1)) {
-	this.context.putImageData(this.overlay, 0, 0);    		  
-	this.drawFrequency(this.fixedx,this.fixedy);
-	this.drawBandwidth(this.fixedx,this.fixedy);
+    	this.context.putImageData(this.overlay, 0, 0);    		  
+    	this.drawFrequency(this.fixedx,this.fixedy);
+    	this.drawBandwidth(this.fixedx,this.fixedy);
     }
     // Set Selected frequency
     this.model.set('selectedFrequency',this.fixedx * 22050.0 / this.fft);
@@ -184,6 +194,15 @@ var ViewerView2D = Backbone.View.extend({
   },
   channelChange: function(model) {
       this.channel = model.get("channel");
-      console.log(this.channel);
+  },
+  onFrequencyChange: function(model) {
+      this.fixedx = model.get("selectedFrequency")/22050.0 * this.fft;
+      this.fixedy = 0;
+  },
+  onBandwidthChange: function(model) {
+      this.bandwidth = model.get("selectedBandwidth")/22050.0 * this.fft;
+  },
+  onChangeAllowed : function(model) {
+    this.skipChange =! model.get("changeAllowed");
   }
 });

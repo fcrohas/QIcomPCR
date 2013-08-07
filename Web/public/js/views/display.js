@@ -2,6 +2,7 @@ var Display = Backbone.View.extend({
   initialize: function() {
     this.width = 640;
     this.height= 240;
+    this.skipChange = false;
     this.radio = this.model.get("radio");
     this.frequency1 = this.model.get("frequency1");
     this.frequency2 = this.model.get("frequency2");
@@ -30,7 +31,8 @@ var Display = Backbone.View.extend({
     this.listenTo(this.model, "change:nb", this.setnb);
     this.listenTo(this.model, "change:agc", this.setagc);
     this.listenTo(this.model, "change:vsc", this.setvsc);
-    this.listenTo(freqTable, 'change:value',this.setStepSize);
+    this.listenTo(this.model, "change:changeAllowed", this.onChangeAllowed);
+    this.listenTo(freqTable, "change:value",this.setStepSize);
     this.render();
   },
   //template: _.template($("#statusTemplate").html(), this.model),
@@ -295,9 +297,9 @@ var Display = Backbone.View.extend({
   setModulation: function(model) {
     var radio = model.get("radio");
     if (radio == 1)
-	this.modulation1 = model.get("modulation1");
+	   this.modulation1 = model.get("modulation1");
     else if (radio == 2)
-	this.modulation2 = model.get("modulation2");
+	   this.modulation2 = model.get("modulation2");
     this.redraw(this.paper);
   },
   setRadio: function(model) {
@@ -320,6 +322,9 @@ var Display = Backbone.View.extend({
     this.redraw(this.paper);
   },
   changeFrequency: function(e) {
+    if (this.skipChange == true) {
+        return;
+    }
     // cross-browser wheel delta
     var e = window.event || e; // old IE support
     var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
@@ -328,10 +333,16 @@ var Display = Backbone.View.extend({
     this.model.set("frequency"+this.model.get("radio"),freq);
   },
   decreaseStep : function (e) {
+    if (this.skipChange == true) {
+        return;
+    }
 	freqTable.decreaseStep();
 	return false;
   },
   increaseStep : function (e) {
+    if (this.skipChange == true) {
+        return;
+    }
 	freqTable.increaseStep();
 	return false;
   },
@@ -354,5 +365,8 @@ var Display = Backbone.View.extend({
   setvsc : function(model) {
     this.vsc = model.get("vsc");
     this.redraw(this.paper);
+  },
+  onChangeAllowed : function(model) {
+    this.skipChange = !model.get("changeAllowed");
   }
 });

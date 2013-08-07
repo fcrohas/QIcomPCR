@@ -26,10 +26,12 @@ var RemoteControl = Backbone.Model.extend({
       agc: false,
       vsc: false,
       decoder: "none",
-      channel:0
+      channel:0,
+      changeAllowed: true
     },
     initialize: function() { 
       this.skipUpdate = false;
+      this.ack = true;
     },
     // Socket.IO management
     connect: function() {
@@ -46,6 +48,7 @@ var RemoteControl = Backbone.Model.extend({
     	this.on('change:radio', this.setRadio);
     	this.on('change:scopeRate', this.setScopeRate);
     	this.on('change:selectedFrequency', this.setSelectedFrequency);
+      this.on('change:selectedBandwidth', this.setSelectedBandwidth);
     	this.on('change:decoder', this.setDecoder);
     	this.on('change:channel', this.setChannel);
     },
@@ -66,7 +69,17 @@ var RemoteControl = Backbone.Model.extend({
       this.model.set('statedata', 'Disconnected');
     },
     onMessage: function(msg) {
-      this.skipUpdate = false;
+      // block until acknowledge is received
+      //console.log("message="+msg+" ack="+this.model.ack+" changeAllowed="+this.model.get("changeAllowed"));
+      if (this.model.ack == false) {
+        if (msg == "ACK") {
+            // Acknowledge received reinit it
+            this.model.ack = true;
+            this.model.set("changeAllowed", true);
+        }
+        return;
+      }
+      // block command send until it come from outside
       if (msg.substring(0,2) == 'SA') {
       	if (Math.abs(this.model.get("signal1")-parseInt(msg.substring(2),10)) > 10) {
       	  this.model.set('signal1', msg.substring(2));
@@ -93,16 +106,55 @@ var RemoteControl = Backbone.Model.extend({
       	this.model.set('data', msg.substring(2));
       }
       if (msg.substring(0,4) == 'FREQ') {
-        // This message are for other component
-        this.skipUpdate = true;
+        // This message are for other component not this one
+        this.model.set("changeAllowed", false);
         this.model.set('frequency'+this.model.get('radio'),new Number(msg.substring(4)));
       }
-      /*
       if (msg.substring(0,5) == 'RADIO') {
         // This message are for other component
-        this.skipUpdate = true;
-        this.model.set('radio',new Number(msg.substring(5)));
-      }*/
+        this.model.set("changeAllowed", false);
+        this.model.set('radio',new Number(msg.substring(5))+1);
+      }
+      if (msg.substring(0,3) == 'MOD') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("modulation"+this.model.get("radio"),msg.substring(3));
+      }
+      if (msg.substring(0,2) == 'IF') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("ifshift"+this.model.get("radio"),msg.substring(2));
+      }
+      if (msg.substring(0,6) == 'FILTER') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("filter"+this.model.get("radio"),msg.substring(6));
+      }
+      if (msg.substring(0,3) == 'AGC') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("agc",(msg.substring(3)=="ON")? true: false);
+      }
+      if (msg.substring(0,3) == 'VSC') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("vsc",(msg.substring(3)=="ON")? true: false);
+      }
+      if (msg.substring(0,2) == 'NB') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("nb",(msg.substring(2)=="ON")? true: false);
+      }
+      if (msg.substring(0,5) == 'SFREQ') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("selectedFrequency",new Number(msg.substring(5)));
+      }
+      if (msg.substring(0,5) == 'SFRQW') {
+        // This message are for other component
+        this.model.set("changeAllowed", false);
+        this.model.set("selectedBandwidth",new Number(msg.substring(5)));
+      }
     },
     onData: function(msg) {
       if (msg.substring(0,2) == 'WT') {
@@ -119,19 +171,23 @@ var RemoteControl = Backbone.Model.extend({
       this.set('power', !this.get('power'));
     },
     setFrequency: function(model) {
-      if (model.skipUpdate == true)
+      if (model.get("changeAllowed") == false)
           return;
       var value = model.get('frequency'+model.get('radio'));
       if ((value != undefined) && (value !='')) {
 		    this.cmd.send('FREQ'+value);
       }
     },
-    setSelectedFrequency: function() {
-      var value = this.get('selectedFrequency');
+    setSelectedFrequency: function(model) {
+      if (model.get("changeAllowed") == false)
+          return;
+      var value = model.get('selectedFrequency');
       this.cmd.send('SFREQ'+value);
     },
-    setSelectedBandwidth: function() {
-      var value = this.get('selectedBandwidth');
+    setSelectedBandwidth: function(model) {
+      if (model.get("changeAllowed") == false)
+          return;
+      var value = model.get('selectedBandwidth');
       this.cmd.send('SFRQW'+value);
     },
     setModulation: function(value) {
@@ -156,7 +212,7 @@ var RemoteControl = Backbone.Model.extend({
 		  this.cmd.send('WT'+model.get("scopeRate"));
     },
     setRadio: function(model) {
-      if (mdoel.skipUpdate == true)
+      if (model.get("changeAllowed") == false)
           return;
       this.cmd.send('RADIO'+(model.get("radio")-1));
     },
