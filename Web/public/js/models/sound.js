@@ -4,8 +4,8 @@ var SoundControl = Backbone.Model.extend({
 		state: 'Stopped',
 		maxBufferSize : 110250, // 5s ring buffer
 		isApplet : false,
-		resample : true,
-		directplay: true
+		resample : false,
+		directplay: false
     },
     initialize: function() { 
 		this.playing = false;
@@ -29,13 +29,13 @@ var SoundControl = Backbone.Model.extend({
 			this.source.onended = this.playBufferEnded;
 			this.gainNode = this.context.createGain();
 			this.gainNode.gain.value = 1.0;
-			this.buffer = this.context.createBuffer(1, 16384, 22050); //  5s buffer	
+			this.buffer = this.context.createBuffer(2, 16384, 22050); //  5s buffer	
 			if (this.get('resample') == true) {
 			  this.resampleControl = new Resampler(11025,22050,1,512,true);
 			}
 			// Build a filler thread to fill audiobuffer loop after each playing
 			if (this.directplay == false) {
-				this.filler = this.context.createScriptProcessor(16384, 1, 1); 
+				this.filler = this.context.createScriptProcessor(16384);
 				this.filler.onaudioprocess = this.getRingBufferData;
 			}
 			// for ring buffer allocate twice the size
@@ -62,7 +62,6 @@ var SoundControl = Backbone.Model.extend({
     // Socket.IO management
     connect: function() {
 		this.socket = new BinaryClient('ws://'+window.location.host+this.get('path'));
-		this.socket.model = this;
 		this.socket.on('open', this.onConnect);
 		this.socket.on('stream', this.onStream);
 		this.audio = null;
@@ -76,6 +75,7 @@ var SoundControl = Backbone.Model.extend({
 			this.audio = SpeexAudio;
 			// ****************** See SpeexAudio.jar ************** 
 		}
+		this.socket.model = this;		
     },
     onConnect: function() {
       this.on('disconnect', this.model.onDisconnect);      
@@ -87,14 +87,14 @@ var SoundControl = Backbone.Model.extend({
       stream.on('data', function(data) {
 
 	    if (this.model.get('isApplet') == false) {      
-		// ******************  HTML5 VERSION *****************
-		this.model.addToRingBuffer(data);
+			// ******************  HTML5 VERSION *****************
+			this.model.addToRingBuffer(data);
 	    } else {
-	      // ******************  APPLET VERSION *****************
-	      // ****************** See SpeexAudio.jar **************
-	      // Send received speex data to audio applet      
-	      this.model.audio.getAudio(new Int8Array(data));
-	      // ****************** See SpeexAudio.jar **************
+			// ******************  APPLET VERSION *****************
+			// ****************** See SpeexAudio.jar **************
+			// Send received speex data to audio applet      
+			this.model.audio.getAudio(new Int8Array(data));
+			// ****************** See SpeexAudio.jar **************
 	    }
       });
       this.model.set('state', 'Playing');	
@@ -175,26 +175,30 @@ var SoundControl = Backbone.Model.extend({
 	    // Took buffer length bits for next loop
 	    var output = event.outputBuffer.getChannelData(0);
 	    // Check if enought byte to fill audio buffer
-	    if (this.main.ringAvailableBytes >= output.length) {
+	    if (this.main.ringAvailableBytes >= output.length/2) { // this is stereo buffer so half data
 		    // Fill audio buffer for next play
 		    var curpos = 0;
-		    for (var i = 0; i < output.length; i++)
+		    var j=0;
+		    for (var i = 0; i < output.length/2; i++)
 		    {
 			    // if end of ring buffer not reached
 			    if (this.main.ringoffset+i<this.main.maxBufferSize) {
-				    output[i] = this.main.ringbuffer[this.main.ringoffset+i];
+				    output[j] = this.main.ringbuffer[this.main.ringoffset+i];
+				    output[j+1] = this.main.ringbuffer[this.main.ringoffset+i];
 				    curpos = i;
 			    } else {
 				    // else get the rest from pos 0 of buffer
-				    output[i] = this.main.ringbuffer[i-(curpos+1)];
+				    output[j] = this.main.ringbuffer[i-(curpos+1)];
+				    output[j+1] = this.main.ringbuffer[i-(curpos+1)];
 			    }
+			    j+=2;
 		    }
 		    // Adjust new offset in ring buffer
-		    this.main.ringoffset += output.length;
+		    this.main.ringoffset += output.length/2+1;
 		    if (this.main.ringoffset >= this.main.maxBufferSize)
 			    this.main.ringoffset = this.main.ringoffset - this.main.maxBufferSize;
 		    // Decrease available byte read from buffer
-		    this.main.ringAvailableBytes -= output.length;
+		    this.main.ringAvailableBytes -= output.length/2;
 			this.main.finished = false;
 	    }
     },
@@ -226,10 +230,10 @@ var SoundControl = Backbone.Model.extend({
 				  sound.ringoffset = sound.ringoffset - sound.maxBufferSize;
 			  // Decrease available byte read from buffer
 			  sound.ringAvailableBytes -= buf.length;
-			  
 			  sound.source.buffer = sound.buffer;   // tell the source which sound to play
 			  //this.source.loop = false;
 			  //this.source.noteOn(0); 
+
 			  sound.finished = false;
 			}
 		} catch (e) {
