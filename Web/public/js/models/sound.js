@@ -5,12 +5,15 @@ var SoundControl = Backbone.Model.extend({
 		maxBufferSize : 110250, // 5s ring buffer
 		isApplet : false,
 		resample : false,
-		directplay: false
+		directplay: false,
+		testBuffer: false
     },
     initialize: function() { 
 		this.playing = false;
 		this.finished = false;
+		this.sampleBuffer = 4096;
 		this.directplay = this.get("directplay");
+		this.testBuffer = this.get("testBuffer");
 		window.AudioContext = window.AudioContext || window.webkitAudioContext;
 		if ( (window.AudioContext == null) || (window.AudioContext == undefined)) {
 			this.set('isApplet',true);
@@ -29,21 +32,21 @@ var SoundControl = Backbone.Model.extend({
 			this.source.onended = this.playBufferEnded;
 			this.gainNode = this.context.createGain();
 			this.gainNode.gain.value = 1.0;
-			this.buffer = this.context.createBuffer(2, 16384, 22050); //  5s buffer	
+			this.buffer = this.context.createBuffer(2, this.sampleBuffer, 22050); //  5s buffer	
 			if (this.get('resample') == true) {
 			  this.resampleControl = new Resampler(11025,22050,1,512,true);
 			}
 			// Build a filler thread to fill audiobuffer loop after each playing
 			if (this.directplay == false) {
-				this.filler = this.context.createScriptProcessor(16384);
+				this.filler = this.context.createScriptProcessor(this.sampleBuffer);
 				this.filler.onaudioprocess = this.getRingBufferData;
 			}
-			// for ring buffer allocate twice the size
-			this.ringbuffer = new Float32Array(this.maxBufferSize*2); 
+			// for ring buffer allocate maxbufferSize  + one sample buffer 
+			this.ringbuffer = new Float32Array(this.maxBufferSize+this.sampleBuffer); 
 			// Current ring buffer size
 			this.ringsize = 0;
 			// Current ring buffer reader position
-			this.ringoffset = 0;
+			this.RingOffset = 0;
 			// Current number of byte available in ring buffer
 			this.ringAvailableBytes = 0;
 			this.starttime = 0;
@@ -105,10 +108,22 @@ var SoundControl = Backbone.Model.extend({
     addToRingBuffer : function(data) {
 		// Convert ArrayBuffer to Int8Array
 		var audioData = new Int8Array(data);
+		var decoded = null;
 		// Decode Speex buffer
-		var decoded = this.codec.decode(audioData); // to Int16 decoding buffer
-		if ((decoded ==null) || (decoded == undefined))
-		      return;
+    	if (this.testBuffer == false) {
+			decoded = this.codec.decode(audioData); // to Int16 decoding buffer
+			if ((decoded ==null) || (decoded == undefined))
+			      return;
+		} else {
+			// create loop data
+			decoded = new Float32Array(128);
+			var j=1;
+			for (var i=0; i<decoded.length;i++) {
+				decoded[i] = j;
+				j++;
+				if (j>4) j=1;
+			}
+		}
 		// resample
 		if (this.get('resample') == true) {
 		  var resampleLength = this.resampleControl.resampler(decoded);
@@ -126,22 +141,30 @@ var SoundControl = Backbone.Model.extend({
 		}
 		// Ring buffer size reach the limit
 		// move over maxbuffersize back to start of ring buffer
-		if (this.ringsize >= this.maxBufferSize) {
+		if (this.ringsize > this.maxBufferSize) {
 			// Copy remaining to buffer start
+			var max = 0
 			for (var i=this.maxBufferSize,j=0; i < this.ringsize; i++,j++) {
 				this.ringbuffer[j] = this.ringbuffer[i];
-				this.ringsize = j+1;	
+				this.ringbuffer[i] = 0;
+				max = j+1;	
 			}
+			this.ringsize = max;
 		}
-		if (this.directplay == true) {
-			//this.playDirectBuffer();
-		}
-		if ((this.playing == false) && (this.ringsize >=this.maxBufferSize/5)) {
+		if ((this.playing == false) && (this.ringsize >this.maxBufferSize/5)) {
 		    // wait for enough buffer
 		    this.playBuffer();
 		    this.playing = true;
 		}
-		//delete audioData;
+		if (this.ringAvailableBytes> this.maxBufferSize) this.ringAvailableBytes = this.maxBufferSize; // limit is buffer size
+		/*
+		if (this.testBuffer == true) {
+			var data="addToRingBuffer:";
+			for(var i=0; i < this.ringbuffer.length;i++) {
+				data+=this.ringbuffer[i];
+			}
+			console.log(data);
+		}*/
     },
     playBuffer : function() {
 		// Get buffer pointer to channel 0
@@ -173,38 +196,51 @@ var SoundControl = Backbone.Model.extend({
     },
     getRingBufferData: function(event) {
 	    // Took buffer length bits for next loop
-	    var output = event.outputBuffer.getChannelData(0);
+    	var output = event.outputBuffer.getChannelData(0);
+	    var size = output.length / 2;
 	    // Check if enought byte to fill audio buffer
-	    if (this.main.ringAvailableBytes >= output.length/2) { // this is stereo buffer so half data
+	    if (this.main.ringAvailableBytes >= size) { // this is stereo buffer so half data
 		    // Fill audio buffer for next play
 		    var curpos = 0;
 		    var j=0;
-		    for (var i = 0; i < output.length/2; i++)
+		    for (var i = 0; i < size; i++)
 		    {
 			    // if end of ring buffer not reached
-			    if (this.main.ringoffset+i<this.main.maxBufferSize) {
-				    output[j] = this.main.ringbuffer[this.main.ringoffset+i];
-				    output[j+1] = this.main.ringbuffer[this.main.ringoffset+i];
-				    curpos = i;
+			    if (this.main.RingOffset+i<this.main.maxBufferSize) {
+				    output[j] = this.main.ringbuffer[this.main.RingOffset+i];
+				    output[j+1] = this.main.ringbuffer[this.main.RingOffset+i];
+				    curpos = i+1;
 			    } else {
 				    // else get the rest from pos 0 of buffer
-				    output[j] = this.main.ringbuffer[i-(curpos+1)];
-				    output[j+1] = this.main.ringbuffer[i-(curpos+1)];
+				    output[j] = this.main.ringbuffer[i-curpos];
+				    output[j+1] = this.main.ringbuffer[i-curpos];
 			    }
 			    j+=2;
 		    }
-		    // Adjust new offset in ring buffer
-		    this.main.ringoffset += output.length/2+1;
-		    if (this.main.ringoffset >= this.main.maxBufferSize)
-			    this.main.ringoffset = this.main.ringoffset - this.main.maxBufferSize;
+		    // Adjust new offset in ring buffer to next sample
+		    var prevOffset = this.main.RingOffset;
+		    if (this.main.RingOffset+size >= this.main.maxBufferSize) {
+		    	this.main.RingOffset = this.main.RingOffset+size - this.main.maxBufferSize;
+		    } else {
+		    	this.main.RingOffset += size;
+		    }
+			//console.log('offset set to '+ this.main.RingOffset+ ' last offset was '+prevOffset);		    
 		    // Decrease available byte read from buffer
-		    this.main.ringAvailableBytes -= output.length/2;
+		    this.main.ringAvailableBytes -= size;
+		    if (this.main.ringAvailableBytes < 0) this.main.ringAvailableBytes = 0;
 			this.main.finished = false;
+			/*
+			if (this.main.testBuffer == true) {
+				var data="getRingBufferData:";
+				for(var i=0; i < output.length;i+=2) {
+					data+=output[i];
+				}
+				console.log(data);
+			}*/
 	    }
     },
 	playBufferEnded: function(event) {
 		this.main.finished = true;
-		console.log("play finished");
 	},
 	playDirectBuffer : function() {
 		try {
@@ -216,8 +252,8 @@ var SoundControl = Backbone.Model.extend({
 			  for (var i = 0; i < buf.length; i++)
 			  {
 				  // if end of ring buffer not reached
-				  if (sound.ringoffset+i<sound.maxBufferSize) {
-					  buf[i] = sound.ringbuffer[sound.ringoffset+i];
+				  if (sound.RingOffset+i<sound.maxBufferSize) {
+					  buf[i] = sound.ringbuffer[sound.RingOffset+i];
 					  curpos = i;
 				  } else {
 					  // else get the rest from pos 0 of buffer
@@ -225,9 +261,9 @@ var SoundControl = Backbone.Model.extend({
 				  }
 			  }
 			  // Adjust new offset in ring buffer
-			  sound.ringoffset += buf.length+1;
-			  if (sound.ringoffset >= sound.maxBufferSize)
-				  sound.ringoffset = sound.ringoffset - sound.maxBufferSize;
+			  sound.RingOffset += buf.length;
+			  if (sound.RingOffset >= sound.maxBufferSize)
+				  sound.RingOffset = sound.RingOffset - sound.maxBufferSize;
 			  // Decrease available byte read from buffer
 			  sound.ringAvailableBytes -= buf.length;
 			  sound.source.buffer = sound.buffer;   // tell the source which sound to play

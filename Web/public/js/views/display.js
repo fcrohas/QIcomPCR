@@ -327,7 +327,12 @@ var Display = Backbone.View.extend({
     }
     // cross-browser wheel delta
     var e = window.event || e; // old IE support
-    var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    var delta = 0;
+    if (e.originalEvent) {
+        delta = Math.max(-1, Math.min(1, (e.originalEvent.wheelDelta || -e.originalEvent.detail)));
+    } else {
+        delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    }
     var frequency = new Number(this.model.get("frequency"+this.model.get("radio")));
     var freq = frequency + delta * freqTable.get('value');
     this.model.set("frequency"+this.model.get("radio"),freq);

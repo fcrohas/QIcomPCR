@@ -25,6 +25,7 @@ exports.SoundServer = Backbone.Model.extend({
 	  client.on('close', this.model.onDisconnect);
 	  var that = this;
 	  this.model.soundpcr.on('data', function(data) { that.model.onData(data,that.model.client); });
+	  this.model.soundpcr.resume();
 	  client.model.connected = true;	  
 	},
 	onStream : function(stream) {
@@ -37,8 +38,9 @@ exports.SoundServer = Backbone.Model.extend({
 	},
 	onDisconnect : function() {
 		this.model.connected = false;
+		this.model.soundpcr.pause();
 		console.log("sound connection closed gracefully");
-		this.close();
+		//this.close();
 	},
 	onError : function(e) {
 		console.log("BinaryJS error code "+e.code);

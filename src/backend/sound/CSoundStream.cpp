@@ -59,7 +59,7 @@ void CSoundStream::acceptConnection()
   // Wait for connection in each loop
   if ((!connected) && (server->waitForNewConnection(1000))) {
       client = server->nextPendingConnection();
-      qDebug() << "Connect server socker event acceptConnection()";
+      qDebug() << "Connect server socket event acceptConnection()";
       connect(client, SIGNAL(readyRead()), this, SLOT(startRead()));
       connect(client,SIGNAL(disconnected()), this, SLOT(disconnected()));
       connected = true;
@@ -130,7 +130,6 @@ void CSoundStream::encode(int16_t *data, int size)
         }
 
     }
-    // compress buffer
     speex_bits_reset(&bits);
     for (int i=0,j=speexPos; i<size;i+=2,j++) {
         speexBuffer[j] = data[i];
@@ -139,19 +138,25 @@ void CSoundStream::encode(int16_t *data, int size)
     speexPos = speexPos + 1;  // newt sample will go there
     speexSize = speexPos; // size is +1 from last position
     // Encode and send
-    speex_encode_int(enc_state, speexBuffer, &bits);
+    int loop =0;
+    while(loop < 1) {
+        // compress buffer
+        speex_encode_int(enc_state, speexBuffer, &bits);
+        // copy from l
+        for (int i=frame_size,j=0; i<speexSize;i++,j++) { // copy from end of frame to speex buffer size
+            // copy to stereo buffer
+            speexBuffer[j] = speexBuffer[i]; // remove latest frame_size sent from the buffer
+            speexPos = j;
+        }
+        speexPos = speexPos + 1;  // next sample will go there
+        speexSize = speexPos;
+        //speex_bits_advance(&bits,38);
+        loop++;
+    }
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
     client->write(byte_ptr,nbBytes);
     // no Event loop so do it manually
     client->flush();
-    // copy from l
-    for (int i=frame_size,j=0; i<speexSize;i++,j++) { // copy from end of frame to speex buffer size
-        // copy to stereo buffer
-        speexBuffer[j] = speexBuffer[i]; // remove latest frame_size sent from the buffer
-        speexPos = j;
-    }
-    speexPos = speexPos + 1;  // newt sample will go there
-    speexSize = speexPos;
   }
 #endif
 }

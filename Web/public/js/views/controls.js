@@ -1,7 +1,7 @@
 var ControlsCmd = Backbone.View.extend({
   initialize: function() {
     this.listenTo(this.model, "change:statecmd", this.setStatus);
-    this.listenTo(this.model, "change:power", this.setpower);
+    this.listenTo(this.model, "change:power", this.setPower);
     this.render();
   },
   render: function() {
@@ -10,7 +10,7 @@ var ControlsCmd = Backbone.View.extend({
     return this;
   },
   events: {
-        "click button.power": "togglePower",
+      "click button.power": "togglePower",
 	    "click button.nb": "toggleNB",
 	    "click button.agc": "toggleAGC",
 	    "click button.vsc": "toggleVSC"
@@ -30,5 +30,11 @@ var ControlsCmd = Backbone.View.extend({
   setStatus : function() {
   },
   setPower : function() {
+    var power = this.model.get("power");
+    if (power == true) {
+      $(this.$el).find('.led-green').removeClass('off').addClass('on');
+    } else {
+      $(this.$el).find('.led-green').removeClass('on').addClass('off');
+    }
   }
 });

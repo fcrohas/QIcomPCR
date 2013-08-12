@@ -114,9 +114,10 @@ void CPortAudio::run()
     while(running) {
         while(PaUtil_GetRingBufferReadAvailable(&ringBuffer)<BUFFER_SIZE) { Pa_Sleep(10); }
         int readCount = PaUtil_ReadRingBuffer(&ringBuffer,data,BUFFER_SIZE);
-        DecodeBuffer(data,BUFFER_SIZE);
+        if (readCount<BUFFER_SIZE) qDebug() << "readcount is " << readCount;
+        DecodeBuffer(data,readCount);
         // add data to ringbuffer of the encoder
-        soundStream->setData(data,BUFFER_SIZE);
+        soundStream->setData(data,readCount);
         // Start the workker function;
         QMetaObject::invokeMethod(soundStream, "doWork");
     }

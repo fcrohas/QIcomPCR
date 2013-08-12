@@ -8,9 +8,9 @@ var RemoteControl = Backbone.Model.extend({
       statedata: "unknown",
       selectedFrequency: -1,
       selectedBandwidth: 120, // around 130 hz
-      debug   : "",
+      debug : "",
       decodedText : "",
-      power   : false,
+      power : false,
       radio : 1,
       frequency1: 106500000,
       ifshift1  : 128,
@@ -234,9 +234,9 @@ var RemoteControl = Backbone.Model.extend({
     },
     toggleVSC: function() {
       if (this.get('vsc') == false) {
-		this.cmd.send('VSCON');
+		    this.cmd.send('VSCON');
       } else {
-		this.cmd.send('VSCOFF');
+		    this.cmd.send('VSCOFF');
       }
       this.set('vsc', !this.get('vsc'));
     },
