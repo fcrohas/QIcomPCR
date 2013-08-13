@@ -14,10 +14,12 @@ var RemoteControl = Backbone.Model.extend({
       radio : 1,
       frequency1: 106500000,
       ifshift1  : 128,
+      squelch1 : 0,
       modulation1: "WFM",
       filter1: 230000,
       frequency2: 145500000,
       ifshift2  : 128,
+      squelch2 : 0,
       modulation2: "FM",
       filter2: 15000,
       data: "0",
@@ -25,6 +27,8 @@ var RemoteControl = Backbone.Model.extend({
       nb: false,
       agc: false,
       vsc: false,
+      squelch : 0,
+      ifshift : 128,
       decoder: "none",
       channel:0,
       changeAllowed: true
@@ -51,6 +55,8 @@ var RemoteControl = Backbone.Model.extend({
       this.on('change:selectedBandwidth', this.setSelectedBandwidth);
     	this.on('change:decoder', this.setDecoder);
     	this.on('change:channel', this.setChannel);
+      this.on('change:squelch', this.setSquelch);
+      this.on('change:ifshift', this.setIFShift);
     },
     onConnectCmd: function() {
       //console.log(this.model);
@@ -252,5 +258,13 @@ var RemoteControl = Backbone.Model.extend({
       if (decoder == "CW") pos=3;
       if (decoder == "RTTY") pos=4;					  					  
       this.cmd.send('DEC'+pos);      
+    }, 
+    setSquelch: function(model) {
+      model.set('squelch'+model.get('radio'));
+      this.cmd.send('SQUELCH'+model.get('squelch'));
+    },
+    setIFShift: function(model) {
+      model.set('ifshift'+model.get('radio'));
+      setIFShift(model.get('ifshift'));
     }
 });

@@ -22,8 +22,8 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><a href="#about" data-toggle="modal">About</a></li>
+              <li><a href="#contact" data-toggle="modal">Contact</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -42,6 +42,12 @@
 	  <div class="row">
 	    <div class="span2">
 			<div id="controlleft"></div>
+			<fieldset>
+				<legend>Controls</legend>      
+				<div id="squelch"></div>
+				<div id="ifshift"></div>
+				<div id="volume"></div>
+			</fieldset>
 	    </div>
 	    <div class="span8">
 	    	<div id="mainDisplay"></div>
@@ -60,6 +66,38 @@
 	</div>
       </div>
     </div>
+
+	<div id="about" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+	    <h3>About QIcomPCR</h3>
+	  </div>
+	  <div class="modal-body">
+	    <p>This is the Web interface of QIComPCR Software available at <a href="https://github.com/fcrohas/QIcomPCR">GitHub</a></p>
+	    <p>This software is available under the GNU GPL license</p>
+	    <p>Copyright (C) 2012 Fabrice Crohas <fcrohas@gmail.com></p>
+	  </div>
+	  <div class="modal-footer">
+	    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+	  </div>
+	</div>
+
+	<div id="contact" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+	    <h3>Contact for QIcomPCR</h3>
+	  </div>
+	  <div class="modal-body">
+	  	<div class="control-group">
+	  		<label class="control-label" for="inputIcon">Email address</label>
+	  		<i class="icon-envelope"></i>
+	  		<a href="mailto:fcrohas@gmail.com">Fabrice Crohas</a>
+	  	</div>
+	  </div>
+	  <div class="modal-footer">
+	    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+	  </div>
+	</div>
 
     <!--script src="http://www.java.com/js/deployJava.js"></script> 
     <embed id="deployJavaPlugin" type="application/java-deployment-toolkit" hidden="true"></embed-->
@@ -87,6 +125,7 @@
     <script src="/js/views/viewer2d.js"></script><!-- Scope widget 2D -->
     <script src="/js/views/decoder.js"></script><!-- Decoder widget -->
     <script src="/js/views/display.js"></script><!-- Display widget -->        
+    <script src="/js/views/wheel.js"></script><!-- Wheel widget -->        
 
     <script src="/js/main.js"></script>
     
@@ -144,9 +183,9 @@
     <script type="text/template" id="controlTemplate">
       <fieldset>
 	<legend>Power</legend>
-	<button type="button" class="btn power" data-toggle="button" ><div class="led-green off"></div>Power</button>
-      </fieldset>
-      <fieldset>
+		<button type="button" class="btn power" data-toggle="button" ><div class="led-green off"></div>Power</button>
+	</fieldset>
+	<fieldset>
 	<legend>General</legend>
 	<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox">
 	    <button class="btn nb">Noise Blanker</button>
@@ -183,6 +222,12 @@
     <script type="text/template" id="displayTemplate">
       <div>
 	<div id="display"></div>
+      </div>
+    </script>
+    <script type="text/template" id="wheelTemplate">
+      <div>
+		<div id="wheel"></div>
+		<div id="label"></div>
       </div>
     </script>
     <script type="text/template" id="viewerTemplate">

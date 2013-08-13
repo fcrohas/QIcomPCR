@@ -1,3 +1,21 @@
+/**********************************************************************************************
+  Copyright (C) 2012 Fabrice Crohas <fcrohas@gmail.com>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+**********************************************************************************************/
 #include "CSoundStream.h"
 
 
@@ -10,7 +28,8 @@ CSoundStream::CSoundStream(QObject *parent) :
     speexSize(0),
     stereoPos(0),
     stereoSize(0),
-    ringBufferData(NULL)
+    ringBufferData(NULL),
+    channel(0)
 #ifdef WITH_SPEEX
     ,enc_state(NULL),
     resample(false)
@@ -64,7 +83,7 @@ void CSoundStream::acceptConnection()
       connect(client,SIGNAL(disconnected()), this, SLOT(disconnected()));
       connected = true;
 #ifdef WITH_SPEEX
-        int quality = 8; // Speex quality encoder
+        int quality = 5; // Speex quality encoder
         int complexity = 2; // Speex complexity encoder
         int samplerate = 0;
         if (resample==true) {
@@ -132,14 +151,14 @@ void CSoundStream::encode(int16_t *data, int size)
     }
     speex_bits_reset(&bits);
     for (int i=0,j=speexPos; i<size;i+=2,j++) {
-        speexBuffer[j] = data[i];
+        speexBuffer[j] = data[i+channel];
         speexPos = j;
     }
     speexPos = speexPos + 1;  // newt sample will go there
     speexSize = speexPos; // size is +1 from last position
     // Encode and send
     int loop =0;
-    while(loop < 1) {
+    while(loop < (size/2)/frame_size) { // do loop to compress max frame in one packet
         // compress buffer
         speex_encode_int(enc_state, speexBuffer, &bits);
         // copy from l
@@ -150,7 +169,7 @@ void CSoundStream::encode(int16_t *data, int size)
         }
         speexPos = speexPos + 1;  // next sample will go there
         speexSize = speexPos;
-        //speex_bits_advance(&bits,38);
+        speex_bits_insert_terminator(&bits);
         loop++;
     }
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
@@ -200,4 +219,9 @@ void CSoundStream::doWork()
             encode(stereoBuffer,(avail<BUFFER_SIZE)?avail:BUFFER_SIZE);
         }
     }
+}
+
+void CSoundStream::setChannel(uint value)
+{
+    channel = value;
 }

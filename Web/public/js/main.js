@@ -38,6 +38,15 @@ $(document).ready(function(){
     
     // Viewer
     viewer = new ViewerView2D({ el : '#scope', model:remote});
+
+    // Volume
+    volume = new WheelView({ el: '#volume', model:sound, size: 140, label:'Volume', bindTo: 'volume', range: 10.0});
+
+    //squelch
+    squelch = new WheelView({ el: '#squelch', model:remote, size : 80, label:'Squelch', bindTo: 'squelch'});
+
+    //ifshift
+    ifshift = new WheelView({ el: '#ifshift', model:remote, size : 80, label:'IF', bindTo: 'if'});
     
     // Connect remote to device
     remote.connect();

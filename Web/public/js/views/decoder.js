@@ -9,7 +9,7 @@ var DecoderView = Backbone.View.extend({
     return this;
   },
   events: {
-            "click #decoder ul li a": "setDecoder",
+      "click #decoder ul li a": "setDecoder",
 	    "click #channel ul li a": "setChannel"
   },
   setDecodedText: function() {

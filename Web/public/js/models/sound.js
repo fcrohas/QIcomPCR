@@ -2,7 +2,8 @@ var SoundControl = Backbone.Model.extend({
     defaults : {
 		path : '/stream',
 		state: 'Stopped',
-		maxBufferSize : 110250, // 5s ring buffer
+		volume: 1.0,
+		maxBufferSize : 110250, //524288,//110250, // 5s ring buffer
 		isApplet : false,
 		resample : false,
 		directplay: false,
@@ -12,6 +13,7 @@ var SoundControl = Backbone.Model.extend({
 		this.playing = false;
 		this.finished = false;
 		this.sampleBuffer = 4096;
+		this.on('change:volume', this.setVolume);
 		this.directplay = this.get("directplay");
 		this.testBuffer = this.get("testBuffer");
 		window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -23,7 +25,7 @@ var SoundControl = Backbone.Model.extend({
 			// ******************  HTML5 VERSION *****************
 			this.codec = new Speex({
 				benchmark: false
-				, quality: 8
+				, quality: 5
 				, enh : 1
 				, complexity : 2
 			});
@@ -31,7 +33,7 @@ var SoundControl = Backbone.Model.extend({
 			this.source = this.context.createBufferSource(0); // creates a sound source    
 			this.source.onended = this.playBufferEnded;
 			this.gainNode = this.context.createGain();
-			this.gainNode.gain.value = 1.0;
+			this.gainNode.gain.value = this.get("volume");
 			this.buffer = this.context.createBuffer(2, this.sampleBuffer, 22050); //  5s buffer	
 			if (this.get('resample') == true) {
 			  this.resampleControl = new Resampler(11025,22050,1,512,true);
@@ -178,7 +180,8 @@ var SoundControl = Backbone.Model.extend({
 		// Connect a filler process for audio buffer
 		if (this.directplay == false) {	
 			this.source.connect(this.filler);
-			this.filler.connect(this.context.destination);
+			this.filler.connect(this.gainNode);
+			this.gainNode.connect(this.context.destination);
 			// Do loop audio buffer
 			this.source.loop = false;
 		}	else {
@@ -275,5 +278,9 @@ var SoundControl = Backbone.Model.extend({
 		} catch (e) {
 			console.log(e.message);
 		}
+    },
+    setVolume : function() {
+    	//console.log("volume="+this.get("volume"));
+    	this.gainNode.gain.value = this.get("volume");
     }
 });	

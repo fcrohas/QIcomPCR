@@ -181,6 +181,7 @@ void CMainWindow::connectSignals()
     connect(remote,SIGNAL(sigChannel(int)), this, SLOT(slotChannelChange(int)));
     connect(remote,SIGNAL(sigDecoder(int)), this, SLOT(slotDecoderChange(int)));
     connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
+    connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
     connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     // Connect load file
@@ -580,6 +581,7 @@ void CMainWindow::slotLoadFile()
         sound->Load(fileName);
         sound->SetDemodulator(demodulator);
         sound->setRunning(true);
+        connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
     }
 #endif
     slotSwitchSound(true);
