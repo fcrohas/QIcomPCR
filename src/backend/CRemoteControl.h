@@ -91,6 +91,11 @@ class CRemoteControl: public QObject
       // set Radio mode
       void sigRadioMode(uint value);
 
+      // Bandscope mode
+      void sigBandScope(bool value);
+      void sigBandScopeWidth(int value);
+      void sigBandScopeStep(int value);
+
       // set Sound Output
       void sigSoundVolume(uint value);
       void sigSoundMute(bool value);

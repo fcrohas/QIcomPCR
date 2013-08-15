@@ -44,13 +44,20 @@
 			<div id="controlleft"></div>
 			<fieldset>
 				<legend>Controls</legend>      
-				<div id="squelch"></div>
-				<div id="ifshift"></div>
-				<div id="volume"></div>
+				<div class="toolbox">
+					<div id="squelch"></div>
+					<div id="ifshift"></div>
+					<div id="volume"></div>
+				</div>
 			</fieldset>
 	    </div>
 	    <div class="span8">
-	    	<div id="mainDisplay"></div>
+	    	<div class="row">
+	    		<div id="mainDisplay"></div>
+	    	</div>
+	    	<div class="row">
+	    		<div id="bandscope"></div>
+	    	</div>
 	    </div>
 	    <div class="span2">
 	    	<div id="control"></div>
@@ -126,6 +133,7 @@
     <script src="/js/views/decoder.js"></script><!-- Decoder widget -->
     <script src="/js/views/display.js"></script><!-- Display widget -->        
     <script src="/js/views/wheel.js"></script><!-- Wheel widget -->        
+    <script src="/js/views/bandscope.js"></script><!-- BandScope widget -->
 
     <script src="/js/main.js"></script>
     
@@ -183,46 +191,91 @@
     <script type="text/template" id="controlTemplate">
       <fieldset>
 	<legend>Power</legend>
-		<button type="button" class="btn power" data-toggle="button" ><div class="led-green off"></div>Power</button>
+		<div class="toolbox">
+			<button type="button" class="btn power" data-toggle="button" ><div class="led-green off"></div>Power</button>
+		</div>
 	</fieldset>
 	<fieldset>
 	<legend>General</legend>
-	<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox">
-	    <button class="btn nb">Noise Blanker</button>
-	    <button class="btn agc">Auto Gain Control</button>
-	    <button class="btn vsc">Voice Squelch</button>
-	</div>
+		<div class="toolbox">
+			<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox">
+			    <button class="btn nb">Noise Blanker</button>
+			    <button class="btn agc">Auto Gain Control</button>
+			    <button class="btn vsc">Voice Squelch</button>
+			</div>
+		</div>
       </fieldset>
     </script>    
     <script type="text/template" id="radioTemplate">
       <div class="btn-toolbar btn-group-vertical">
 	<fieldset>
 	  <legend>Modulations</legend>
-	  <div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
-	      <button class="btn wfm">Wide FM</button>
-	      <button class="btn fm">FM</button>
-	      <button class="btn am">AM</button>
-	      <button class="btn usb">USB</button>
-	      <button class="btn lsb">LSB</button>
-	      <button class="btn cw">CW</button>	
+		<div class="toolbox">
+		  <div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
+		      <button class="btn wfm">Wide FM</button>
+		      <button class="btn fm">FM</button>
+		      <button class="btn am">AM</button>
+		      <button class="btn usb">USB</button>
+		      <button class="btn lsb">LSB</button>
+		      <button class="btn cw">CW</button>	
+		  </div>
 	  </div>
 	</fieldset>
 	<fieldset>
 	  <legend>Filters</legend>
-	  <div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
-	      <button class="btn 28k">2.8k</button>
-	      <button class="btn 6k">6k</button>
-	      <button class="btn 15k">15k</button>
-	      <button class="btn 50k">50k</button>
-	      <button class="btn 230k">230k</button>	
+	  <div class="toolbox">
+		  <div class="btn-group btn-group-vertical" data-toggle="buttons-radio">
+		      <button class="btn 28k">2.8k</button>
+		      <button class="btn 6k">6k</button>
+		      <button class="btn 15k">15k</button>
+		      <button class="btn 50k">50k</button>
+		      <button class="btn 230k">230k</button>	
+		  </div>
 	  </div>
 	</fieldset>
       </div>
     </script>    
     <script type="text/template" id="displayTemplate">
       <div>
-	<div id="display"></div>
+		<div id="display"></div>
       </div>
+    </script>
+    <script type="text/template" id="bandscopeTemplate">
+    	<button type="button" class="btn start" data-toggle="button" >Start</button>
+	    <div class="btn-group bandwidth">
+			<button class="btn dropdown-toggle" data-toggle="dropdown">
+			  Band Width
+			  <span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu">
+			  <li><a href="#">5Mhz</a></li>
+			  <li><a href="#">2Mhz</a></li>
+			  <li><a href="#">1Mhz</a></li>
+			  <li><a href="#">500Khz</a></li>
+			  <li><a href="#">200Khz</a></li>
+			  <li><a href="#">100Khz</a></li>
+			  <li><a href="#">50Khz</a></li>
+			</ul>
+	    </div>	 
+	    <div class="btn-group step">
+			<button class="btn dropdown-toggle" data-toggle="dropdown">
+			  Step Size
+			  <span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu">
+			  <li><a href="#">100Khz</a></li>
+			  <li><a href="#">50Khz</a></li>
+			  <li><a href="#">25Khz</a></li>
+			  <li><a href="#">15Khz</a></li>
+			  <li><a href="#">12.5Khz</a></li>
+			  <li><a href="#">10Khz</a></li>
+			  <li><a href="#">6Khz</a></li>
+			  <li><a href="#">5Khz</a></li>
+			  <li><a href="#">2.5Khz</a></li>
+			  <li><a href="#">1Khz</a></li>
+			</ul>
+	    </div>	 
+		<div class="bandscopeDisplay"></div>
     </script>
     <script type="text/template" id="wheelTemplate">
       <div>
@@ -238,7 +291,7 @@
 	    <button type="button" class="btn btn-primary start" data-toggle="button">Start</button>
 	  </div>  
 	  <div class="span1">
-	      <div class="btn-group">
+	    <div class="btn-group">
 		<button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
 		  Refresh
 		  <span class="caret"></span>
@@ -250,7 +303,7 @@
 		  <li><a href="#">0.1 s</a></li>
 		  <li><a href="#">0.05 s</a></li>
 		</ul>
-	      </div>	 
+	    </div>	 
 	  </div>
 	 </div>
 	</div>

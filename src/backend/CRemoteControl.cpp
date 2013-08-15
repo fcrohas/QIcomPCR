@@ -119,6 +119,20 @@ void CRemoteControl::decode(char *buffer)
     if (decodedString.startsWith("NBOFF")) {
         emit sigNoiseBlanker(true);
     } else
+    if (decodedString.startsWith("BDSON")) {
+        emit sigBandScope(true);
+    } else
+    if (decodedString.startsWith("BDSOFF")) {
+        emit sigBandScope(false);
+    } else
+    if (decodedString.startsWith("BDSW")) {
+        QString width= decodedString.replace("BDSW","");
+        emit sigBandScopeWidth(width.toInt());
+    } else
+    if (decodedString.startsWith("BDSS")) {
+        QString step= decodedString.replace("BDSS","");
+        emit sigBandScopeStep(step.toInt());
+    } else
     if (decodedString.startsWith("RADIO")) {
         QString radio= decodedString.replace("RADIO","");
         emit sigRadio(radio.toInt());

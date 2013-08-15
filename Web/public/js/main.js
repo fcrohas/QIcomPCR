@@ -35,6 +35,9 @@ $(document).ready(function(){
 	
     //Bind radio control buttons
     radioDisplay = new Display({ el: '#mainDisplay', frequencytable:freqTable, model:remote});
+
+    // Bind bandscope
+    radioBandScope = new BandScope({ el: '#bandscope', frequencytable:freqTable, model:remote})
     
     // Viewer
     viewer = new ViewerView2D({ el : '#scope', model:remote});
@@ -46,7 +49,7 @@ $(document).ready(function(){
     squelch = new WheelView({ el: '#squelch', model:remote, size : 80, label:'Squelch', bindTo: 'squelch'});
 
     //ifshift
-    ifshift = new WheelView({ el: '#ifshift', model:remote, size : 80, label:'IF', bindTo: 'if'});
+    ifshift = new WheelView({ el: '#ifshift', model:remote, size : 80, label:'IF', bindTo: 'ifshift'});
     
     // Connect remote to device
     remote.connect();

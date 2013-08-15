@@ -14,8 +14,10 @@ var DecoderView = Backbone.View.extend({
   },
   setDecodedText: function() {
 	//console.log(this.model.get('decodedText'));
-	if ( this.model.get('decodedText') != "" ) {
-	    this.$el.find('#content').append(this.model.get('decodedText'));
+  var text = this.model.get('decodedText');
+	if (  text != "" ) {
+      text = text.replace("\r\n","<br>");
+	    this.$el.find('#content').append(text);
 	}
   },
   setChannel: function(e) {

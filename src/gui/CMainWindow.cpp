@@ -183,6 +183,9 @@ void CMainWindow::connectSignals()
     connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
     connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
     connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
+    connect(remote,SIGNAL(sigBandScope(bool)), this, SLOT(slotBandScope(bool)));
+    connect(remote,SIGNAL(sigBandScopeWidth(int)), this, SLOT(slotBandScopeWidth(int)));
+    connect(remote,SIGNAL(sigBandScopeStep(int)), this, SLOT(slotBandScopeStep(int)));
     connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
@@ -299,6 +302,7 @@ void CMainWindow::slotReceivedData(QString data)
     }
     if (data.contains("NE")) {
         myBandScope->setSamples(data);
+        remote->sendData(QString("@BDS%1@").arg(data.replace("NE1","")));
         found = true;
     }
     if (!found) {
@@ -652,12 +656,14 @@ void CMainWindow::slotBandScope(bool value)
 
 void CMainWindow::slotBandScopeWidth(int value)
 {
+    qDebug() << "Band Scope Width "<< value;
     myBandScope->setBandWidth(bandwidth[value]);
     cmd->setBandScopeWidth(bandwidth[value]);
 }
 
 void CMainWindow::slotBandScopeStep(int value)
 {
+    qDebug() << "Band Scope Step "<< value;
     myBandScope->setStep(stepsize[value]);
     cmd->setBandScopeStep(stepsize[value]);
 }

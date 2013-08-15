@@ -95,16 +95,18 @@ void CSoundStream::acceptConnection()
         int vbr = 0;
         float vbrquality = 5.0;
         int bitrate = 0;
+        int dtx = 1;
         // Speex initalization
         speex_bits_init(&bits);
         enc_state = speex_encoder_init(speex_lib_get_mode(SPEEX_MODEID_NB));
         speex_encoder_ctl(enc_state,SPEEX_SET_QUALITY,&quality);
-        speex_encoder_ctl(enc_state,SPEEX_SET_VBR,&vbr);
+        //speex_encoder_ctl(enc_state,SPEEX_SET_VBR,&vbr);
+        speex_encoder_ctl(enc_state,SPEEX_SET_DTX,&dtx);
         speex_encoder_ctl(enc_state,SPEEX_SET_SAMPLING_RATE,&samplerate);
         speex_encoder_ctl(enc_state,SPEEX_SET_COMPLEXITY,&complexity);
         speex_encoder_ctl(enc_state,SPEEX_GET_FRAME_SIZE,&frame_size);
         speex_encoder_ctl(enc_state,SPEEX_GET_BITRATE,&bitrate);
-        speex_encoder_ctl(enc_state,SPEEX_SET_VBR_QUALITY,&vbrquality);
+        //speex_encoder_ctl(enc_state,SPEEX_SET_VBR_QUALITY,&vbrquality);
         qDebug() << "frame size for speex is " << frame_size << " bitrate " << bitrate;
 #endif
   }

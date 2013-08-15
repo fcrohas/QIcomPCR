@@ -20,8 +20,8 @@ var ViewerView2D = Backbone.View.extend({
     this.$el.html(this.template);
     this.context = canvas.getContext('2d');
     //canvas.style.width="100%";    
-    this.imageData = this.context.createImageData(512, 256);
-    this.overlay = this.context.createImageData(512, 256);    
+    this.imageData = this.context.createImageData(1024, 256);
+    this.overlay = this.context.createImageData(1024, 256);    
     this.height = this.imageData.height;
     this.width = this.imageData.width;
     this.model.view = this;
@@ -48,16 +48,16 @@ var ViewerView2D = Backbone.View.extend({
 	var length = parseInt(data.substring(0,4),16); // this is the length of array
 	var offset = length / 2;
 	var size = length / 2;
-	if (this.channel == 0) {
+	if (this.view.channel == 0) {
 	  offset = 0;
 	  size=length;
 	  data = data.substr(4);
 	}
-	if (this.channel == 1) {
+	if (this.view.channel == 1) {
 	  offset = 0;
 	  data = data.substr(4);
 	}
-	if (this.channel == 2) {
+	if (this.view.channel == 2) {
 	  data = data.substr(4+offset*2);
 	}
 	canvas.width=size;
@@ -194,6 +194,7 @@ var ViewerView2D = Backbone.View.extend({
   },
   channelChange: function(model) {
       this.channel = model.get("channel");
+      console.log("channel change "+this.channel);
   },
   onFrequencyChange: function(model) {
       this.fixedx = model.get("selectedFrequency")/22050.0 * this.fft;

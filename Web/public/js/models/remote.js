@@ -12,17 +12,21 @@ var RemoteControl = Backbone.Model.extend({
       decodedText : "",
       power : false,
       radio : 1,
-      frequency1: 106500000,
+      frequency1: 104800000,
       ifshift1  : 128,
       squelch1 : 0,
       modulation1: "WFM",
       filter1: 230000,
-      frequency2: 145500000,
+      frequency2: 106100000,
       ifshift2  : 128,
       squelch2 : 0,
-      modulation2: "FM",
-      filter2: 15000,
+      modulation2: "WFM",
+      filter2: 230000,
       data: "0",
+      bandscopeStep: 100000,      
+      bandscopeWidth: 5000000,
+      bandscopeState: false,
+      bandscope: "0",
       scopeRate: "1",
       nb: false,
       agc: false,
@@ -56,7 +60,10 @@ var RemoteControl = Backbone.Model.extend({
     	this.on('change:decoder', this.setDecoder);
     	this.on('change:channel', this.setChannel);
       this.on('change:squelch', this.setSquelch);
-      this.on('change:ifshift', this.setIFShift);
+      this.on('change:ifshift', this.setIFShiftloc);
+      this.on('change:bandscopeState', this.setBandScope);
+      this.on('change:bandscopeWidth', this.setBandScopeWidth);
+      this.on('change:bandscopeStep', this.setBandScopeStep);
     },
     onConnectCmd: function() {
       //console.log(this.model);
@@ -166,6 +173,9 @@ var RemoteControl = Backbone.Model.extend({
       if (msg.substring(0,2) == 'WT') {
 	       this.model.set('data', msg.substring(2));
       }
+      if (msg.substring(0,3) == 'BDS') {
+         this.model.set('bandscope', msg.substring(3));
+      }
     },
     // Remote controller event
     togglePower: function() {
@@ -263,8 +273,25 @@ var RemoteControl = Backbone.Model.extend({
       model.set('squelch'+model.get('radio'));
       this.cmd.send('SQUELCH'+model.get('squelch'));
     },
-    setIFShift: function(model) {
+    setIFShiftloc: function(model) {
+      //console.log('ifshift change '+model.get('ifshift'))
       model.set('ifshift'+model.get('radio'));
-      setIFShift(model.get('ifshift'));
+      model.setIFShift(model.get('ifshift'));
+    },
+    setBandScope: function(model) {
+      var state = model.get('bandscopeState');
+      if (state == true) {
+        this.cmd.send('BDSON');
+      } else {
+        this.cmd.send('BDSOFF');
+      }
+    },
+    setBandScopeWidth: function(model) {
+      var width = model.get('bandscopeWidth');
+      this.cmd.send('BDSW'+width);
+    },
+    setBandScopeStep: function(model) {
+      var step = model.get('bandscopeStep');
+      this.cmd.send('BDSS'+step);
     }
 });

@@ -50,7 +50,7 @@ exports.SocketServer = Backbone.Model.extend({
 	    var frame = msg.split('@');
 	    for (var i=0; i < frame.length; i++) {
 	    	if (frame[i] !='') {
-		      	if ((frame[i].substring(0,2) != 'WT') || (client.allowScopeFrame == true) ) {
+		      	if (((frame[i].substring(0,2) != 'WT') && (frame[i].substring(0,3) != 'BDS') && (client.allowScopeFrame == false)) || ((client.allowScopeFrame == true) && ((frame[i].substring(0,2) == 'WT') || (frame[i].substring(0,3) == 'BDS')))) {
 		      	  client.volatile.send(frame[i]);
 		      	}
 	    	}
