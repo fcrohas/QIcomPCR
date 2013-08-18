@@ -37,7 +37,7 @@ $(document).ready(function(){
     radioDisplay = new Display({ el: '#mainDisplay', frequencytable:freqTable, model:remote});
 
     // Bind bandscope
-    radioBandScope = new BandScope({ el: '#bandscope', frequencytable:freqTable, model:remote})
+    radioBandScope = new BandScope({ el: '#bandscope', model:remote})
     
     // Viewer
     viewer = new ViewerView2D({ el : '#scope', model:remote});

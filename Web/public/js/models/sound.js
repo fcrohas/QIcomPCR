@@ -12,7 +12,7 @@ var SoundControl = Backbone.Model.extend({
     initialize: function() { 
 		this.playing = false;
 		this.finished = false;
-		this.sampleBuffer = 4096;
+		this.sampleBuffer = 8192;
 		this.on('change:volume', this.setVolume);
 		this.directplay = this.get("directplay");
 		this.testBuffer = this.get("testBuffer");

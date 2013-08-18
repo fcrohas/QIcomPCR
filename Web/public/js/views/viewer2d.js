@@ -194,7 +194,6 @@ var ViewerView2D = Backbone.View.extend({
   },
   channelChange: function(model) {
       this.channel = model.get("channel");
-      console.log("channel change "+this.channel);
   },
   onFrequencyChange: function(model) {
       this.fixedx = model.get("selectedFrequency")/22050.0 * this.fft;

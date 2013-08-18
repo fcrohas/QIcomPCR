@@ -10,10 +10,9 @@ var DebugView = Backbone.View.extend({
     return this;
   },
   setDebugText: function() {
-	console.log(this.model.get('debug'));
-	if ( this.model.get('debug') != "" ) {
-	    this.$el.find('.scrollbox').append(this.model.get('debug')+'<br>');
-	}
+  	if ( this.model.get('debug') != "" ) {
+  	    this.$el.find('.scrollbox').append(this.model.get('debug')+'<br>');
+  	}
   }
 
 }); 
