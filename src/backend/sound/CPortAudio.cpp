@@ -23,10 +23,13 @@ extern "C" {
     {
         /* Cast data passed through stream to our structure. */
         CPortAudio *This = (CPortAudio *) userData;
-        //(void) outputBuffer;		/* Prevent unused variable warning. */
+        //(void * ) outputBuffer;		/* Prevent unused variable warning. */
+        //int16_t *out = (int16_t*)outputBuffer;
+        //int16_t *in = (int16_t*)inputBuffer;
         long bytes = frameCount*2; // 256 Frames * 2 channels
         long avail = PaUtil_GetRingBufferWriteAvailable(&This->ringBuffer);
         PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
+        //*out = *in;
         return paContinue;
     }
 
@@ -92,9 +95,9 @@ void CPortAudio::Initialize()
     error = Pa_IsFormatSupported( &inputParameters, NULL, SAMPLERATE );
     if( error != paNoError )
         qDebug() <<   QString("PortAudio Pa_IsFormatSupported inputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
-    //error = Pa_IsFormatSupported( NULL, &outputParameters, SAMPLERATE );
-    //if( error != paNoError )
-    //    qDebug() <<   QString("PortAudio Pa_IsFormatSupported outputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
+   //error = Pa_IsFormatSupported( NULL, &outputParameters, SAMPLERATE );
+   // if( error != paNoError )
+   //     qDebug() <<   QString("PortAudio Pa_IsFormatSupported outputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
     error = Pa_OpenStream(&stream, &inputParameters, NULL, SAMPLERATE, FRAME_SIZE, paNoFlag, recordCallback, (void *) this);
     if( error != paNoError ) {
         qDebug() <<   QString("PortAudio Pa_OpenStream input & output error: %1\n").arg(Pa_GetErrorText( error ) );
