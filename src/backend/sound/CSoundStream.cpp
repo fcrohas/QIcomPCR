@@ -95,18 +95,20 @@ void CSoundStream::acceptConnection()
         int vbr = 0;
         float vbrquality = 5.0;
         int bitrate = 0;
-        int dtx = 1;
+        int dtx = 0;
+        int vad = 0;
         // Speex initalization
         speex_bits_init(&bits);
         enc_state = speex_encoder_init(speex_lib_get_mode(SPEEX_MODEID_NB));
         speex_encoder_ctl(enc_state,SPEEX_SET_QUALITY,&quality);
-        //speex_encoder_ctl(enc_state,SPEEX_SET_VBR,&vbr);
+        speex_encoder_ctl(enc_state,SPEEX_SET_VBR,&vbr);
         speex_encoder_ctl(enc_state,SPEEX_SET_DTX,&dtx);
+        speex_encoder_ctl(enc_state,SPEEX_SET_VAD,&vad);
         speex_encoder_ctl(enc_state,SPEEX_SET_SAMPLING_RATE,&samplerate);
         speex_encoder_ctl(enc_state,SPEEX_SET_COMPLEXITY,&complexity);
         speex_encoder_ctl(enc_state,SPEEX_GET_FRAME_SIZE,&frame_size);
         speex_encoder_ctl(enc_state,SPEEX_GET_BITRATE,&bitrate);
-        //speex_encoder_ctl(enc_state,SPEEX_SET_VBR_QUALITY,&vbrquality);
+        speex_encoder_ctl(enc_state,SPEEX_SET_VBR_QUALITY,&vbrquality);
         qDebug() << "frame size for speex is " << frame_size << " bitrate " << bitrate;
 #endif
   }
@@ -128,17 +130,16 @@ void CSoundStream::encode(int16_t *data, int size)
     // offset in buffer size at the moment
     // 256 / 160 = 1.6 so only one loop send and store the remaining bytes
     // if previous buffer
+    speex_bits_reset(&bits);
+
     if ( speexSize > 0) {
         // Now if needed loop to sent chunk of frame_size
         while (speexSize >= frame_size) {
+            //qDebug() << "Additionnal frame to compress size="<<speexSize<<" frame size="<<frame_size;
             // compress buffer
-            speex_bits_reset(&bits);
             speex_encode_int(enc_state, speexBuffer, &bits);
-            nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
-            client->write(byte_ptr,nbBytes);
-            // no Event loop so do it manually
-            client->flush();
-            // new size
+            //nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
+            speex_bits_insert_terminator(&bits);
             // Copy remaining
             for (int i=frame_size,j=0; i<speexSize;i++,j++) {
                 // copy to stereo buffer
@@ -151,7 +152,7 @@ void CSoundStream::encode(int16_t *data, int size)
         }
 
     }
-    speex_bits_reset(&bits);
+
     for (int i=0,j=speexPos; i<size;i+=2,j++) {
         speexBuffer[j] = data[i+channel];
         speexPos = j;
@@ -172,9 +173,11 @@ void CSoundStream::encode(int16_t *data, int size)
         speexPos = speexPos + 1;  // next sample will go there
         speexSize = speexPos;
         speex_bits_insert_terminator(&bits);
+        //qDebug() << "compressing current buffer frame to compress size="<<speexSize<<" frame size="<<frame_size<< " loop="<<loop;
         loop++;
     }
     nbBytes = speex_bits_write(&bits, byte_ptr, MAX_NB_BYTES);
+    //qDebug() << "sent nbBytes count="<< nbBytes;
     client->write(byte_ptr,nbBytes);
     // no Event loop so do it manually
     client->flush();

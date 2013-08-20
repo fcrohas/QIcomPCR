@@ -3,7 +3,7 @@ var SoundControl = Backbone.Model.extend({
 		path : '/stream',
 		state: 'Stopped',
 		volume: 1.0,
-		maxBufferSize : 110250, //524288,//110250, // 5s ring buffer
+		maxBufferSize : 110250, //151590, //110250,//524288,//110250, // 5s ring buffer
 		isApplet : false,
 		resample : false,
 		directplay: false,
@@ -12,7 +12,7 @@ var SoundControl = Backbone.Model.extend({
     initialize: function() { 
 		this.playing = false;
 		this.finished = false;
-		this.sampleBuffer = 8192;
+		this.sampleBuffer = 4096;
 		this.on('change:volume', this.setVolume);
 		this.directplay = this.get("directplay");
 		this.testBuffer = this.get("testBuffer");
@@ -158,7 +158,10 @@ var SoundControl = Backbone.Model.extend({
 		    this.playBuffer();
 		    this.playing = true;
 		}
-		if (this.ringAvailableBytes> this.maxBufferSize) this.ringAvailableBytes = this.maxBufferSize; // limit is buffer size
+		if (this.ringAvailableBytes> this.maxBufferSize) {
+			this.ringAvailableBytes = this.maxBufferSize; // limit is buffer size
+			//console.log("Overrun");
+		}
 		/*
 		if (this.testBuffer == true) {
 			var data="addToRingBuffer:";
@@ -183,7 +186,7 @@ var SoundControl = Backbone.Model.extend({
 			this.filler.connect(this.gainNode);
 			this.gainNode.connect(this.context.destination);
 			// Do loop audio buffer
-			this.source.loop = false;
+			this.source.loop = true;
 		}	else {
 			// Connect the source to the context's destination (the speakers)    
 			// Connect to destination
@@ -230,7 +233,10 @@ var SoundControl = Backbone.Model.extend({
 			//console.log('offset set to '+ this.main.RingOffset+ ' last offset was '+prevOffset);		    
 		    // Decrease available byte read from buffer
 		    this.main.ringAvailableBytes -= size;
-		    if (this.main.ringAvailableBytes < 0) this.main.ringAvailableBytes = 0;
+		    if (this.main.ringAvailableBytes < 0) { 
+		    	this.main.ringAvailableBytes = 0;
+		    	//console.log("underrun negative size");
+		    }
 			this.main.finished = false;
 			/*
 			if (this.main.testBuffer == true) {
@@ -240,6 +246,8 @@ var SoundControl = Backbone.Model.extend({
 				}
 				console.log(data);
 			}*/
+	    } else {
+	    	//console.log("underrun not enougth to read size is "+this.main.ringAvailableBytes);
 	    }
     },
 	playBufferEnded: function(event) {
