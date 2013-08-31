@@ -210,7 +210,7 @@ int main(int argc, char ** argv)
     qDebug() << QCoreApplication::applicationDirPath();
     qDebug() << QCoreApplication::libraryPaths();
 #endif
-
+#ifdef WITH_GUI
     QSplashScreen *splash = 0;
     if (!qlOpts->nosplash)
     {
@@ -233,10 +233,11 @@ int main(int argc, char ** argv)
         splash->finish(&w);
         delete splash;
     }
-
+#endif
     int res  = theApp.exec();
 
     //delete qlOpts;
 
     return res;
 }
+

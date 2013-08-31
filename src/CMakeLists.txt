@@ -8,6 +8,7 @@ option(WITH_PORTAUDIO "Build with PortAudio support" OFF)
 option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
 option(WITH_SAMPLERATE "Build with resample capabilities support" ON)
 option(WITH_SPEEX "Build with Speex library for streaming sound support" ON)
+option(WITH_GUI "Build with Qt gui library for graphical interface support" ON)
 
 find_package(Qt4 REQUIRED)
 if(WITH_OPENGL)
@@ -54,6 +55,38 @@ if(WITH_SNDFILE)
     add_definitions(-DWITH_SNDFILE)
 endif(WITH_SNDFILE)
 
+if(WITH_GUI)
+    set(qicompcr_SRCS ${qicompcr_SRCS}
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/AdvPlotZoomer.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CBandScope.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CDisplay.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CwPicker.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/RttyPicker.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/ThresholdPicker.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.cpp
+        ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.cpp
+    )
+    set(qicompcr_HDRS ${qicompcr_HDRS}
+        ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.h
+        ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/AdvPlotZoomer.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CBandScope.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CDisplay.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/CwPicker.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/RttyPicker.h
+        ${CMAKE_SOURCE_DIR}/src/gui/widget/ThresholdPicker.h
+    )
+    add_definitions(-DWITH_GUI)
+endif(WITH_GUI)
+
 if(WITH_SPEEX)
     add_definitions(-DWITH_SPEEX)
 endif(WITH_SPEEX)
@@ -70,18 +103,6 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/AdvPlotZoomer.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CBandScope.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CDisplay.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CwPicker.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/RttyPicker.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/ThresholdPicker.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.cpp
-    ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.cpp
@@ -92,6 +113,7 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/CFir.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CIir.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/CBackend.cpp
     ${qicompcr_SRCS}
 )
 
@@ -122,18 +144,6 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.h
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.h
     ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.h
-    ${CMAKE_SOURCE_DIR}/src/gui/CMainWindow.h
-    ${CMAKE_SOURCE_DIR}/src/gui/CDlgSettings.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/AdvPlotZoomer.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CBandScope.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CLcdWidget.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CSpectrumWidget.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CStatusWidget.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CDebugWindow.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CDisplay.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/CwPicker.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/RttyPicker.h
-    ${CMAKE_SOURCE_DIR}/src/gui/widget/ThresholdPicker.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.h
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.h
@@ -149,6 +159,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/CIir.h
     ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.h
     ${CMAKE_SOURCE_DIR}/src/backend/consts.h
+    ${CMAKE_SOURCE_DIR}/src/backend/CBackend.h
     CApplication.h
     version.h
     ${qicompcr_HDRS}
