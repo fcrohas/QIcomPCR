@@ -6,8 +6,6 @@ Description :
   This become to be a Qt interface for ICOM PCR 2500 devices. I can only test on PCR2500 without any accessories.
   There is a Qt GUI and also a Web Interface through nodejs to control remotely the ICOM in realtime.
   
-  Actually the Web Interface and QT Interface are just proof of concept, the Web interface miss the sound feedback.
-
 --------------------------------  
 Dependencies :
 
@@ -31,9 +29,6 @@ How to build :
 	
 ----------------------------------
 Todo :
-	* Beautify UI
-	* Beautify Web UI
-	* Add sound in Web UI
 	* Add ICOM memory manager
 	* Add more and more decoder
 	* Add RTLSDR support
