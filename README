@@ -6,6 +6,8 @@ Description :
   This become to be a Qt interface for ICOM PCR 2500 devices. I can only test on PCR2500 without any accessories.
   There is a Qt GUI and also a Web Interface through nodejs to control remotely the ICOM in realtime.
   
+  Website here http://fcrohas.github.io/QIcomPCR/
+  
 --------------------------------  
 Dependencies :
 
