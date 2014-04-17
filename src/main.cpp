@@ -20,7 +20,7 @@
 #include <iostream>
 
 #include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 #include <QRegExp>
 
 #ifdef __MINGW32__

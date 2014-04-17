@@ -21,9 +21,9 @@
 #define CMAINWINDOW_H
 
 #include <QMainWindow>
-#include <QAudioDeviceInfo>
-#include <QAudioInput>
-#include <QAudioOutput>
+#include <QtMultimedia/QAudioInput>
+#include <QtMultimedia/QAudioInput>
+#include <QtMultimedia/QAudioOutput>
 #include "CCommand.h"
 #include "CDevicePCR2500.h"
 #include "CDebugWindow.h"

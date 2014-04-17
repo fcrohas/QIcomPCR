@@ -96,7 +96,7 @@ CGetOpt::CGetOpt()
     if ( !qApp )
 	qFatal( "CGetOpt: requires a QApplication instance to be constructed first" );
 
-    init( qApp->argc(), qApp->argv(), 1 );
+    init( qApp->arguments().count(), qApp->arguments(), 1 );
 }
 
 /**
@@ -107,7 +107,7 @@ CGetOpt::CGetOpt( int offset )
     if ( !qApp )
 	qFatal( "CGetOpt: requires a QApplication instance to be constructed first" );
 
-    init( qApp->argc(), qApp->argv(), offset );
+	init(qApp->arguments().count(), qApp->arguments(), offset);
 }
 
 /**
@@ -158,6 +158,19 @@ void CGetOpt::init( int argc, char *argv[], int offset )
 	for ( int i = offset; i < argc; ++i )
 	    args.append( QString::fromUtf8( argv[i] ) );
     }
+}
+
+void CGetOpt::init(int argc, QStringList argv, int offset)
+{
+	numReqArgs = numOptArgs = 0;
+	currArg = 1; // appname is not part of the arguments
+	if (argc) {
+		// application name
+		aname = QFileInfo(QString(argv.at(0))).fileName();
+		// arguments
+		for (int i = offset; i < argc; ++i)
+			args.append(QString(argv.at(i)));
+	}
 }
 
 /**
@@ -274,7 +287,7 @@ bool CGetOpt::parse( bool untilFirstSwitchOnly )
 	    }
 	    if ( t == LongOpt && opt.type == OUnknown ) {
 		if ( currOpt.type != OVarLen ) {
-		    qWarning( "Unknown option --%s", (const char *)a.toAscii() );
+		    qWarning( "Unknown option --%s", (const char *)a.toLatin1() );
 		    return false;
 		} else {
 		    // VarLength options support arguments starting with '-'
@@ -351,7 +364,7 @@ bool CGetOpt::parse( bool untilFirstSwitchOnly )
 	    } else {
 		QString n = currType == LongOpt ?
 			    currOpt.lname : QString( QChar( currOpt.sname ) );
-		qWarning( "Expected an argument after '%s' option", (const char *)n.toAscii() );
+		qWarning( "Expected an argument after '%s' option", (const char *)n.toLatin1() );
 		return false;
 	    }
 	    break;

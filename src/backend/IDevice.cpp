@@ -19,7 +19,7 @@
 
 #include "IDevice.h"
 #include "CMainWindow.h"
-#include <QtGui>
+#include <QtWidgets>
 
 
 IDevice::IDevice(const QString& devkey, QObject * parent)

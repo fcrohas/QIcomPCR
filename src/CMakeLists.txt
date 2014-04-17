@@ -10,7 +10,7 @@ option(WITH_SAMPLERATE "Build with resample capabilities support" ON)
 option(WITH_SPEEX "Build with Speex library for streaming sound support" ON)
 option(WITH_GUI "Build with Qt gui library for graphical interface support" ON)
 
-find_package(Qt4 REQUIRED)
+find_package(Qt5 REQUIRED)
 if(WITH_OPENGL)
     find_package(OpenGL REQUIRED)
 endif(WITH_OPENGL)
@@ -184,9 +184,9 @@ SET(qicompcr_HDRS ${qicompcr_HDRS}  )
 SET(qicompcr_SRCS ${qicompcr_SRCS}  )
 SET(qicompcr_UIS ${qicompcr_UIS} )
 
-qt4_wrap_cpp(qicompcr_MOC_SRCS ${qicompcr_HDRS})
-qt4_wrap_ui(qicompcr_UI_HDRS ${qicompcr_UIS})
-qt4_add_resources(qicompcr_RC_SRCS ${qicompcr_RCS})
+qt5_wrap_cpp(qicompcr_MOC_SRCS ${qicompcr_HDRS})
+qt5_wrap_ui(qicompcr_UI_HDRS ${qicompcr_UIS})
+qt5_add_resources(qicompcr_RC_SRCS ${qicompcr_RCS})
 
 SET (ENABLE_TRANSLATION ON CACHE BOOL "enable translations")
 #-D ENABLE_TRANSLATION:bool=OFF
@@ -205,7 +205,7 @@ IF(ENABLE_TRANSLATION)
                               ${TRANSLATIONS_FILES}
                           )
     else (UPDATE_TRANSLATIONS)
-       qt4_add_translation(qicompcr_QM_FILES ${TRANSLATIONS_FILES})
+       qt5_add_translation(qicompcr_QM_FILES ${TRANSLATIONS_FILES})
     endif (UPDATE_TRANSLATIONS)
 
     if (UNIX AND NOT WIN32 AND NOT APPLE)

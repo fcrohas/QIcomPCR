@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
     // do the parsing and check for errors
     if (!opts.parse()) {
-        cerr << "Usage: " << (const char *)opts.appName().toAscii()
+        cerr << "Usage: " << (const char *)opts.appName().toLatin1()
              << " [--verbose]"
              << " [-Ddefine]*"
              << " [file]" << endl;
@@ -27,9 +27,9 @@ int main(int argc, char **argv)
 
     cout << "\nVerbose mode: " << (verbose ? "yes" : "no") << endl;
     cout << "Optional file argument: " <<
-        (arg.isNull() ? "(none)" : (const char *)arg.toAscii()) << endl;
+        (arg.isNull() ? "(none)" : (const char *)arg.toLatin1()) << endl;
     cout << "Defines: " << (defines.isEmpty() ? "(none)" :
-                            (const char *)defines.join(", ").toAscii()) << endl;
+                            (const char *)defines.join(", ").toLatin1()) << endl;
     cout << endl;
 
     return 0;

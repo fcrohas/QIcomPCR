@@ -18,7 +18,7 @@
 **********************************************************************************************/
 #include "CDevicePCR2500.h"
 
-#include <QtGui>
+#include <QtWidgets>
 #ifdef WIN32
 #define sleep Sleep
 #endif

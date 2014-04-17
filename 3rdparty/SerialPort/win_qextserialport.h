@@ -7,7 +7,7 @@
 #ifdef _TTY_NOWARN_
 #define _TTY_NOWARN_PORT_
 #endif
-
+#define NOMINMAX
 #include <windows.h>
 
 class Win_QextSerialPort:public QextSerialBase {

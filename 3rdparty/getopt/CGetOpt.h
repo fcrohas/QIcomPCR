@@ -106,6 +106,7 @@ private:
     QMap<QString, int> setOptions;
 
     void init( int argc, char *argv[], int offset = 1 );
+	void init(int argc, QStringList argv, int offset = 1);
     void addOption( Option o );
     void setSwitch( const Option &o );
 

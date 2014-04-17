@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.6.0)
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-find_package(Qt4 REQUIRED)
+find_package(Qt5 REQUIRED)
 
 include(${QT_USE_FILE})
 
@@ -45,9 +45,9 @@ else (WIN32)
 endif(WIN32)
 
 
-qt4_wrap_cpp(MOC_SRCS ${HDRS})
-qt4_wrap_ui(UI_HDRS ${UIS})
-qt4_add_resources(RC_SRCS ${RCS})
+qt5_wrap_cpp(MOC_SRCS ${HDRS})
+qt5_wrap_ui(UI_HDRS ${UIS})
+qt5_add_resources(RC_SRCS ${RCS})
 
 
 

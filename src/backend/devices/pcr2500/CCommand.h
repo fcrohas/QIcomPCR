@@ -134,6 +134,8 @@ public slots:
     void setBandScope(radioA antenna,int refresh, bool power);
     void setBandScopeWidth(int value);
     void setBandScopeStep(int value);
+    void setToneSquelch(uint value);
+    void setDTCS(uint value);
 
 private slots:
     void slotReceivedData(QString value);
@@ -170,6 +172,8 @@ private:
     int scopewidth;
     int stepsize;
     int scoperefresh;
+    int polarity;
+    int reverse;
     bool scopepower;
 
     // Device driver

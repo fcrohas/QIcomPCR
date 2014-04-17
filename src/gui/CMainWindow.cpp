@@ -23,7 +23,7 @@
 #include "CDevicePCR2500.h"
 #include "version.h"
 
-#include <QtGui>
+#include <QtWidgets>
 #ifndef WIN32
 #include <unistd.h>
 #endif

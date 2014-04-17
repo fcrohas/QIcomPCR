@@ -17,13 +17,15 @@
 
 **********************************************************************************************/
 #include "CCommand.h"
-#include <QtGui>
+#include <QtWidgets>
 
 CCommand::CCommand(QObject *parent) :
     QObject(parent),
     m_device(NULL),
     stepsize(100000),
-    scopewidth(5000000)
+    scopewidth(5000000),
+    polarity(0),
+    reverse(0)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -158,7 +160,7 @@ void CCommand::setSquelch(uint value)
     qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
-/*
+
 void CCommand::setToneSquelch(uint value)
 {
     QString data;
@@ -183,7 +185,7 @@ void CCommand::setDTCS(uint value)
     qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
-*/
+
 
 void CCommand::setAutomaticGainControl(bool value)
 {
