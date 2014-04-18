@@ -1,14 +1,14 @@
 project(qwt)
 
 # Required cmake version
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 2.8.8)
 
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-find_package(Qt5 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 
 set(SRCS
         qwt_abstract_scale.cpp
@@ -187,7 +187,7 @@ qt5_add_resources(RC_SRCS ${RCS})
 include_directories(
     ${QT_QTXML_INCLUDE_DIR}
     ${QT_QTSVG_INCLUDE_DIR}
-	${QT_QTMULTIMEDIA_INCLUDE_DIR}
+	${Qt5Widgets_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -204,6 +204,9 @@ add_library(qwt
   ${QM_FILES}
 )
 
+qt5_use_modules(qwt Widgets Svg)
+
 target_link_libraries( qwt
       ${QT_LIBRARIES}
+      ${Qt5Widgets_LIBRARIES} 
 )

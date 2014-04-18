@@ -10,12 +10,17 @@ option(WITH_SAMPLERATE "Build with resample capabilities support" ON)
 option(WITH_SPEEX "Build with Speex library for streaming sound support" ON)
 option(WITH_GUI "Build with Qt gui library for graphical interface support" ON)
 
-find_package(Qt5 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Core REQUIRED)
+
+# Use the Widgets module from Qt 5.
+#qt5_use_modules(qicompcr-binary Widgets Network)
+
 if(WITH_OPENGL)
     find_package(OpenGL REQUIRED)
 endif(WITH_OPENGL)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 #set(QT_LIBRARY_DIR "/usr/lib")
 
 if(WIN32)
@@ -205,7 +210,7 @@ IF(ENABLE_TRANSLATION)
                               ${TRANSLATIONS_FILES}
                           )
     else (UPDATE_TRANSLATIONS)
-       qt5_add_translation(qicompcr_QM_FILES ${TRANSLATIONS_FILES})
+       #qt5_add_translation(qicompcr_QM_FILES ${TRANSLATIONS_FILES})
     endif (UPDATE_TRANSLATIONS)
 
     if (UNIX AND NOT WIN32 AND NOT APPLE)
@@ -246,6 +251,7 @@ include_directories(
   ${QT_QTSCRIPT_INCLUDE_DIR}
   ${QT_QTMULTIMEDIA_INCLUDE_DIR}
   ${QL_OPENGL_INCLUDE_DIR}
+  ${Qt5Widgets_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/3rdparty/qwt
   ${CMAKE_SOURCE_DIR}/3rdparty/SerialPort
@@ -302,6 +308,7 @@ if (APPLE)
     COMMAND ${CMAKE_SOURCE_DIR}/MacOSX/map2gcm-libs.sh "${MAC_BUNDLE_PATH}")
 else(APPLE)
   add_executable(${PROGNAME} WIN32 ${qicompcr_ALLINP})
+  qt5_use_modules(${PROGNAME} Widgets Network Svg)
 endif(APPLE)
 
 if(MSVC)
@@ -378,7 +385,10 @@ target_link_libraries(
       ${QT_QTMULTIMEDIA_LIBRARIES}
       ${QT_QTXMLPATTERNS_LIBRARIES}
       ${QL_OPENGL_LIBRARIES}
+      ${Qt5_LIBRARIES}
+      ${Qt5Widgets_LIBRARIES}
       ${3RDPARTY}
+      ${Qt5Core_QTMAIN_LIBRARIES}
   )
 
 install(

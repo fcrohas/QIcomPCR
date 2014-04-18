@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 2.6.0)
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-find_package(Qt5 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 
 set(SRCS
     CGetOpt.cpp
@@ -35,7 +35,7 @@ qt5_add_resources(RC_SRCS ${RCS})
 
 
 include_directories(
-	${QT_QTMULTIMEDIA_INCLUDE_DIR}
+	${Qt5Widgets_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -54,4 +54,5 @@ add_library(getopt
 
 target_link_libraries( getopt
       ${QT_LIBRARIES}
+      ${Qt5Widgets_LIBRARIES}      
 )

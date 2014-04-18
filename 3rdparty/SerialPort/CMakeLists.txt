@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 2.6.0)
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-find_package(Qt5 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 
 set(SRCS
     ManageSerialPort.cpp
@@ -70,4 +70,5 @@ add_library(SerialPort
 
 target_link_libraries( SerialPort
       ${QT_LIBRARIES}
+      ${Qt5Widgets_LIBRARIES}
 )
