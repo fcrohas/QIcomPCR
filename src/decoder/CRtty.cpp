@@ -26,7 +26,7 @@ CRtty::CRtty(QObject *parent, uint channel) :
     bandwidth(150),
     freqlow(1600.0), // 1600
     freqhigh(4000.0), // 4000
-    baudrate(50),
+    baudrate(75),
     inverse(1.0),
     letter(""),
     bitcount(0),

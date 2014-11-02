@@ -20,7 +20,6 @@
 #include "CMainWindow.h"
 #include "ui_CMainWindow.h"
 #include <QScrollBar>
-#include "CDevicePCR2500.h"
 #include "version.h"
 
 #include <QtWidgets>

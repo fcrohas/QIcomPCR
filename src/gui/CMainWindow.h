@@ -25,7 +25,6 @@
 #include <QtMultimedia/QAudioInput>
 #include <QtMultimedia/QAudioOutput>
 #include "CCommand.h"
-#include "CDevicePCR2500.h"
 #include "CDebugWindow.h"
 #include "CRemoteControl.h"
 #include "CLcdWidget.h"

@@ -9,6 +9,8 @@ option(WITH_SNDFILE "Build with SndFile for loading sound file support" ON)
 option(WITH_SAMPLERATE "Build with resample capabilities support" ON)
 option(WITH_SPEEX "Build with Speex library for streaming sound support" ON)
 option(WITH_GUI "Build with Qt gui library for graphical interface support" ON)
+option(WITH_ICOMPCR "Build with ICOM PCR driver" OFF)
+option(WITH_RTLSDR "Build with RTLSDR driver" ON)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
@@ -37,14 +39,19 @@ endif(WITH_SAMPLERATE)
 
 if(WITH_PULSEAUDIO)
     set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPulseSound.cpp)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPulseSound.h)
     add_definitions(-DWITH_PULSEAUDIO)
 endif(WITH_PULSEAUDIO)
 
 if(WITH_PORTAUDIO)
     set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.cpp )
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.h)
     add_definitions(-DWITH_PORTAUDIO)
 endif(WITH_PORTAUDIO)
 
+if(WITH_SPEEX)
+    add_definitions(-DWITH_SPEEX)
+endif(WITH_SPEEX)
 
 if(WITH_ACARS)
     set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/decoder/CAcars.cpp)
@@ -57,8 +64,25 @@ endif(WITH_FFTW)
 
 if(WITH_SNDFILE)
     set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundFile.cpp)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundFile.h)
     add_definitions(-DWITH_SNDFILE)
 endif(WITH_SNDFILE)
+
+if(WITH_ACARS)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/decoder/CAcars.h)
+endif(WITH_ACARS)
+
+if(WITH_ICOMPCR)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.h)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.cpp)
+    add_definitions(-DWITH_ICOMPCR)
+endif(WITH_ICOMPCR)
+
+if(WITH_RTLSDR)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp)
+    add_definitions(-DWITH_RTLSDR)
+endif(WITH_RTLSDR)
 
 if(WITH_GUI)
     set(qicompcr_SRCS ${qicompcr_SRCS}
@@ -92,10 +116,6 @@ if(WITH_GUI)
     add_definitions(-DWITH_GUI)
 endif(WITH_GUI)
 
-if(WITH_SPEEX)
-    add_definitions(-DWITH_SPEEX)
-endif(WITH_SPEEX)
-
 set(qicompcr_SRCS
     main.cpp
     CApplication.cpp
@@ -104,8 +124,6 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.cpp
@@ -126,29 +144,9 @@ if (WIN32)
     SET(qicompcr_SRCS ${qicompcr_SRCS} qicompcr.rc)
 endif (WIN32)
 
-if(WITH_PORTAUDIO)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPortAudio.h)
-endif(WITH_PORTAUDIO)
-
-
-if(WITH_PULSEAUDIO)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CPulseSound.h)
-endif(WITH_PULSEAUDIO)
-
-if(WITH_ACARS)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/decoder/CAcars.h)
-endif(WITH_ACARS)
-
-if(WITH_SNDFILE)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundFile.h)
-endif(WITH_SNDFILE)
-
-
 set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.h
-    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CCommand.h
-    ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500/CDevicePCR2500.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.h
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.h
@@ -234,9 +232,9 @@ endif(UNIX)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/backend
-  ${CMAKE_SOURCE_DIR}/src/backend/devices/pcr2500
   ${CMAKE_SOURCE_DIR}/src/backend/sound
   ${CMAKE_SOURCE_DIR}/src/backend/demodulator
+  ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr
   ${CMAKE_SOURCE_DIR}/src/gui
   ${CMAKE_SOURCE_DIR}/src/gui/widget
   ${CMAKE_SOURCE_DIR}/src/decoder

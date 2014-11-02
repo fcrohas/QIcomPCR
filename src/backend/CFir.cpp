@@ -154,6 +154,7 @@ void CFIR::apply(double *&in, int size)
         buffer = new double[size];
     }
     // loop on buffer and apply filter
+#if 1
     for (int i=0; i<size; i++) {
         double sample = 0.0;
         // act as a ring buffer for current and previous call
@@ -168,4 +169,30 @@ void CFIR::apply(double *&in, int size)
         // Save
         in[i] = sample;
     }
+#else
+    __m128d X, Y, Z;
+    for (int i=0; i<size; i++) {
+        double sample = 0.0;
+        // act as a ring buffer for current and previous call
+        buffer[i] = in[i];
+        // direct fir filter
+        for (int j=0; j<N; j+=4) {
+            if ((i-j) < 0) {
+                X = _mm_load_pd(&buffer[size+i-j]);
+            }
+            else {
+                X = _mm_load_pd(&buffer[i-j]);
+            }
+            Y = _mm_load_pd(&fir[j]);
+            X = _mm_mul_pd(X, Y);
+            Z = _mm_setzero_pd();
+            Z = _mm_add_pd(X, Z);
+        }
+        // Save
+        for(int j=0; j<4; j++) {
+            sample = Z.m128d_f64[j] + sample;
+        }
+        in[i] = sample;
+    }
+#endif
 }

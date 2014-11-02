@@ -20,6 +20,7 @@
 #include <QDebug>
 
 //#define GOERTZEL
+//#define KALMAN
 
 CMorse::CMorse(QObject *parent, uint channel) :
     IDemodulator(parent)
