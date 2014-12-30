@@ -34,7 +34,7 @@
 #include <qwt_scale_draw.h>
 #include <qwt_scale_widget.h>
 #include <qwt_legend.h>
-#include <qwt_legend_item.h>
+#include <qwt_legend_data.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot.h>
 #include <qwt_plot_marker.h>

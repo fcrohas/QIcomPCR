@@ -53,6 +53,5 @@ add_library(getopt
 )
 
 target_link_libraries( getopt
-      ${QT_LIBRARIES}
       ${Qt5Widgets_LIBRARIES}      
 )

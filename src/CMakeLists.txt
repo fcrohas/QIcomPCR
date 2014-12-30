@@ -240,18 +240,13 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/decoder
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${QT_QTXML_INCLUDE_DIR}
-  ${QT_QTSQL_INCLUDE_DIR}
   ${QT_QTOPENGL_INCLUDE_DIR}
   ${QT_QTNETWORK_INCLUDE_DIR}
-  ${QT_QTDBUS_INCLUDE_DIR}
-  ${QT_QTWEBKIT_INCLUDE_DIR}
-  ${QT_QTSCRIPT_INCLUDE_DIR}
   ${QT_QTMULTIMEDIA_INCLUDE_DIR}
   ${QL_OPENGL_INCLUDE_DIR}
   ${Qt5Widgets_INCLUDE_DIRS}
+  ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/3rdparty/qwt
   ${CMAKE_SOURCE_DIR}/3rdparty/SerialPort
   ${CMAKE_SOURCE_DIR}/3rdparty/getopt
   ${CMAKE_SOURCE_DIR}/3rdparty/spuc
@@ -306,7 +301,7 @@ if (APPLE)
     COMMAND ${CMAKE_SOURCE_DIR}/MacOSX/map2gcm-libs.sh "${MAC_BUNDLE_PATH}")
 else(APPLE)
   add_executable(${PROGNAME} WIN32 ${qicompcr_ALLINP})
-  qt5_use_modules(${PROGNAME} Widgets Network Svg)
+  qt5_use_modules(${PROGNAME} Widgets Network)
 endif(APPLE)
 
 if(MSVC)
@@ -371,22 +366,12 @@ endif(WITH_SPEEX)
 
 target_link_libraries(
       ${PROGNAME}
-      ${QT_LIBRARIES}
-      ${QT_QTNETWORK_LIBRARIES}
-      ${QT_QTXML_LIBRARIES}
-      ${QT_QTSQL_LIBRARIES}
-      ${QT_QTDBUS_LIBRARIES}
-      ${QT_QTMAIN_LIBRARIES}
-      ${QT_QTWEBKIT_LIBRARIES}
-      ${QT_PHONON_LIBRARIES}
-      ${QT_QTSCRIPT_LIBRARIES}
-      ${QT_QTMULTIMEDIA_LIBRARIES}
-      ${QT_QTXMLPATTERNS_LIBRARIES}
       ${QL_OPENGL_LIBRARIES}
       ${Qt5_LIBRARIES}
       ${Qt5Widgets_LIBRARIES}
       ${3RDPARTY}
       ${Qt5Core_QTMAIN_LIBRARIES}
+      ${QWT_LIBRARIES}
   )
 
 install(

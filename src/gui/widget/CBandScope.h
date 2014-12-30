@@ -28,6 +28,7 @@
 #include <qwt_picker.h>
 #include <qwt_picker_machine.h>
 #include <qwt_plot_picker.h>
+#include <qwt_plot_canvas.h>
 #include <qwt_plot_histogram.h>
 #include <qwt_series_data.h>
 

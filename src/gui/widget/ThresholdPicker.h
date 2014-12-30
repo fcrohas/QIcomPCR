@@ -23,6 +23,7 @@
 #include <QPainter>
 #include <QWheelEvent>
 #include <qwt_plot_picker.h>
+#include <qwt_plot_canvas.h>
 #include <qwt_picker_machine.h>
 
 class ThresholdPicker : public QwtPlotPicker

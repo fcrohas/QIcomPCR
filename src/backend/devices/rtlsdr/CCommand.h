@@ -3,8 +3,10 @@
 
 #include <QObject>
 #include <CRtlSdr.h>
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #ifdef WIN32
-//#include <unistd.h>
 #define sleep Sleep
 #endif
 

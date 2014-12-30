@@ -170,9 +170,6 @@
               <layout class="QVBoxLayout" name="verticalLayout_11">
                <item>
                 <widget class="QwtKnob" name="knobSquelch">
-                 <property name="mass">
-                  <double>0.000000000000000</double>
-                 </property>
                  <property name="knobWidth">
                   <number>30</number>
                  </property>
@@ -234,9 +231,6 @@
                </item>
                <item>
                 <widget class="QwtKnob" name="volume1">
-                 <property name="mass">
-                  <double>25.000000000000000</double>
-                 </property>
                  <property name="knobWidth">
                   <number>50</number>
                  </property>

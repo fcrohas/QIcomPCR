@@ -74,9 +74,9 @@ CMainWindow::CMainWindow(QWidget *parent) :
     statusBar()->addPermanentWidget(status);
 
     // Set Squelch max
-    ui->knobSquelch->setRange(0.0,255.0,1.0);
-    ui->knobIF->setRange(0.0,255.0,1.0);
-    ui->volume1->setRange(0.0,255.0,1.0);
+    //ui->knobSquelch->setRange(0.0,255.0,1.0);
+    //ui->knobIF->setRange(0.0,255.0,1.0);
+    //ui->volume1->setRange(0.0,255.0,1.0);
     ui->layoutFrequencies->addWidget(display);
     // Add two default radio struct
     for (int i=0; i<MAX_RADIO; i++) {

@@ -50,7 +50,7 @@ void CBandScope::setupUi(QWidget *widget)
     qwtPlot->setAxisLabelRotation(QwtPlot::xBottom, 35.0);
     qwtPlot->setMouseTracking(true);
     qwtPlot->canvas()->setMouseTracking(true);
-    picker = new MyBandPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::VLineRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+    picker = new MyBandPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::VLineRubberBand, QwtPicker::AlwaysOn, (QwtPlotCanvas*)qwtPlot->canvas() );
     hboxLayout->addWidget(qwtPlot);
     connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
     bandscope = new QwtPlotHistogram("BandScope");

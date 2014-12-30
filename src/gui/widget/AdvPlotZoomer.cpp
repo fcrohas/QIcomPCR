@@ -52,8 +52,7 @@ void AdvPlotZoomer::drawRubberBand( QPainter *painter ) const
         QwtPlotZoomer::drawRubberBand(painter);
         return;
     }
-
-    const QRect &pRect = pickRect();
+    const QRect &pRect = pickArea().boundingRect().toRect();
     const QPolygon &pa = pickedPoints();
     const int npa      = pa.count();
 

@@ -280,19 +280,19 @@ void CSpectrumWidget::setPickerType(ePickerType type)
         delete picker;
     switch(type) {
         case eCwPicker:
-                picker = new CwPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                picker = new CwPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, (QwtPlotCanvas*)qwtPlot->canvas() );
                 connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
                 connect(picker, SIGNAL(bandwidthChanged(double)), this, SLOT(slotBandWidth(double)));
                 qDebug() << "CW Picker";
             break;
         case eRttyPicker:
-                picker = new RttyPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                picker = new RttyPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::UserRubberBand, QwtPicker::AlwaysOn, (QwtPlotCanvas*)qwtPlot->canvas() );
                 connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
                 connect(picker, SIGNAL(bandwidthChanged(double)), this, SLOT(slotBandWidth(double)));
                 qDebug() << "Rtty Picker";
             break;
         case eThresholdPicker:
-                picker = new ThresholdPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::HLineRubberBand, QwtPicker::AlwaysOn, qwtPlot->canvas() );
+                picker = new ThresholdPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::HLineRubberBand, QwtPicker::AlwaysOn, (QwtPlotCanvas*)qwtPlot->canvas() );
                 connect(picker, SIGNAL(selected(QPointF)), this, SLOT(slotClicked(QPointF)));
                 qDebug() << "Threshold Picker";
             break;

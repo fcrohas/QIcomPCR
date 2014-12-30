@@ -129,7 +129,7 @@ static void processOptions()
 
 int main(int argc, char ** argv)
 {
-
+    qDebug() << "Main";
     QDir path(QDir::home().filePath(CONFIGDIR));
     if(!path.exists())
     {
@@ -145,7 +145,7 @@ int main(int argc, char ** argv)
     processOptions();
 
 #ifndef WIN32
-    qInstallMsgHandler(myMessageOutput);
+    //qInstallMsgHandler(myMessageOutput);
 #endif
 
 #ifdef WIN32

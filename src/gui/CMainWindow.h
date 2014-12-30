@@ -21,9 +21,6 @@
 #define CMAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtMultimedia/QAudioInput>
-#include <QtMultimedia/QAudioInput>
-#include <QtMultimedia/QAudioOutput>
 #include "CCommand.h"
 #include "CDebugWindow.h"
 #include "CRemoteControl.h"
@@ -148,10 +145,6 @@ class CMainWindow : public QMainWindow
 
         // Timer
         QTimer *statusTimer;
-
-        // Audio management
-        QAudioOutput *soundOutput;
-        QAudioInput  *soundInput;
 
         // spectrum
         CSpectrumWidget *mySpectrum;

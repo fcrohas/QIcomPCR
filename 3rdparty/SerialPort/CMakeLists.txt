@@ -69,6 +69,5 @@ add_library(SerialPort
 )
 
 target_link_libraries( SerialPort
-      ${QT_LIBRARIES}
       ${Qt5Widgets_LIBRARIES}
 )
