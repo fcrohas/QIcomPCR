@@ -27,6 +27,7 @@ endif(WITH_OPENGL)
 
 if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
+    add_definitions(-DQWT_DLL)
 endif(WIN32)
 
 if(UNIX)
@@ -308,7 +309,7 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE )
 endif(MSVC)
 
-set(3RDPARTY ${3RDPARTY} qwt SerialPort getopt ) #spuc DspFilters
+set(3RDPARTY ${3RDPARTY} SerialPort getopt ) #spuc DspFilters
 
 if(WITH_PULSEAUDIO)
     set(3RDPARTY ${3RDPARTY} pulse-simple pulse)
@@ -367,8 +368,8 @@ endif(WITH_SPEEX)
 target_link_libraries(
       ${PROGNAME}
       ${QL_OPENGL_LIBRARIES}
-      ${Qt5_LIBRARIES}
-      ${Qt5Widgets_LIBRARIES}
+      #${Qt5_LIBRARIES}
+      #${Qt5Widgets_LIBRARIES}
       ${3RDPARTY}
       ${Qt5Core_QTMAIN_LIBRARIES}
       ${QWT_LIBRARIES}

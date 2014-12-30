@@ -235,7 +235,6 @@ int main(int argc, char ** argv)
     }
 #endif
     int res  = theApp.exec();
-
     //delete qlOpts;
 
     return res;
