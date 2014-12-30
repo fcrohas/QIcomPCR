@@ -45,9 +45,9 @@ else (WIN32)
 endif(WIN32)
 
 
-qt5_wrap_cpp(MOC_SRCS ${HDRS})
-qt5_wrap_ui(UI_HDRS ${UIS})
-qt5_add_resources(RC_SRCS ${RCS})
+#qt5_wrap_cpp(MOC_SRCS ${HDRS})
+#qt5_wrap_ui(UI_HDRS ${UIS})
+#qt5_add_resources(RC_SRCS ${RCS})
 
 
 
