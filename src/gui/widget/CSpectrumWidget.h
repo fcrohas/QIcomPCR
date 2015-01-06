@@ -104,7 +104,9 @@ public:
                 int xpos = (int)((x - m_RangeX.min) / m_RealToArray.x);
                 int ypos = (int)((y - m_RangeY.min) / m_RealToArray.y);
                 int pos = ArrPos(xpos, ypos);
-                double dvalue = m_Array[pos];
+                double dvalue = 0.0;
+                if (m_Array != NULL)
+                    dvalue = m_Array[pos];
                 //qDebug() << "Value = " << dvalue;
                 return dvalue;
     }

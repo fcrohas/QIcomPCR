@@ -82,7 +82,11 @@ endif(WITH_ICOMPCR)
 if(WITH_RTLSDR)
     set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h)
     set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp)
+    # NOMINMAX to avoid windows.h bug
     add_definitions(-DWITH_RTLSDR)
+    if(WIN32)
+        add_definitions(-DNOMINMAX)
+    endif(WIN32)
 endif(WITH_RTLSDR)
 
 if(WITH_GUI)
@@ -256,6 +260,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty
   ${CMAKE_SOURCE_DIR}/3rdparty/portaudio
   ${CMAKE_SOURCE_DIR}/3rdparty/libsndfile/include
+  ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/include
   ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/include
   ${CMAKE_SOURCE_DIR}/3rdparty/fftw3
   ${CMAKE_SOURCE_DIR}/3rdparty/speex/include
@@ -364,6 +369,15 @@ if(WIN32)
 endif(WIN32)
 endif(WITH_SPEEX)
 
+if(WITH_SPEEX)
+if(UNIX)
+    set(3RDPARTY ${3RDPARTY} rtl-sdr)
+endif(UNIX)
+if(WIN32)
+        set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/rtlsdr.lib)
+endif(WIN32)
+endif(WITH_SPEEX)
+
 
 target_link_libraries(
       ${PROGNAME}
@@ -371,8 +385,8 @@ target_link_libraries(
       #${Qt5_LIBRARIES}
       #${Qt5Widgets_LIBRARIES}
       ${3RDPARTY}
-      #${Qt5Core_QTMAIN_LIBRARIES}
-      qwt
+      ${Qt5Core_QTMAIN_LIBRARIES}
+      ${QWT_LIBRARIES}
   )
 
 install(
