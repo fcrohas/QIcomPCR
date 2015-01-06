@@ -371,7 +371,7 @@ endif(WITH_SPEEX)
 
 if(WITH_SPEEX)
 if(UNIX)
-    set(3RDPARTY ${3RDPARTY} rtl-sdr)
+    set(3RDPARTY ${3RDPARTY} rtlsdr)
 endif(UNIX)
 if(WIN32)
         set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/rtlsdr.lib)

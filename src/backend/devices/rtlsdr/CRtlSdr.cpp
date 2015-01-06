@@ -42,3 +42,13 @@ void CRtlSdr::slotNewDataReceived(const QByteArray &dataReceived) {
 void CRtlSdr::slotWatchdog() {
 
 }
+
+void CRtlSdr::setFrequency(uint freq) {
+    int ret = rtlsdr_set_center_freq(dongle.dev, freq);
+    if (ret<0)
+        qDebug() << "Frequency not set to " << freq << "\n";
+}
+
+uint CRtlSdr::getFrequency() {
+    return rtlsdr_get_center_freq(dongle.dev);
+}

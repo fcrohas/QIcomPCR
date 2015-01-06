@@ -4,7 +4,7 @@
 #include <QDebug>
 #include "IDevice.h"
 #include <pthread.h>
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 #include <rtl-sdr.h>
 
 class CRtlSdr : public IDevice
@@ -23,6 +23,8 @@ class CRtlSdr : public IDevice
 
         } log_t;
         void close();
+        void setFrequency(uint freq);
+        uint getFrequency();
     private:
         struct dongle_state
         {
