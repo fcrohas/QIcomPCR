@@ -20,7 +20,7 @@
 #define CRTTY_H
 
 #include <QObject>
-#include <IDemodulator.h>
+#include <IDecoder.h>
 #include <math.h>
 #include <qdebug.h>
 #include <CWindowFunc.h>
@@ -37,7 +37,7 @@ static unsigned char letters[] = {'\0','E','\n','A',' ','S','I','U','\r','D','R'
 static unsigned char figures[] = {'\0','3','\n','-',' ','\a','8','7','\r','$','4','\'',',','!',':','(','5','\"',')','2','#','6','0','1','9','?','&','\0','.','/',';','\0'};
 
 
-class CRtty : public IDemodulator
+class CRtty : public IDecoder
 {
     Q_OBJECT
 public:

@@ -19,7 +19,7 @@
 #include "CRtty.h"
 
 CRtty::CRtty(QObject *parent, uint channel) :
-    IDemodulator(parent),
+    IDecoder(parent),
     channel(0),
     frequency(4500),
     correlationLength(40),

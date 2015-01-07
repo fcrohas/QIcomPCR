@@ -30,12 +30,12 @@ ISound::~ISound()
 
 }
 
-void ISound::SetDemodulator(CDemodulator *value)
+void ISound::SetDemodulator(CDecoder *value)
 {
     demod = value;
 }
 
-CDemodulator *ISound::GetDemodulator()
+CDecoder *ISound::GetDemodulator()
 {
     return demod;
 }

@@ -19,10 +19,11 @@ CCommand::CCommand(QObject *parent) :
     // Init serial connection object
     m_device = new CRtlSdr(this);
     connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
-    connect(this, SIGNAL(sendData(QString&)), this, SLOT(write(QString&)));
 
     // Initialize sample width
     samplewidth = scopewidth / stepsize;
+    /// Demodulator
+    demo = NULL;
 }
 
 void CCommand::setPower(bool value)
@@ -75,9 +76,18 @@ uint CCommand::getSquelch()
 // At this time, only set to device on frequency set
 void CCommand::setModulation(uint value)
 {
+    if (demo != NULL) {
+        delete demo;
+    }
+
     currentRadio->modulation = value;
-    // Once modulation is set call back frequency
-    setFrequency(currentRadio->frequency);
+    switch(value) {
+        eFM : demo = new CFm(this,IDemodulator::eFM); break;
+        eAM : demo = new CAm(this,IDemodulator::eAM); break;
+        eWFM : demo = new CFm(this,IDemodulator::eWFM); break;
+        eLSB : demo = new CSsb(this,IDemodulator::eLSB); break;
+        eUSB : demo = new CSsb(this,IDemodulator::eUSB); break;
+    }
 }
 
 void CCommand::setFilter(uint value)
@@ -91,9 +101,6 @@ void CCommand::setRadio(uint value)
 {
     if (value < (uint)radioList->count()) {
         currentRadio = radioList->at(value);
-        qDebug() << "dump radio " << value << " filter is " << currentRadio->filter;
-        qDebug() << "dump radio " << value << " frequency is " << currentRadio->frequency;
-        qDebug() << "dump radio " << value << " mode is " << currentRadio->modulation;
         radio = value;
     }
 }
@@ -161,12 +168,7 @@ void CCommand::setDTCS(uint value)
 
 void CCommand::setAutomaticGainControl(bool value)
 {
-    QString data;
-    data = (radio == 0) ? "J45%1" : "J65%1";
-    data = data.arg(value, 2, 16, QChar('0')).toUpper();
-    currentRadio->agc= value;
-    qDebug() << "AGC " << data << "\n";
-    emit sendData(data);
+    m_device->setAgcControl(value);
 }
 
 void CCommand::setNoiseBlanker(bool value)

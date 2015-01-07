@@ -21,7 +21,7 @@
 
 #include <QObject>
 #include <QHash>
-#include <IDemodulator.h>
+#include <IDecoder.h>
 #include <math.h>
 #define FIR
 #ifdef FIR
@@ -111,7 +111,7 @@ static CW_TABLE cw_table[] = {
 };
 
 
-class CMorse : public IDemodulator
+class CMorse : public IDecoder
 {
     Q_OBJECT
 public:

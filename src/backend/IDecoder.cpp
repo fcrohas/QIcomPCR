@@ -16,32 +16,54 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 **********************************************************************************************/
-#ifndef IDEMODULATOR_H
-#define IDEMODULATOR_H
+#include "IDecoder.h"
 
-#include <QObject>
-#include <stdint.h>
-
-class IDemodulator : public QObject
+IDecoder::IDecoder(QObject *parent) :
+    QObject(parent)
 {
-    Q_OBJECT
-public:
-    explicit IDemodulator(QObject *parent = 0);
-    virtual void decode(uchar *buffer, int size, int offset);
-    virtual void decode(int16_t *buffer, int size, int offset);
-    virtual uint getDataSize();
-    virtual uint getChannel();
-    virtual uint getBufferSize();
-    virtual void setThreshold(double value);
-    virtual void setCorrelationLength(int value);
+}
 
+uint IDecoder::getChannel()
+{
+    return 0;
+}
 
-signals:
-    void sendData(QString data);
-    
-public slots:
-    void slotFrequency(double value);
-    void slotBandwidth(double value);
-};
+uint IDecoder::getDataSize()
+{
+    return 0;
+}
 
-#endif // IDEMODULATOR_H
+void IDecoder::decode(int16_t *buffer, int size, int offset)
+{
+
+}
+
+void IDecoder::decode(uchar *buffer, int size, int offset)
+{
+
+}
+
+uint IDecoder::getBufferSize()
+{
+    return 0;
+}
+
+void IDecoder::slotFrequency(double value)
+{
+    return;
+}
+
+void IDecoder::slotBandwidth(double value)
+{
+    return;
+}
+
+void IDecoder::setThreshold(double value)
+{
+
+}
+
+void IDecoder::setCorrelationLength(int value)
+{
+
+}

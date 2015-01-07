@@ -18,9 +18,9 @@
 **********************************************************************************************/
 #include <math.h>
 #include <QDebug>
-#include "CDemodulator.h"
+#include "CDecoder.h"
 
-CDemodulator::CDemodulator(QObject *parent) :
+CDecoder::CDecoder(QObject *parent) :
     QObject(parent),
     xval(NULL),
     yval(NULL),
@@ -31,14 +31,14 @@ CDemodulator::CDemodulator(QObject *parent) :
     selectedChannel(0)
 {
     fftw = new CFFT(this,FFTSIZE);
-    list.append(new IDemodulator()); // 0 just dummy
-    list.append(new IDemodulator()); // 1 Channel
-    list.append(new IDemodulator()); // 2 Channel
+    list.append(new IDecoder()); // 0 just dummy
+    list.append(new IDecoder()); // 1 Channel
+    list.append(new IDecoder()); // 2 Channel
     scope = 0;
     bufferBlock = 0;
 }
 
-CDemodulator::~CDemodulator()
+CDecoder::~CDecoder()
 {
     delete fftw;
     if (data8bitsl)
@@ -56,7 +56,7 @@ CDemodulator::~CDemodulator()
 
 }
 
-void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
+void CDecoder::slotDataBuffer(int16_t *buffer, int size)
 {
 
     int channel=0, bufferSize=0, channelSize=size/2;
@@ -74,7 +74,7 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
 #if 1
     // Loop on each demodulator
     for (int i=1; i<list.count(); i++) {
-        demodulator = (IDemodulator*)list.at(i);
+        demodulator = (IDecoder*)list.at(i);
         if (!demodulator) return;
         channel    = demodulator->getChannel();
         bufferSize = demodulator->getBufferSize();
@@ -136,17 +136,17 @@ void CDemodulator::slotDataBuffer(int16_t *buffer, int size)
         bufferBlock = 0;
 }
 
-void CDemodulator::slotSendData(QString data)
+void CDecoder::slotSendData(QString data)
 {
     emit sendData(data);
 }
 
-void CDemodulator::slotSetChannel(int channel)
+void CDecoder::slotSetChannel(int channel)
 {
     selectedChannel = channel;
 }
 
-void CDemodulator::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
+void CDecoder::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
 {
     // first remove it
     selectedChannel = channel;
@@ -154,7 +154,7 @@ void CDemodulator::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
     // Create the new one
     switch(demod) {
         case 0 :
-            list[channel] = new IDemodulator(this); break;
+            list[channel] = new IDecoder(this); break;
         case Acars :
 #ifdef WITH_ACARS
             list[channel] = new CAcars(this, channel); break;
@@ -172,7 +172,7 @@ void CDemodulator::slotSetDemodulator(uint demod, uint channel, uint bufferSize)
     //list.append(demodulator);
 }
 
-void CDemodulator::initBuffer(uint bufferSize)
+void CDecoder::initBuffer(uint bufferSize)
 {
     // Init buffers
     data8bitsl = new uchar[bufferSize]; //8bits buffer
@@ -185,30 +185,30 @@ void CDemodulator::initBuffer(uint bufferSize)
     yval = new double[bufferSize];
 }
 
-void CDemodulator::setScopeType(uint scope)
+void CDecoder::setScopeType(uint scope)
 {
     this->scope = scope;
 }
 
-IDemodulator *CDemodulator::getDemodulatorFromChannel(int channel)
+IDecoder *CDecoder::getDemodulatorFromChannel(int channel)
 {
     if (list[channel] != NULL)
-        return (IDemodulator*)list[channel];
+        return (IDecoder*)list[channel];
     else
         return NULL;
 }
 
-void CDemodulator::slotThreshold(int value)
+void CDecoder::slotThreshold(int value)
 {
     getDemodulatorFromChannel(1)->setThreshold(value);
 }
 
-void CDemodulator::slotSetCorrelationLength(int value)
+void CDecoder::slotSetCorrelationLength(int value)
 {
     getDemodulatorFromChannel(1)->setCorrelationLength(value);
 }
 
-void CDemodulator::slotChangeWindowFunction(CFFT::windowFunction fct)
+void CDecoder::slotChangeWindowFunction(CFFT::windowFunction fct)
 {
     fftw->setWindow(fct,FFTSIZE);
 }

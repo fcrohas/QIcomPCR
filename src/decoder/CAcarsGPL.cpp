@@ -21,7 +21,7 @@
 #include <QDebug>
 
 CAcarsGPL::CAcarsGPL(QObject *parent, uint channel) :
-    IDemodulator(parent)
+    IDecoder(parent)
 {
     init_bits();
     init_mesg();

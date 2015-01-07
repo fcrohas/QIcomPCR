@@ -22,7 +22,7 @@
 #include <QObject>
 #include <QThread>
 #include <sndfile.h>
-#include "CDemodulator.h"
+#include "CDecoder.h"
 
 class ISound : public QThread
 {
@@ -32,8 +32,8 @@ public:
     ~ISound();
 
     // Demodulator
-    void SetDemodulator(CDemodulator *value);
-    CDemodulator *GetDemodulator();
+    void SetDemodulator(CDecoder *value);
+    CDecoder *GetDemodulator();
 
     virtual void DecodeBuffer(int16_t *buffer, int size);
     virtual void setRunning(bool value);
@@ -49,7 +49,7 @@ public slots:
     virtual void setChannel(uint value);
 
 private:
-    CDemodulator *demod;
+    CDecoder *demod;
     SNDFILE*	pFile;
     QString data;
 };

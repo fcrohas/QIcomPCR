@@ -23,7 +23,7 @@
 //#define KALMAN
 
 CMorse::CMorse(QObject *parent, uint channel) :
-    IDemodulator(parent)
+    IDecoder(parent)
   ,frequency(3050) // Just for Hello sample
   ,acclow(0)
   ,accup(0)

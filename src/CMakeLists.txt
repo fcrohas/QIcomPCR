@@ -80,8 +80,8 @@ if(WITH_ICOMPCR)
 endif(WITH_ICOMPCR)
 
 if(WITH_RTLSDR)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h)
-    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CVirtualSound.h)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CVirtualSound.cpp)
     # NOMINMAX to avoid windows.h bug
     add_definitions(-DWITH_RTLSDR)
     if(WIN32)
@@ -126,16 +126,20 @@ set(qicompcr_SRCS
     CApplication.cpp
     ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/pa_ringbuffer.c
     ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.cpp
+    ${CMAKE_SOURCE_DIR}/src/decoder/CDecoder.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CAm.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/IDemodulator.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFm.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CSsb.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/IDecoder.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CFir.cpp
@@ -151,16 +155,20 @@ endif (WIN32)
 
 set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/decoder/CAcarsGPL.h
+    ${CMAKE_SOURCE_DIR}/src/decoder/CDecoder.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CRtty.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.h
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.h
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.h
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.h
-    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulator.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CAm.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/IDemodulator.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFm.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CSsb.h
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.h
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.h
-    ${CMAKE_SOURCE_DIR}/src/backend/IDemodulator.h
+    ${CMAKE_SOURCE_DIR}/src/backend/IDecoder.h
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.h
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.h
     ${CMAKE_SOURCE_DIR}/src/backend/CFir.h
@@ -259,6 +267,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/3rdparty/dspfilters
   ${CMAKE_SOURCE_DIR}/3rdparty
   ${CMAKE_SOURCE_DIR}/3rdparty/portaudio
+  ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/include
   ${CMAKE_SOURCE_DIR}/3rdparty/libsndfile/include
   ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/include
   ${CMAKE_SOURCE_DIR}/3rdparty/libsamplerate/include
@@ -339,7 +348,12 @@ endif(WIN32)
 endif(WITH_FFTW)
 
 if(WITH_PORTAUDIO)
+if(UNIX)
     set(3RDPARTY ${3RDPARTY} portaudio)
+endif(UNIX)
+if(WIN32)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/portaudio/lib/portaudio_x86.lib)
+endif(WIN32)
 endif(WITH_PORTAUDIO)
 
 if(WITH_SNDFILE)
@@ -365,7 +379,7 @@ if(UNIX)
     set(3RDPARTY ${3RDPARTY} speex speexdsp)
 endif(UNIX)
 if(WIN32)
-        set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeex.lib ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeexdsp.lib)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeex.lib ${CMAKE_SOURCE_DIR}/3rdparty/speex/lib/libspeexdsp.lib)
 endif(WIN32)
 endif(WITH_SPEEX)
 
@@ -374,10 +388,9 @@ if(UNIX)
     set(3RDPARTY ${3RDPARTY} rtlsdr)
 endif(UNIX)
 if(WIN32)
-        set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/rtlsdr.lib)
+    set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/rtlsdr.lib ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/pthreadVCE2.lib)
 endif(WIN32)
 endif(WITH_SPEEX)
-
 
 target_link_libraries(
       ${PROGNAME}

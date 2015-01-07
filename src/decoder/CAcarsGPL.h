@@ -20,7 +20,7 @@
 #define CACARSGPL_H
 
 #include <QObject>
-#include "IDemodulator.h"
+#include "IDecoder.h"
 
 #define Fe 22050.0
 #define Freqh 4800.0/Fe*2.0*M_PI
@@ -33,7 +33,7 @@
 /* CCITT 16 CRC */
 #define POLY 0x1021
 
-class CAcarsGPL : public IDemodulator
+class CAcarsGPL : public IDecoder
 {
     Q_OBJECT
 public:

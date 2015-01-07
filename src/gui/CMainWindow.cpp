@@ -47,7 +47,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     cmd = new CCommand(this);
     dbgWin = new CDebugWindow(this,ui);
-    demodulator = new CDemodulator(this);
+    demodulator = new CDecoder(this);
     remote = new CRemoteControl(this);
     settings =new CSettings(this);
 

@@ -27,7 +27,7 @@ class QProgressDialog;
 
 class IDevice : public QObject
 {
-    Q_OBJECT;
+    Q_OBJECT
     public:
         IDevice(const QString& devkey, QObject * parent);
         virtual ~IDevice();

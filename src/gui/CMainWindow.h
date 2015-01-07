@@ -39,7 +39,7 @@
 #include "CSpectrumWidget.h"
 #include "CBandScope.h"
 #include "CDisplay.h"
-#include "CDemodulator.h"
+#include "CDecoder.h"
 #include "CFft.h"
 #include "ISound.h"
 #include "CDlgSettings.h"
@@ -156,7 +156,7 @@ class CMainWindow : public QMainWindow
         CBandScope *myBandScope;
 
         // Demodulator
-        CDemodulator *demodulator;
+        CDecoder *demodulator;
 
         // Remote Control
         CRemoteControl *remote;

@@ -4,8 +4,23 @@
 #include <QDebug>
 #include "IDevice.h"
 #include <pthread.h>
+#ifdef WIN32
+#include <libusb.h>
+#else
 #include <libusb-1.0/libusb.h>
+#endif
 #include <rtl-sdr.h>
+
+#define DEFAULT_SAMPLE_RATE		24000
+#define DEFAULT_BUF_LENGTH		(1 * 16384)
+#define MAXIMUM_OVERSAMPLE		16
+#define MAXIMUM_BUF_LENGTH		(MAXIMUM_OVERSAMPLE * DEFAULT_BUF_LENGTH)
+#define AUTO_GAIN			-100
+#define BUFFER_DUMP			4096
+#define MAXIMUM_RATE			2400000
+
+#define FREQUENCIES_LIMIT		1000
+
 
 class CRtlSdr : public IDevice
 {
@@ -25,7 +40,8 @@ class CRtlSdr : public IDevice
         void close();
         void setFrequency(uint freq);
         uint getFrequency();
-    private:
+        void setAgcControl(bool state);
+        void setDemodulator(uint mode);
         struct dongle_state
         {
             int      exit_flag;
@@ -41,11 +57,13 @@ class CRtlSdr : public IDevice
             int      offset_tuning;
             int      direct_sampling;
             int      mute;
-            int      pre_rotate;
-            struct demod_state *targets[2];
         };
+        void Initialize(struct dongle_state *s);
         struct dongle_state dongle;
-
+        void Demodulate();
+    private:
+        bool power;
+        int device_count;
     private slots:
         void slotNewDataReceived(const QByteArray &dataReceived);
         void slotWatchdog();

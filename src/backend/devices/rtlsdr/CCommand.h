@@ -3,6 +3,10 @@
 
 #include <QObject>
 #include <CRtlSdr.h>
+#include <IDemodulator.h>
+#include "CAm.h"
+#include "CFm.h"
+#include "CSsb.h"
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -159,7 +163,8 @@ private:
     int polarity;
     int reverse;
     bool scopepower;
-
+    // Software Demodulator
+    IDemodulator *demo;
     // Device driver
     CRtlSdr * m_device;
 

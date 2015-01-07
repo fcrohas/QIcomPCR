@@ -16,11 +16,11 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 **********************************************************************************************/
-#ifndef CDEMODULATOR_H
-#define CDEMODULATOR_H
+#ifndef CDECODER_H
+#define CDECODER_H
 
 #include <QObject>
-#include "IDemodulator.h"
+#include "IDecoder.h"
 #ifdef WITH_ACARS
     #include "CAcars.h"
 #endif
@@ -33,17 +33,17 @@
 //#define FFTW // Use FFTW library for fourrier transform, else use SPUC
 #define MAXBLOCK 64 // for a max buffer of 32768 and sound buffer of 512 per channel
 
-class CDemodulator : public QObject
+class CDecoder : public QObject
 {
     Q_OBJECT
 public:
-    explicit CDemodulator(QObject *parent = 0);
-    ~CDemodulator();
+    explicit CDecoder(QObject *parent = 0);
+    ~CDecoder();
     enum availableDemodulator {Acars=1, AcarsGpl=2, CW=3, RTTY=4};
     void initBuffer(uint bufferSize);
     enum scopeType {time=0, fft=1, waterfall=2};
     void setScopeType(uint scope);
-    IDemodulator* getDemodulatorFromChannel(int channel);
+    IDecoder* getDemodulatorFromChannel(int channel);
 
 signals:
     void sigRawSamples(double *xval, double *yval, int size);
@@ -59,7 +59,7 @@ public slots:
     void slotSetChannel(int channel);
 
 private:
-    QList<IDemodulator*> list;
+    QList<IDecoder*> list;
     double *xval;
     double *yval;
     int bufferBlock;
@@ -69,11 +69,11 @@ private:
     uchar *data8bitsr;
     int16_t *data16bitsr;
     uint scope;
-    IDemodulator *demodulator;
+    IDecoder *demodulator;
 
     // FFT
     CFFT *fftw;
 };
 
-#endif // CDEMODULATOR_H
+#endif // CDECODER_H
 
