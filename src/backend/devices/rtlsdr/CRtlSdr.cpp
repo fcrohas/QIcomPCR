@@ -7,7 +7,6 @@ extern "C" {
         int i;
         CRtlSdr *This = (CRtlSdr *)ctx;
         struct CRtlSdr::dongle_state *s = &This->dongle;
-        This->Demodulate();
         if (!s) {
             return;
         }
@@ -18,12 +17,13 @@ extern "C" {
         }
         for (i=0; i<(int)len; i++) {
             s->buf16[i] = (int16_t)buf[i] - 127;}
+        This->Demodulate();
     }
 
     static void *dongle_thread_fn(void *arg)
     {
-        struct CRtlSdr::dongle_state *s = (CRtlSdr::dongle_state*)arg;
-        rtlsdr_read_async(s->dev, rtlsdr_callback, s, 0, s->buf_len);
+        CRtlSdr *s = (CRtlSdr*)arg;
+        rtlsdr_read_async(s->dongle.dev, rtlsdr_callback, (void*)arg, 0, s->dongle.buf_len);
         return 0;
     }
 }
@@ -56,6 +56,7 @@ void CRtlSdr::Initialize(struct dongle_state *s)
     s->mute = 0;
     s->direct_sampling = 0;
     s->offset_tuning = 0;
+    s->buf16 = new int16_t[MAXIMUM_BUF_LENGTH];
 }
 
 bool CRtlSdr::open() {
@@ -136,5 +137,6 @@ void CRtlSdr::setAgcControl(bool state) {
 }
 
 void CRtlSdr::Demodulate() {
+    emit sigSampleRead(dongle.buf16, dongle.buf_len);
     qDebug() << "Dongle buffer len=" << dongle.buf_len;
 }

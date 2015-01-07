@@ -385,7 +385,7 @@ endif(WITH_SPEEX)
 
 if(WITH_SPEEX)
 if(UNIX)
-    set(3RDPARTY ${3RDPARTY} rtlsdr)
+    set(3RDPARTY ${3RDPARTY} rtlsdr pthread)
 endif(UNIX)
 if(WIN32)
     set(3RDPARTY ${3RDPARTY} ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/rtlsdr.lib ${CMAKE_SOURCE_DIR}/3rdparty/rtl-sdr/lib/pthreadVCE2.lib)

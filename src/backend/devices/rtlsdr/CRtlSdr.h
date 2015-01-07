@@ -61,6 +61,8 @@ class CRtlSdr : public IDevice
         void Initialize(struct dongle_state *s);
         struct dongle_state dongle;
         void Demodulate();
+    signals:
+        void sigSampleRead(int16_t *buffer,int len);
     private:
         bool power;
         int device_count;

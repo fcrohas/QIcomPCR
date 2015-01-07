@@ -77,6 +77,7 @@ uint CCommand::getSquelch()
 void CCommand::setModulation(uint value)
 {
     if (demo != NULL) {
+        //disconnect(m_device,SIGNAL(sigSampleRead(int16_t*,int)));
         delete demo;
     }
 
@@ -88,6 +89,7 @@ void CCommand::setModulation(uint value)
         eLSB : demo = new CSsb(this,IDemodulator::eLSB); break;
         eUSB : demo = new CSsb(this,IDemodulator::eUSB); break;
     }
+    connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),demo,SLOT(slotSamplesRead(int16_t*,int)));
 }
 
 void CCommand::setFilter(uint value)

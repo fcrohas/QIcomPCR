@@ -5,3 +5,7 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
 {
 
 }
+
+void IDemodulator::slotSamplesRead(int16_t *buffer, int len) {
+
+}
