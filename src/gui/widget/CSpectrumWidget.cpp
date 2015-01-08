@@ -205,13 +205,14 @@ void CSpectrumWidget::slotClicked(QPointF point)
         marker->setLineStyle(QwtPlotMarker::HLine);
         value = point.y();
         marker->setYValue(value);
+        emit threshold(value);
     } else {
         marker->setLineStyle(QwtPlotMarker::VLine);
         value = point.x();
         marker->setXValue(value);
+        emit frequency(value*SAMPLERATE/FFTSIZE);
     }
     marker->attach(qwtPlot);
-    emit frequency(value*SAMPLERATE/FFTSIZE);
 }
 
 void CSpectrumWidget::slotBandWidth(double bw)

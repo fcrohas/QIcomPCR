@@ -26,8 +26,9 @@ CFIR<T>::CFIR() :
     update(false),
     scaleFactor(1.0)
 {
-    tmin = std::numeric_limits<T>::min(); // minimum value
-    tmax = std::numeric_limits<T>::max(); // maximum value
+
+    tmin = -1.0; //std::numeric_limits<T>::min(); // minimum value
+    tmax = 1.0; //std::numeric_limits<T>::max(); // maximum value
 }
 
 template<class T>
@@ -41,13 +42,6 @@ template<class T>
 void CFIR<T>::setWindow(double *value)
 {
     win = value;
-    double minvalue = 0.0,maxvalue=0.0;
-    // check for min/max value
-    for (int i=0; i < N; i++) {
-        if (win[i]<minvalue) minvalue=win[i];
-        if (win[i]>maxvalue) maxvalue=win[i];
-    }
-    scaleFactor = std::min(abs(tmin/minvalue), abs(tmax/maxvalue));
 }
 
 template<class T>
@@ -64,6 +58,7 @@ void CFIR<T>::lowpass(double frequency)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
+    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -84,6 +79,7 @@ void CFIR<T>::highpass(double frequency)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
+    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -105,6 +101,7 @@ void CFIR<T>::bandpass(double centerfreq, double bandwidth)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
+    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -126,6 +123,7 @@ void CFIR<T>::stopband(double centerfreq, double bandwidth)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
+    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -137,11 +135,14 @@ void CFIR<T>::setOrder(int value)
     N = value+1;
     M = value / 2.0;
     if (fir == NULL) {
-        fir = new T[N];
+        tfir = new T[N];
+        fir = new double[N];
     }
     else {
         delete [] fir;
-        fir = new T[N];
+        delete [] tfir;
+        tfir = new T[N];
+        fir = new double[N];
     }
 }
 
@@ -168,9 +169,9 @@ void CFIR<T>::apply(T *&in, int size)
         // direct fir filter
         for (int j=0; j<N; j++) {
             if ((i-j) < 0)
-                sample += buffer[size+i-j] * fir[j]; // use previous buffer call values
+                sample += buffer[size+i-j] * tfir[j]; // use previous buffer call values
             else
-                sample += buffer[i-j] * fir[j]; // use current buffer values
+                sample += buffer[i-j] * tfir[j]; // use current buffer values
         }
         // Save
         in[i] = sample;
@@ -201,6 +202,22 @@ void CFIR<T>::apply(T *&in, int size)
         in[i] = sample;
     }
 #endif
+}
+
+template<class T>
+void CFIR<T>::convert() {
+    double minvalue = 0.0,maxvalue=0.0;
+    // check for min/max value
+    for (int i=0; i < N; i++) {
+        if (fir[i]<minvalue) minvalue=fir[i];
+        if (fir[i]>maxvalue) maxvalue=fir[i];
+    }
+    scaleFactor = std::min(abs(tmin/minvalue), abs(tmax/maxvalue));
+    if (scaleFactor > 255) scaleFactor = 255;
+    qDebug() << "scale factor is " << scaleFactor;
+    for (int i=0; i < N; i++) {
+        tfir[i] = fir[i] * scaleFactor;
+    }
 }
 
 template class CFIR<int>;

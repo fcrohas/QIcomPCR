@@ -47,7 +47,6 @@ public:
     uint getDataSize();
     uint getChannel();
     uint getBufferSize();
-    void setThreshold(double value) override;
     void setCorrelationLength(int value) override;
 
 signals:
@@ -56,6 +55,7 @@ signals:
 public slots:
     void slotFrequency(double value);
     void slotBandwidth(double value);
+    void setThreshold(double value);
 
 private:
     int bandwidth;

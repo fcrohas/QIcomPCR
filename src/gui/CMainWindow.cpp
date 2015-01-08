@@ -515,10 +515,11 @@ void CMainWindow::slotDecoderChange(int value)
     // Connect Demodulator to debug windows
     connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
     connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    connect(myDecoder, SIGNAL(threshold(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
     connect(mySpectrum, SIGNAL(bandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     connect(remote, SIGNAL(sigSelectFrequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
     connect(remote, SIGNAL(sigSelectBandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
-    connect(myDecoder, SIGNAL(bandwidth(double)), this, SLOT(slotThreshold(double)));
+    //connect(myDecoder, SIGNAL(threshold(double)), this, SLOT(slotThreshold(double)));
     //myDecoder->setScaleType(CSpectrumWidget::eTime);
     if (value == 4) {
         myDecoder->setAxis(0,512,-30.0,30.0);
@@ -526,7 +527,7 @@ void CMainWindow::slotDecoderChange(int value)
         mySpectrum->setPickerType(CSpectrumWidget::eRttyPicker);
     }
     else if (value==3) {
-        myDecoder->setAxis(0,512,0.0,15.0);
+        myDecoder->setAxis(0,512,0.0,255.0);
         myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
         mySpectrum->setPickerType(CSpectrumWidget::eCwPicker);
     } else {

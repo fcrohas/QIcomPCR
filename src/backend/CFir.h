@@ -21,7 +21,7 @@
 
 #include <QObject>
 #include <math.h>
-#include <limits.h>
+#include <limits>
 #include <QDebug>
 
 template<class T>
@@ -39,8 +39,10 @@ public:
     void setSampleRate(double value);
     void apply(T *&in, int size);
 private:
+    void convert();
     double *win;
-    T *fir;
+    double *fir;
+    T *tfir;
     T *buffer;
     int N;
     double M;

@@ -32,7 +32,6 @@ public:
     virtual uint getDataSize();
     virtual uint getChannel();
     virtual uint getBufferSize();
-    virtual void setThreshold(double value);
     virtual void setCorrelationLength(int value);
 
 
@@ -42,6 +41,7 @@ signals:
 public slots:
     void slotFrequency(double value);
     void slotBandwidth(double value);
+    void setThreshold(double value);
 };
 
 #endif // IDEMODULATOR_H

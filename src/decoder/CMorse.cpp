@@ -71,7 +71,7 @@ CMorse::CMorse(QObject *parent, uint channel) :
     this->channel = channel;
 #ifdef FIR
     winfunc = new CWindowFunc(this);
-    winfunc->init(65);
+    winfunc->init(64);
     winfunc->hamming();
     //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     // band pass filter
@@ -138,7 +138,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
                 corr[i] += sqrt(pow(audioBuffer[0][size-i-j] * mark_i[j],2) + pow(audioBuffer[0][size-i-j] * mark_q[j],2));
         }
 #endif
-#ifdef KALMAN
+#ifdef KALMAN1
         // Kalman filter
         double Pt = Pp + Q;
         //calculate the Kalman gain
@@ -171,7 +171,7 @@ void CMorse::decode(int16_t *buffer, int size, int offset)
     memcpy(audioBuffer[0],audioData[0], size*sizeof(double));
 #endif
     // Low pass filter for orig CW signal
-#ifdef GOERTZEL
+#ifdef GOERTZEL2
     audioData[0] = yval;
     flowpass->process(getBufferSize(), audioData);
     yval = audioData[0];
@@ -442,6 +442,7 @@ void CMorse::GenerateCorrelation(int length)
 void CMorse::setThreshold(double value)
 {
     agclimit = value * 1.0;
+    qDebug() << " threshold=" << agclimit;
     //emit sendData(QString("Adjust threshold %1").arg(agclimit));
 }
 

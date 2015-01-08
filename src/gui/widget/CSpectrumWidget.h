@@ -323,6 +323,7 @@ public:
 
 signals:
     void frequency(double value);
+    void threshold(double value);
     void bandwidth(double value);
     
 public slots:
