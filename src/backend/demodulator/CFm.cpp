@@ -5,6 +5,6 @@ CFm::CFm(QObject *parent, Mode mode) :
 {
 }
 
-void CFm::slotSamplesRead(int16_t *buffer, int len) {
+void CFm::slotSamplesRead(int *buffer, int len) {
 
 }

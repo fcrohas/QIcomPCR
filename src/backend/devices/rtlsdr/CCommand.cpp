@@ -79,22 +79,28 @@ void CCommand::setModulation(uint value)
     if (demo != NULL) {
         //disconnect(m_device,SIGNAL(sigSampleRead(int16_t*,int)));
         delete demo;
+        demo = NULL;
     }
 
     currentRadio->modulation = value;
     switch(value) {
-        eFM : demo = new CFm(this,IDemodulator::eFM); break;
-        eAM : demo = new CAm(this,IDemodulator::eAM); break;
-        eWFM : demo = new CFm(this,IDemodulator::eWFM); break;
-        eLSB : demo = new CSsb(this,IDemodulator::eLSB); break;
-        eUSB : demo = new CSsb(this,IDemodulator::eUSB); break;
+        case eFM : demo = new CFm(this,IDemodulator::eFM); break;
+        case eAM : demo = new CAm(this,IDemodulator::eAM); break;
+        case eWFM : demo = new CFm(this,IDemodulator::eWFM); break;
+        case eLSB : demo = new CSsb(this,IDemodulator::eLSB); break;
+        case eUSB : demo = new CSsb(this,IDemodulator::eUSB); break;
     }
-    connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),demo,SLOT(slotSamplesRead(int16_t*,int)));
+    if (demo != NULL) {
+        connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),demo,SLOT(slotSamplesRead(int16_t*,int)));
+        connect(this,SIGNAL(sigSetFilter(uint)),demo,SLOT(slotSetFilter(uint)));
+    }
 }
 
 void CCommand::setFilter(uint value)
 {
     currentRadio->filter = value;
+    // send new filter value
+    emit sigSetFilter(value);
     // Once filter is set call back frequency
     setFrequency(currentRadio->frequency);
 }

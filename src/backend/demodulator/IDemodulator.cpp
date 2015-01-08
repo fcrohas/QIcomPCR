@@ -6,6 +6,10 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
 
 }
 
-void IDemodulator::slotSamplesRead(int16_t *buffer, int len) {
+void IDemodulator::slotSamplesRead(int *buffer, int len) {
+
+}
+
+void IDemodulator::slotSetFilter(uint frequency) {
 
 }

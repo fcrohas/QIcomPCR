@@ -5,6 +5,6 @@ CSsb::CSsb(QObject *parent,Mode mode) :
 {
 }
 
-void CSsb::slotSamplesRead(int16_t *buffer, int len) {
+void CSsb::slotSamplesRead(int *buffer, int len) {
 
 }

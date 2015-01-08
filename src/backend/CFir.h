@@ -21,13 +21,14 @@
 
 #include <QObject>
 #include <math.h>
+#include <limits.h>
 #include <QDebug>
 
-class CFIR : public QObject
+template<class T>
+class CFIR
 {
-    Q_OBJECT
 public:
-    explicit CFIR(QObject *parent = 0);
+    explicit CFIR();
     ~CFIR();
     void setWindow(double *win);
     void lowpass(double frequency);
@@ -36,19 +37,18 @@ public:
     void stopband(double centerfreq, double bandwidth);
     void setOrder(int value);
     void setSampleRate(double value);
-    void apply(double *&in, int size);
-signals:
-    
-public slots:
-
+    void apply(T *&in, int size);
 private:
     double *win;
-    double *fir;
-    double *buffer;
+    T *fir;
+    T *buffer;
     int N;
     double M;
     double wc;
     double fs;
+    T tmin;
+    T tmax;
+    double scaleFactor;
     bool update;
 };
 

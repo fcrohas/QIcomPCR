@@ -72,13 +72,13 @@ CMorse::CMorse(QObject *parent, uint channel) :
 #ifdef FIR
     winfunc = new CWindowFunc(this);
     winfunc->init(65);
-    winfunc->rectangle();
+    winfunc->hamming();
     //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     // band pass filter
-    fbandpass = new CFIR(this);
+    fbandpass = new CFIR<double>();
+    fbandpass->setOrder(64);
     fbandpass->setWindow(winfunc->getWindow());
     // arbitrary order for 200 Hz bandwidth
-    fbandpass->setOrder(64);
     fbandpass->setSampleRate(SAMPLERATE);
     fbandpass->bandpass(frequency,bandwidth);
 #else
@@ -469,10 +469,10 @@ void CMorse::slotBandwidth(double value)
     if (order % 2 > 0) order += 1;
     // Update windows func length
     winfunc->init(order+1);
-    winfunc->rectangle();
+    winfunc->hamming();
     // Update bandpass params
-    fbandpass->setWindow(winfunc->getWindow());
     fbandpass->setOrder(order);
+    fbandpass->setWindow(winfunc->getWindow());
 #endif
     fbandpass->bandpass(frequency,bandwidth);
     //fbandpass->highpass(frequency);

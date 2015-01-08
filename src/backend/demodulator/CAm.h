@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <IDemodulator.h>
+#include "CFir.h"
+#include "CWindowFunc.h"
 
 class CAm : public IDemodulator
 {
@@ -13,7 +15,13 @@ public:
 signals:
 
 public slots:
-    void slotSamplesRead(int16_t *buffer,int len);
+    void slotSamplesRead(int *buffer,int len);
+    void slotSetFilter(uint frequency);
+private:
+    // Filters
+    CWindowFunc *winfunc;
+    // FIR bandpass filter
+    CFIR<int> *filter;
 
 };
 

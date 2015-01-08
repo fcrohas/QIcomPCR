@@ -57,6 +57,7 @@ public:
 signals:
     void sendData(QString &value);
     void dataChanged(QString value);
+    void sigSetFilter(uint frequency);
 
 public slots:
     // Power command
@@ -167,7 +168,6 @@ private:
     IDemodulator *demo;
     // Device driver
     CRtlSdr * m_device;
-
 };
 
 #endif // CCOMMAND_H

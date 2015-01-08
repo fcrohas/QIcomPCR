@@ -18,31 +18,42 @@
 **********************************************************************************************/
 #include "CFir.h"
 
-CFIR::CFIR(QObject *parent) :
-    QObject(parent),
+template<class T>
+CFIR<T>::CFIR() :
     win(NULL),
     fir(NULL),
     buffer(NULL),
-    update(false)
+    update(false),
+    scaleFactor(1.0)
 {
-
+    tmin = std::numeric_limits<T>::min(); // minimum value
+    tmax = std::numeric_limits<T>::max(); // maximum value
 }
 
-CFIR::~CFIR()
+template<class T>
+CFIR<T>::~CFIR()
 {
     delete [] buffer;
     buffer = NULL;
 }
 
-void CFIR::setWindow(double *value)
+template<class T>
+void CFIR<T>::setWindow(double *value)
 {
     win = value;
+    double minvalue = 0.0,maxvalue=0.0;
+    // check for min/max value
+    for (int i=0; i < N; i++) {
+        if (win[i]<minvalue) minvalue=win[i];
+        if (win[i]>maxvalue) maxvalue=win[i];
+    }
+    scaleFactor = std::min(abs(tmin/minvalue), abs(tmax/maxvalue));
 }
 
-void CFIR::lowpass(double frequency)
+template<class T>
+void CFIR<T>::lowpass(double frequency)
 {
     update = true;
-    QString dump("");
     wc = (2.0 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
         if (i==M)
@@ -52,18 +63,16 @@ void CFIR::lowpass(double frequency)
         // Apply window
         if (win != NULL)
             fir[i] = fir[i] * win [i];
-        dump.append(QString("%1;").arg(fir[i]));
     }
-    qDebug() << "Hd=["<< dump << "]";
     delete [] buffer;
     buffer = NULL;
     update = false;
 }
 
-void CFIR::highpass(double frequency)
+template<class T>
+void CFIR<T>::highpass(double frequency)
 {
     update = true;
-    QString dump("");
     wc = (2.0 * M_PI * frequency) / fs;
     //wc = (2 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
@@ -74,18 +83,16 @@ void CFIR::highpass(double frequency)
         // Apply window
         if (win != NULL)
             fir[i] = fir[i] * win [i];
-        dump.append(QString("%1;").arg(fir[i]));
     }
-    qDebug() << "Hd=["<< dump << "]";
     delete [] buffer;
     buffer = NULL;
     update = false;
 }
 
-void CFIR::bandpass(double centerfreq, double bandwidth)
+template<class T>
+void CFIR<T>::bandpass(double centerfreq, double bandwidth)
 {
     update = true;
-    QString dump("");
     double wc1 = (2.0 * M_PI * (centerfreq-bandwidth/2.0)) / fs;
     double wc2 = (2.0 * M_PI * (centerfreq+bandwidth/2.0)) / fs;
     //wc = (2 * M_PI * frequency) / fs;
@@ -97,18 +104,16 @@ void CFIR::bandpass(double centerfreq, double bandwidth)
         // Apply window
         if (win != NULL)
             fir[i] = fir[i] * win [i];
-        dump.append(QString("%1;").arg(fir[i]));
     }
-    qDebug() << "Hd=["<< dump << "]";
     delete [] buffer;
     buffer = NULL;
     update = false;
 }
 
-void CFIR::stopband(double centerfreq, double bandwidth)
+template<class T>
+void CFIR<T>::stopband(double centerfreq, double bandwidth)
 {
     update = true;
-    QString dump("");
     double wc1 = (2.0 * M_PI * (centerfreq-bandwidth/2.0)) / fs;
     double wc2 = (2.0 * M_PI * (centerfreq+bandwidth/2.0)) / fs;
     //wc = (2 * M_PI * frequency) / fs;
@@ -120,43 +125,44 @@ void CFIR::stopband(double centerfreq, double bandwidth)
         // Apply window
         if (win != NULL)
             fir[i] = fir[i] * win [i];
-        dump.append(QString("%1;").arg(fir[i]));
     }
-    qDebug() << "Hd=["<< dump << "]";
     delete [] buffer;
     buffer = NULL;
     update = false;
 }
 
-void CFIR::setOrder(int value)
+template<class T>
+void CFIR<T>::setOrder(int value)
 {
     N = value+1;
     M = value / 2.0;
     if (fir == NULL) {
-        fir = new double[N];
+        fir = new T[N];
     }
     else {
         delete [] fir;
-        fir = new double[N];
+        fir = new T[N];
     }
 }
 
-void CFIR::setSampleRate(double value)
+template<class T>
+void CFIR<T>::setSampleRate(double value)
 {
     fs = value;
 }
 
-void CFIR::apply(double *&in, int size)
+template<class T>
+void CFIR<T>::apply(T *&in, int size)
 {
     if (update)
         return;
     if (buffer == NULL) {
-        buffer = new double[size];
+        buffer = new T[size];
     }
     // loop on buffer and apply filter
 #if 1
     for (int i=0; i<size; i++) {
-        double sample = 0.0;
+        T sample = 0.0;
         // act as a ring buffer for current and previous call
         buffer[i] = in[i];
         // direct fir filter
@@ -196,3 +202,6 @@ void CFIR::apply(double *&in, int size)
     }
 #endif
 }
+
+template class CFIR<int>;
+template class CFIR<double>;

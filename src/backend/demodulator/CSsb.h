@@ -12,7 +12,7 @@ public:
 signals:
 
 public slots:
-    void slotSamplesRead(int16_t *buffer,int len);
+    void slotSamplesRead(int *buffer,int len);
 
 };
 

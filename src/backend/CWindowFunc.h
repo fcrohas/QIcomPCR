@@ -37,6 +37,7 @@ public:
     void init(int size);
     double get(int i);
     double * getWindow();
+
 signals:
     
 public slots:

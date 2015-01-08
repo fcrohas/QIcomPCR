@@ -94,9 +94,9 @@ private:
 
     // Filters
     CWindowFunc *winfunc;
-    CFIR *fmark;
-    CFIR *fspace;
-    CFIR *flow;
+    CFIR<double> *fmark;
+    CFIR<double> *fspace;
+    CFIR<double> *flow;
 
     // Correlation length generator
     void GenerateCorrelation(int length);

@@ -155,7 +155,7 @@ private:
     // Filters
     CWindowFunc *winfunc;
 #ifdef FIR
-    CFIR *fbandpass;
+    CFIR<double> *fbandpass;
 #else
     CIIR *fbandpass;
 #endif

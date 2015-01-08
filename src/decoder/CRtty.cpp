@@ -64,19 +64,19 @@ CRtty::CRtty(QObject *parent, uint channel) :
     winfunc->rectangle();
     //int order = winfunc->kaiser(40,frequency,bandwidth,SAMPLERATE);
     // band pass filter
-    fmark = new CFIR(this);
-    fspace = new CFIR(this);
-    flow = new CFIR(this);
-    fmark->setWindow(winfunc->getWindow());
-    fspace->setWindow(winfunc->getWindow());
+    fmark = new CFIR<double>();
+    fspace = new CFIR<double>();
+    flow = new CFIR<double>();
     // arbitrary order for 200 Hz bandwidth
     // for mark frequency
     fmark->setOrder(64);
+    fmark->setWindow(winfunc->getWindow());
     fmark->setSampleRate(SAMPLERATE);
     fmark->bandpass(freqlow,bandwidth);
 
     // for space frequency
     fspace->setOrder(64);
+    fspace->setWindow(winfunc->getWindow());
     fspace->setSampleRate(SAMPLERATE);
     fspace->bandpass(freqhigh,bandwidth);
 
