@@ -30,10 +30,10 @@ class ISound : public QThread
 public:
     explicit ISound(QObject *parent = 0);
     ~ISound();
-
+    enum Mode { ePlay=0, eRecord=1, eBoth=2};
     // Demodulator
-    void SetDemodulator(CDecoder *value);
-    CDecoder *GetDemodulator();
+    void SetDecoder(CDecoder *value, Mode mode = eRecord);
+    CDecoder *GetDecoder();
 
     virtual void DecodeBuffer(int16_t *buffer, int size);
     virtual void setRunning(bool value);
@@ -42,6 +42,7 @@ public:
     virtual void selectOutputDevice(QString device);
     virtual bool Load(QString &file);
     virtual void Record(QString &filename, bool start);
+    virtual void Play(int16_t *buffer, int size);
 
 signals:
     
@@ -49,7 +50,7 @@ public slots:
     virtual void setChannel(uint value);
 
 private:
-    CDecoder *demod;
+    CDecoder *decod;
     SNDFILE*	pFile;
     QString data;
 };

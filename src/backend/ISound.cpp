@@ -30,14 +30,14 @@ ISound::~ISound()
 
 }
 
-void ISound::SetDemodulator(CDecoder *value)
+void ISound::SetDecoder(CDecoder *value, Mode mode)
 {
-    demod = value;
+    decod = value;
 }
 
-CDecoder *ISound::GetDemodulator()
+CDecoder *ISound::GetDecoder()
 {
-    return demod;
+    return decod;
 }
 
 void ISound::DecodeBuffer(int16_t *buffer, int size)
@@ -47,7 +47,7 @@ void ISound::DecodeBuffer(int16_t *buffer, int size)
         sf_count_t bytewrite;
         bytewrite = sf_writef_short(pFile, buffer, size/2);
     }
-    demod->slotDataBuffer(buffer, size);
+    decod->slotDataBuffer(buffer, size);
 
 }
 
@@ -104,5 +104,9 @@ void ISound::Record(QString &filename, bool start)
 
 void ISound::setChannel(uint value)
 {
+
+}
+
+void ISound::Play(int16_t *buffer, int size) {
 
 }

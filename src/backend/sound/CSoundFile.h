@@ -39,6 +39,7 @@ public:
     void setRunning(bool value) override;
     void DecodeBuffer(int16_t *buffer, int size);
     void Record(QString &filename, bool start);
+    void Play(int16_t *buffer, int size);
 public slots:
     void setChannel(uint value);
 

@@ -261,3 +261,7 @@ void CSoundFile::setChannel(uint value)
         soundStream->setChannel(value);
     }
 }
+
+void CSoundFile::Play(int16_t *buffer, int size) {
+
+}

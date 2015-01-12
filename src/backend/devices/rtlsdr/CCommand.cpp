@@ -7,7 +7,8 @@ CCommand::CCommand(QObject *parent) :
     stepsize(100000),
     scopewidth(5000000),
     polarity(0),
-    reverse(0)
+    reverse(0),
+    sound(NULL)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -46,6 +47,7 @@ bool CCommand::getPower()
 void CCommand::setFrequency(uint value)
 {
     m_device->setFrequency(value);
+    currentRadio->frequency = value;
 }
 
 uint CCommand::getFrequency()
@@ -84,20 +86,36 @@ void CCommand::setModulation(uint value)
 
     currentRadio->modulation = value;
     switch(value) {
-        case eFM : demo = new CFm(this,IDemodulator::eFM); break;
-        case eAM : demo = new CAm(this,IDemodulator::eAM); break;
-        case eWFM : demo = new CFm(this,IDemodulator::eWFM); break;
-        case eLSB : demo = new CSsb(this,IDemodulator::eLSB); break;
-        case eUSB : demo = new CSsb(this,IDemodulator::eUSB); break;
+        case eFM : demo = new CFm(NULL,IDemodulator::eFM); break;
+        case eAM : demo = new CAm(NULL,IDemodulator::eAM); break;
+        case eWFM : demo = new CFm(NULL,IDemodulator::eWFM); break;
+        case eLSB : demo = new CSsb(NULL,IDemodulator::eLSB); break;
+        case eUSB : demo = new CSsb(NULL,IDemodulator::eUSB); break;
     }
     if (demo != NULL) {
-        connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),demo,SLOT(slotSamplesRead(int16_t*,int)));
+        // Set demodulator to thread
+        demo->setSoundDevice(sound);
+        demoThread = new QThread();
+        demo->moveToThread(demoThread);
+        connect(demo, SIGNAL(finished()), demoThread, SLOT(quit()));
+        connect(demo, SIGNAL(finished()), demo, SLOT(deleteLater()));
+        connect(demoThread, SIGNAL(finished()), demoThread, SLOT(deleteLater()));
+        connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),this,SLOT(slotSamplesRead(int16_t*,int)));
         connect(this,SIGNAL(sigSetFilter(uint)),demo,SLOT(slotSetFilter(uint)));
+        demoThread->start();
     }
 }
 
 void CCommand::setFilter(uint value)
 {
+    switch(value) {
+        case e28k : value = 2800; break;
+        case e6k : value = 6000; break;
+        case e15k : value = 15000; break;
+        case e50k : value = 50000; break;
+        case e230k : value = 230000; break;
+    }
+
     currentRadio->filter = value;
     // send new filter value
     emit sigSetFilter(value);
@@ -310,4 +328,14 @@ void CCommand::setBandScopeStep(int value)
 uint CCommand::getSoundVolume()
 {
     return currentRadio->volume;
+}
+
+void CCommand::setSoundDevice(ISound *sound) {
+    qDebug() << "Sound device is set to command controller";
+    this->sound = sound;
+}
+
+void CCommand::slotSamplesRead(int16_t *buffer, int len) {
+    demo->setData(buffer,len);
+    QMetaObject::invokeMethod(demo, "doWork");
 }

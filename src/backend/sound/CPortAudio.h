@@ -45,7 +45,7 @@ class CPortAudio : public ISound
 {
     Q_OBJECT
 public:
-    explicit CPortAudio(QObject *parent = 0);
+    explicit CPortAudio(QObject *parent = 0, ISound::Mode mode = eRecord);
     ~CPortAudio();
     bool Load(QString &fileName);
     void setRunning(bool value) override;
@@ -53,6 +53,7 @@ public:
     QHash<QString, int> getDeviceList();
     void Record(QString &filename, bool start);
     PaUtilRingBuffer ringBuffer;
+    void Play(int16_t *buffer, int size);
 
 signals:
     
@@ -77,6 +78,8 @@ private:
     CSoundStream *soundStream;
     QThread *audioEncode;
     QThread *dataDecode;
+    int mode;
+
 };
 
 #endif // CPORTAUDIO_H

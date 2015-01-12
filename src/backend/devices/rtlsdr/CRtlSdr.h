@@ -5,7 +5,10 @@
 #include "IDevice.h"
 #include <pthread.h>
 #ifdef WIN32
+#pragma warning( push )
+#pragma warning( disable : 4200 )
 #include <libusb.h>
+#pragma warning( pop )
 #else
 #include <libusb-1.0/libusb.h>
 #endif

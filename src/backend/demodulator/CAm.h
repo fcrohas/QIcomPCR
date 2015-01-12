@@ -15,13 +15,13 @@ public:
 signals:
 
 public slots:
-    void slotSamplesRead(int *buffer,int len);
+    void doWork();
     void slotSetFilter(uint frequency);
 private:
     // Filters
     CWindowFunc *winfunc;
     // FIR bandpass filter
-    CFIR<int> *filter;
+    CFIR<int16_t> *filter;
 
 };
 

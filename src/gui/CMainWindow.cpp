@@ -45,7 +45,15 @@ CMainWindow::CMainWindow(QWidget *parent) :
     theMainWindow = this;
     ui->setupUi(this);
 
+#ifdef WITH_PULSEAUDIO
+    sound  = new CPulseSound(this);
+#endif
+#ifdef WITH_PORTAUDIO
+    sound  = new CPortAudio(this,ISound::ePlay);
+#endif
+
     cmd = new CCommand(this);
+    cmd->setSoundDevice(sound);
     dbgWin = new CDebugWindow(this,ui);
     demodulator = new CDecoder(this);
     remote = new CRemoteControl(this);
@@ -53,12 +61,6 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     status = new CStatusWidget(this);
     display = new CDisplay(this);
-#ifdef WITH_PULSEAUDIO
-    sound  = new CPulseSound(this);
-#endif
-#ifdef WITH_PORTAUDIO
-    sound  = new CPortAudio(this);
-#endif
     // Spectrum widget
     mySpectrum = new CSpectrumWidget(this);
     ui->frequency1->addWidget(mySpectrum); // Widget channel 1
@@ -84,7 +86,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     }
 #ifndef WIN32
     // Connect sound with demodulator
-    sound->SetDemodulator(demodulator);
+    sound->SetDecoder(demodulator);
 #endif
     connectSignals();
     mySpectrum->setAxis(0,16384,0,256);
@@ -150,9 +152,9 @@ void CMainWindow::connectSignals()
     connect(ui->refreshRate, SIGNAL(valueChanged(int)), this, SLOT(slotRefreshRate(int)));
     connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
-#ifndef WIN32
+//#ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
-#endif
+//#endif
     // Band Scope
     connect(ui->pushBandscope,SIGNAL(clicked(bool)),this,SLOT(slotBandScope(bool)));
     connect(ui->cbBandwidth, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeWidth(int)));
@@ -438,22 +440,18 @@ void CMainWindow::slotSwitchSound(bool value)
 #endif
 #ifdef WITH_PORTAUDIO
             sound  = new CPortAudio(this);
+            cmd->setSoundDevice(sound);
 #endif
         }
         // Restore sound settings
         CSettings::global *params = new CSettings::global();
         settings->getGlobal(params);
-        #ifndef WIN32
-            qDebug() << "sound input " << params->inputDevice;
-            sound->selectInputDevice(params->inputDevice);
-        #endif
-        #ifndef WIN32
-            qDebug() << "sound output " << params->outputDevice;
-            sound->selectOutputDevice(params->outputDevice);
-        #endif
+        qDebug() << "sound input " << params->inputDevice;
+        sound->selectInputDevice(params->inputDevice);
+        qDebug() << "sound output " << params->outputDevice;
+        sound->selectOutputDevice(params->outputDevice);
         delete params;
-        sound->SetDemodulator(demodulator);
-
+        sound->SetDecoder(demodulator);
         demodulator->initBuffer(32768);
         sound->setRunning(true);
         sound->start();
@@ -462,8 +460,8 @@ void CMainWindow::slotSwitchSound(bool value)
         sound->setRunning(false);
         sound->terminate();
         sound->wait();
-        delete sound;
-        sound = NULL;
+        //delete sound;
+        //sound = NULL;
     }
 #endif
 }
@@ -527,7 +525,7 @@ void CMainWindow::slotDecoderChange(int value)
         mySpectrum->setPickerType(CSpectrumWidget::eRttyPicker);
     }
     else if (value==3) {
-        myDecoder->setAxis(0,512,0.0,255.0);
+        myDecoder->setAxis(0,512,0.0,127.0);
         myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
         mySpectrum->setPickerType(CSpectrumWidget::eCwPicker);
     } else {
@@ -583,7 +581,7 @@ void CMainWindow::slotLoadFile()
         // Create new sound reader from file
         sound = new CSoundFile(this);
         sound->Load(fileName);
-        sound->SetDemodulator(demodulator);
+        sound->SetDecoder(demodulator);
         sound->setRunning(true);
         connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
     }
@@ -598,15 +596,25 @@ void CMainWindow::slotStopPlay(bool value)
         sound  = new CPulseSound(this);
 #endif
 #ifdef WITH_PORTAUDIO
-        sound  = new CPortAudio(this);
+        sound  = new CPortAudio(this,ISound::ePlay);
+        cmd->setSoundDevice(sound);
 #endif
-        sound->SetDemodulator(demodulator);
+        CSettings::global *params = new CSettings::global();
+        settings->getGlobal(params);
+        qDebug() << "sound input " << params->inputDevice;
+        sound->selectInputDevice(params->inputDevice);
+        qDebug() << "sound output " << params->outputDevice;
+        sound->selectOutputDevice(params->outputDevice);
+        sound->SetDecoder(demodulator);
+        demodulator->initBuffer(32768);
+        sound->start();
+        delete params;
     } else {
         sound->setRunning(false);
         sleep(5);
         sound->terminate();
-        delete sound;
-        sound = NULL;
+        //delete sound;
+        //sound = NULL;
     }
 }
 

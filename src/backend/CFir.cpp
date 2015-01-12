@@ -27,8 +27,10 @@ CFIR<T>::CFIR() :
     scaleFactor(1.0)
 {
 
-    tmin = -1.0; //std::numeric_limits<T>::min(); // minimum value
-    tmax = 1.0; //std::numeric_limits<T>::max(); // maximum value
+    tmin = std::numeric_limits<T>::min(); // minimum value
+    if (tmin < -127) tmin = -1.0;
+    tmax = std::numeric_limits<T>::max(); // maximum value
+    if (tmax > 127) tmax = 1.0;
 }
 
 template<class T>
@@ -157,6 +159,10 @@ void CFIR<T>::apply(T *&in, int size)
 {
     if (update)
         return;
+    if (in == NULL) {
+        return;
+    }
+
     if (buffer == NULL) {
         buffer = new T[size];
     }
@@ -213,7 +219,7 @@ void CFIR<T>::convert() {
         if (fir[i]>maxvalue) maxvalue=fir[i];
     }
     scaleFactor = std::min(abs(tmin/minvalue), abs(tmax/maxvalue));
-    if (scaleFactor > 255) scaleFactor = 255;
+    if (scaleFactor > 127) scaleFactor = 127;
     qDebug() << "scale factor is " << scaleFactor;
     for (int i=0; i < N; i++) {
         tfir[i] = fir[i] * scaleFactor;
@@ -221,4 +227,5 @@ void CFIR<T>::convert() {
 }
 
 template class CFIR<int>;
+template class CFIR<short>;
 template class CFIR<double>;

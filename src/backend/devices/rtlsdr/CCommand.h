@@ -125,9 +125,11 @@ public slots:
     void setBandScopeStep(int value);
     void setToneSquelch(uint value);
     void setDTCS(uint value);
+    void setSoundDevice(ISound *sound);
 
 private slots:
     void slotReceivedData(QString value);
+    void slotSamplesRead(int16_t *buffer,int len);
 
 private:
     // Radio currently working on
@@ -168,6 +170,10 @@ private:
     IDemodulator *demo;
     // Device driver
     CRtlSdr * m_device;
+    // Sound device
+    ISound *sound;
+    // Demodulator thread
+    QThread *demoThread;
 };
 
 #endif // CCOMMAND_H

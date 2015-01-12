@@ -17,6 +17,7 @@ extern "C" {
         }
         for (i=0; i<(int)len; i++) {
             s->buf16[i] = (int16_t)buf[i] - 127;}
+        s->buf_len = len;
         This->Demodulate();
     }
 
@@ -51,7 +52,7 @@ CRtlSdr::~CRtlSdr() {
 
 void CRtlSdr::Initialize(struct dongle_state *s)
 {
-    s->rate = DEFAULT_SAMPLE_RATE;
+    s->rate = MAXIMUM_RATE;
     s->gain = AUTO_GAIN; // tenths of a dB
     s->mute = 0;
     s->direct_sampling = 0;
@@ -79,10 +80,27 @@ bool CRtlSdr::open() {
         power = false;
         return false;
     }
+
+    r = rtlsdr_set_tuner_gain_mode(dongle.dev,dongle.gain);
+    if (r < 0) {
+        qDebug() << "Failed to set gain to " << dongle.gain << "\n";
+        power = false;
+        return false;
+    }
+
     r = rtlsdr_reset_buffer(dongle.dev);
     if (r < 0) {
         qDebug() << "WARNING: Failed to reset buffers.\n";
     }
+
+    r = rtlsdr_set_sample_rate(dongle.dev,dongle.rate);
+    if (r < 0) {
+        qDebug() << "Failed to set sample rate to " << dongle.rate << "\n";
+        power = false;
+        return false;
+    }
+    qDebug() << "Dongle sample rate " << rtlsdr_get_sample_rate(dongle.dev);
+
     // Build a data reader thead
     pthread_create(&dongle.thread, NULL, dongle_thread_fn, (void *)(this));
     power = true;
@@ -97,7 +115,8 @@ void CRtlSdr::close() {
     // Stop thread
     rtlsdr_cancel_async(dongle.dev);
     // Join on leave
-    pthread_join(dongle.thread, NULL);
+    if (dongle.thread.p != NULL)
+        pthread_join(dongle.thread, NULL);
     // Close rtl device
     int r = rtlsdr_close(dongle.dev);
     if (r < 0) {
@@ -138,5 +157,5 @@ void CRtlSdr::setAgcControl(bool state) {
 
 void CRtlSdr::Demodulate() {
     emit sigSampleRead(dongle.buf16, dongle.buf_len);
-    qDebug() << "Dongle buffer len=" << dongle.buf_len;
+    //qDebug() << "Dongle buffer len=" << dongle.buf_len;
 }
