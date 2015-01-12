@@ -4,7 +4,7 @@
 #include <QObject>
 #include "ISound.h"
 
-#define DOWNSAMPLE 256
+#define DOWNSAMPLE 8
 
 class IDemodulator : public QObject
 {
@@ -16,7 +16,7 @@ public:
     void setData(int16_t *buffer,int len);
     void processSound(int16_t *buffer,int len);
     // Down sample filter
-    void downsample(int16_t *buffer, int len);
+    void downsample(int16_t *buffer, int len, int factor = 0);
 signals:
     void finished();
 
@@ -32,6 +32,7 @@ protected:
     int prev_index;
     int now_r;
     int now_j;
+    int downSampleFactor;
 };
 
 #endif // IDEMODULATOR_H

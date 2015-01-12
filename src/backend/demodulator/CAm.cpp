@@ -32,11 +32,13 @@ void CAm::doWork() {
     // so new len is
     len = len/2;
     // Apply audio filter
-    filter->apply(buffer,len);
+    //filter->apply(buffer,len);
     IDemodulator::processSound(buffer,len);
 }
 
 void CAm::slotSetFilter(uint frequency) {
     qDebug() << "Change frequency filter to " << frequency << " Hz";
-    filter->lowpass(frequency);
+    filter = frequency;
+    IDemodulator.slotSetFilter(frequency);
+    //filter->lowpass(frequency);
 }

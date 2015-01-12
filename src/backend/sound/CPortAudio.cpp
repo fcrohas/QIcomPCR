@@ -55,7 +55,7 @@ extern "C" {
         (void) inputBuffer;		/* Prevent unused variable warning. */
         int avail = PaUtil_GetRingBufferReadAvailable(&This->ringBuffer);
         PaUtil_ReadRingBuffer(&This->ringBuffer,out,(avail<bytes)?avail:bytes);
-        *out = *in;
+        //*out = *in;
         PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
         return paContinue;
     }

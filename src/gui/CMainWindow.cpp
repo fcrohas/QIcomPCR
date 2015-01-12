@@ -439,7 +439,7 @@ void CMainWindow::slotSwitchSound(bool value)
             sound  = new CPulseSound(this);
 #endif
 #ifdef WITH_PORTAUDIO
-            sound  = new CPortAudio(this);
+            sound  = new CPortAudio(this,ISound::eRecord);
             cmd->setSoundDevice(sound);
 #endif
         }

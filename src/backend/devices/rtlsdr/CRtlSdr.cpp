@@ -50,14 +50,17 @@ CRtlSdr::~CRtlSdr() {
 
 }
 
-void CRtlSdr::Initialize(struct dongle_state *s)
+void CRtlSdr::Initialize(struct dongle_state *s, struct demodule_state *d)
 {
-    s->rate = MAXIMUM_RATE;
+    // dongle state init
+    s->rate = 1024000;
     s->gain = AUTO_GAIN; // tenths of a dB
     s->mute = 0;
     s->direct_sampling = 0;
     s->offset_tuning = 0;
     s->buf16 = new int16_t[MAXIMUM_BUF_LENGTH];
+    // demodulator state init
+    d->buf16 = new int16_t[MAXIMUM_BUF_LENGTH];
 }
 
 bool CRtlSdr::open() {
@@ -66,7 +69,7 @@ bool CRtlSdr::open() {
         power = false;
         return false;
     }
-    Initialize(&dongle);
+    Initialize(&dongle,&demod);
     dongle.dev_index = 0;
 
     if (dongle.dev_index < 0) {
@@ -115,7 +118,7 @@ void CRtlSdr::close() {
     // Stop thread
     rtlsdr_cancel_async(dongle.dev);
     // Join on leave
-    if (dongle.thread.p != NULL)
+    if (dongle.thread != 0)
         pthread_join(dongle.thread, NULL);
     // Close rtl device
     int r = rtlsdr_close(dongle.dev);
@@ -139,6 +142,8 @@ void CRtlSdr::setFrequency(uint freq) {
     int ret = rtlsdr_set_center_freq(dongle.dev, freq);
     if (ret<0)
         qDebug() << "Frequency not set to " << freq << "\n";
+    else
+        qDebug() << "Frequency set to " << freq << "\n";
 }
 
 uint CRtlSdr::getFrequency() {
@@ -156,6 +161,8 @@ void CRtlSdr::setAgcControl(bool state) {
 }
 
 void CRtlSdr::Demodulate() {
-    emit sigSampleRead(dongle.buf16, dongle.buf_len);
+    demod.buf_len = dongle.buf_len;
+    memcpy(demod.buf16, dongle.buf16, 2*dongle.buf_len);
+    emit sigSampleRead(demod.buf16, demod.buf_len);
     //qDebug() << "Dongle buffer len=" << dongle.buf_len;
 }

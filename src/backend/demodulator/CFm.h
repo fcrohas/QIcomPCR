@@ -26,6 +26,9 @@ private:
     int16_t pre_img;
     // polar discriminant method
     int esbensen(int ar, int aj, int br, int bj);
+    void multiply(int ar, int aj, int br, int bj, int *cr, int *cj);
+    int fast_atan2(int y, int x);
+    int polar_disc_fast(int ar, int aj, int br, int bj);
 };
 
 #endif // CFM_H

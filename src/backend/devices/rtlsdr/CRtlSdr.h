@@ -61,8 +61,14 @@ class CRtlSdr : public IDevice
             int      direct_sampling;
             int      mute;
         };
-        void Initialize(struct dongle_state *s);
+        struct demodule_state
+        {
+            int16_t *buf16;
+            uint32_t buf_len;
+        };
+        void Initialize(struct dongle_state *s, demodule_state *d);
         struct dongle_state dongle;
+        struct demodule_state demod;
         void Demodulate();
     signals:
         void sigSampleRead(int16_t *buffer,int len);

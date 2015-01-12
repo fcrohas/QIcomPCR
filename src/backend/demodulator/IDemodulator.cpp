@@ -11,7 +11,7 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
 }
 
 void IDemodulator::slotSetFilter(uint frequency) {
-
+    downSampleFactor = 1024000/frequency;
 }
 
 void IDemodulator::setSoundDevice(ISound *device) {
@@ -32,16 +32,17 @@ void IDemodulator::processSound(int16_t *buffer, int len) {
         sound->Play(buffer,len);
 }
 
-void IDemodulator::downsample(int16_t *buffer, int len)
+void IDemodulator::downsample(int16_t *buffer, int len, int factor)
 /* simple square window FIR */
 {
+    if (factor == 0) factor = downSampleFactor;
     int i=0, i2=0;
     while (i < len) {
         now_r += buffer[i];
         now_j += buffer[i+1];
         i += 2;
         prev_index++;
-        if (prev_index < DOWNSAMPLE) {
+        if (prev_index < factor) {
             continue;
         }
         buffer[i2]   = now_r; // * d->output_scale;
