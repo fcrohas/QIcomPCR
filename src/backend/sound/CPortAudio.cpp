@@ -27,8 +27,8 @@ extern "C" {
         //int16_t *out = (int16_t*)outputBuffer;
         //int16_t *in = (int16_t*)inputBuffer;
         long bytes = frameCount*2; // 256 Frames * 2 channels
-        long avail = PaUtil_GetRingBufferWriteAvailable(&This->ringBuffer);
-        PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
+        long avail = PaUtil_GetRingBufferWriteAvailable(&This->recordRingBuffer);
+        PaUtil_WriteRingBuffer(&This->recordRingBuffer, inputBuffer, (avail<bytes)?avail:bytes);
         //*out = *in;
         return paContinue;
     }
@@ -40,8 +40,9 @@ extern "C" {
         long bytes = frameCount*2;
         memset(out, 0, bytes);
         (void) inputBuffer;		/* Prevent unused variable warning. */
-        int avail = PaUtil_GetRingBufferReadAvailable(&This->ringBuffer);
-        PaUtil_ReadRingBuffer(&This->ringBuffer,out,(avail<bytes)?avail:bytes);
+        int avail = PaUtil_GetRingBufferReadAvailable(&This->playRingBuffer);
+        // Wait for enought frame to play
+        PaUtil_ReadRingBuffer(&This->playRingBuffer,out,(avail<bytes)?avail:bytes);
         return paContinue;
     }
 
@@ -53,10 +54,10 @@ extern "C" {
         long bytes = frameCount*2;
         memset(out, 0, bytes);
         (void) inputBuffer;		/* Prevent unused variable warning. */
-        int avail = PaUtil_GetRingBufferReadAvailable(&This->ringBuffer);
-        PaUtil_ReadRingBuffer(&This->ringBuffer,out,(avail<bytes)?avail:bytes);
+        int avail = PaUtil_GetRingBufferReadAvailable(&This->playRingBuffer);
+        PaUtil_ReadRingBuffer(&This->playRingBuffer,out,(avail<bytes)?avail:bytes);
         //*out = *in;
-        PaUtil_WriteRingBuffer(&This->ringBuffer, inputBuffer, (avail<bytes)?avail:bytes);
+        PaUtil_WriteRingBuffer(&This->recordRingBuffer, in, (avail<bytes)?avail:bytes);
         return paContinue;
     }
 
@@ -65,7 +66,8 @@ extern "C" {
 
 CPortAudio::CPortAudio(QObject *parent, Mode mode) :
     ISound(parent)
-  ,ringBufferData(NULL)
+  ,playRingBufferData(NULL)
+  ,recordRingBufferData(NULL)
 {
     running = true;
     this->mode = mode;
@@ -88,8 +90,10 @@ CPortAudio::~CPortAudio()
         if( error != paNoError )
            qDebug() <<   QString("PortAudio Pa_Terminate error: %1\n").arg(Pa_GetErrorText( error ) );
     }
-    if (ringBufferData)
-        delete [] ringBufferData;
+    if (playRingBufferData)
+        delete [] playRingBufferData;
+    if (recordRingBufferData)
+        delete [] recordRingBufferData;
 }
 
 void CPortAudio::Record(QString &filename, bool start)
@@ -103,7 +107,7 @@ void CPortAudio::Initialize()
     qDebug() << "Portaudio Thread run() " << inputParameters.device;
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paInt16;
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultHighOutputLatency;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
     inputParameters.channelCount = 2;
     inputParameters.sampleFormat = paInt16;
@@ -133,10 +137,14 @@ void CPortAudio::Initialize()
             break;
     }
 
-    if (ringBufferData)
-        delete[] ringBufferData;
-    ringBufferData = new int16_t[524288];
-    PaUtil_InitializeRingBuffer(&ringBuffer, sizeof(int16_t) , 524288, ringBufferData);
+    if (playRingBufferData)
+        delete[] playRingBufferData;
+    if (recordRingBufferData)
+        delete[] recordRingBufferData;
+    playRingBufferData = new int16_t[524288];
+    recordRingBufferData = new int16_t[524288];
+    PaUtil_InitializeRingBuffer(&playRingBuffer, sizeof(int16_t) , 524288, playRingBufferData);
+    PaUtil_InitializeRingBuffer(&recordRingBuffer, sizeof(int16_t) , 524288, recordRingBufferData);
 
     error = Pa_StartStream(stream);
     if( error != paNoError )
@@ -155,9 +163,9 @@ void CPortAudio::run()
     int16_t *data = new int16_t[BUFFER_SIZE];
     memset(data,0,BUFFER_SIZE);
     while(running) {
-        while(PaUtil_GetRingBufferReadAvailable(&ringBuffer)<BUFFER_SIZE) { Pa_Sleep(250); }
+        while(PaUtil_GetRingBufferReadAvailable(&recordRingBuffer)<BUFFER_SIZE) { Pa_Sleep(50); }
         if (mode != ePlay) {
-            int readCount = PaUtil_ReadRingBuffer(&ringBuffer,data,BUFFER_SIZE);
+            int readCount = PaUtil_ReadRingBuffer(&recordRingBuffer,data,BUFFER_SIZE);
             if (readCount<BUFFER_SIZE) qDebug() << "readcount is " << readCount;
             DecodeBuffer(data,readCount);
             // add data to ringbuffer of the encoder
@@ -242,6 +250,6 @@ void CPortAudio::setChannel(uint value)
 }
 
 void CPortAudio::Play(int16_t *buffer, int size) {
-    long avail = PaUtil_GetRingBufferWriteAvailable(&ringBuffer);
-    PaUtil_WriteRingBuffer(&ringBuffer, buffer, (avail<size)?avail:size);
+    long avail = PaUtil_GetRingBufferWriteAvailable(&playRingBuffer);
+    PaUtil_WriteRingBuffer(&playRingBuffer, buffer, (avail<size)?avail:size);
 }

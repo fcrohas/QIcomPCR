@@ -3,8 +3,10 @@
 
 #include <QObject>
 #include "ISound.h"
-
-#define DOWNSAMPLE 8
+#ifdef WITH_SAMPLERATE
+#include <samplerate.h>
+#endif
+//#define SAMPLERATE 22050
 
 class IDemodulator : public QObject
 {
@@ -16,7 +18,10 @@ public:
     void setData(int16_t *buffer,int len);
     void processSound(int16_t *buffer,int len);
     // Down sample filter
-    void downsample(int16_t *buffer, int len, int factor = 0);
+    int downsample(int16_t *buffer, int len, int factor = 0);
+    // Resample
+    int resample(int16_t *buffer, int len, int samplerate);
+    bool update;
 signals:
     void finished();
 
@@ -27,12 +32,20 @@ public slots:
 private:
     ISound *sound;
 protected:
+    Mode mode;
+    int filterfreq;
     int16_t *buffer;
     int len;
     int prev_index;
     int now_r;
     int now_j;
     int downSampleFactor;
+    // resample buffer
+    float *inputbufferf;
+    float *outputbufferf;
+    // Sample rate conversion
+    SRC_STATE* converter;
+    SRC_DATA dataconv;
 };
 
 #endif // IDEMODULATOR_H

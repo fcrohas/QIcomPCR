@@ -100,7 +100,8 @@ void CCommand::setModulation(uint value)
         connect(demo, SIGNAL(finished()), demoThread, SLOT(quit()));
         connect(demo, SIGNAL(finished()), demo, SLOT(deleteLater()));
         connect(demoThread, SIGNAL(finished()), demoThread, SLOT(deleteLater()));
-        connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),this,SLOT(slotSamplesRead(int16_t*,int)));
+        //connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),this,SLOT(slotSamplesRead(int16_t*,int)));
+        m_device->setDemodulator(demo);
         connect(this,SIGNAL(sigSetFilter(uint)),demo,SLOT(slotSetFilter(uint)));
         demoThread->start();
     }
@@ -336,6 +337,7 @@ void CCommand::setSoundDevice(ISound *sound) {
 }
 
 void CCommand::slotSamplesRead(int16_t *buffer, int len) {
+    //while (demo->update) sleep(10);
     demo->setData(buffer,len);
     QMetaObject::invokeMethod(demo, "doWork");
 }

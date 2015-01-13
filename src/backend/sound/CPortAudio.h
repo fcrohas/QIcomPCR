@@ -52,8 +52,10 @@ public:
     void DecodeBuffer(int16_t *buffer, int size);
     QHash<QString, int> getDeviceList();
     void Record(QString &filename, bool start);
-    PaUtilRingBuffer ringBuffer;
+    PaUtilRingBuffer playRingBuffer;
+    PaUtilRingBuffer recordRingBuffer;
     void Play(int16_t *buffer, int size);
+    void Initialize();
 
 signals:
     
@@ -73,8 +75,8 @@ private:
     QHash<QString,int> deviceList;
     void selectInputDevice(QString device);
     void selectOutputDevice(QString device);
-    void Initialize();
-    int16_t *ringBufferData;
+    int16_t *playRingBufferData;
+    int16_t *recordRingBufferData;
     CSoundStream *soundStream;
     QThread *audioEncode;
     QThread *dataDecode;

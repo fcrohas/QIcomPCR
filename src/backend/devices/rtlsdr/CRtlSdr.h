@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include "IDevice.h"
+#include "IDemodulator.h"
 #include <pthread.h>
 #ifdef WIN32
 #pragma warning( push )
@@ -70,11 +71,13 @@ class CRtlSdr : public IDevice
         struct dongle_state dongle;
         struct demodule_state demod;
         void Demodulate();
+        void setDemodulator(IDemodulator *value);
     signals:
         void sigSampleRead(int16_t *buffer,int len);
     private:
         bool power;
         int device_count;
+        IDemodulator *demo;
     private slots:
         void slotNewDataReceived(const QByteArray &dataReceived);
         void slotWatchdog();

@@ -16,15 +16,12 @@ signals:
 
 public slots:
     void doWork();
-    void slotSetFilter(uint frequency);
+
 private:
     // Filters
     CWindowFunc *winfunc;
     // FIR bandpass filter
     CFIR<int16_t> *filter;
-    // Filter frequency
-    int filter;
-
 };
 
 #endif // CAM_H

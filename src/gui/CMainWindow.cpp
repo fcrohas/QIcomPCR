@@ -84,10 +84,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
     for (int i=0; i<MAX_RADIO; i++) {
         radioList.append(new CSettings::radio);
     }
-#ifndef WIN32
     // Connect sound with demodulator
     sound->SetDecoder(demodulator);
-#endif
     connectSignals();
     mySpectrum->setAxis(0,16384,0,256);
     dock = addToolBar("File");
@@ -152,9 +150,7 @@ void CMainWindow::connectSignals()
     connect(ui->refreshRate, SIGNAL(valueChanged(int)), this, SLOT(slotRefreshRate(int)));
     connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
-//#ifndef WIN32
     connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
-//#endif
     // Band Scope
     connect(ui->pushBandscope,SIGNAL(clicked(bool)),this,SLOT(slotBandScope(bool)));
     connect(ui->cbBandwidth, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeWidth(int)));
@@ -607,7 +603,8 @@ void CMainWindow::slotStopPlay(bool value)
         sound->selectOutputDevice(params->outputDevice);
         sound->SetDecoder(demodulator);
         demodulator->initBuffer(32768);
-        sound->start();
+        //sound->start();
+        sound->Initialize();
         delete params;
     } else {
         sound->setRunning(false);

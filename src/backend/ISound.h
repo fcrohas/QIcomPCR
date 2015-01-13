@@ -43,6 +43,7 @@ public:
     virtual bool Load(QString &file);
     virtual void Record(QString &filename, bool start);
     virtual void Play(int16_t *buffer, int size);
+    virtual void Initialize();
 
 signals:
     

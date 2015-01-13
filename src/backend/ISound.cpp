@@ -110,3 +110,7 @@ void ISound::setChannel(uint value)
 void ISound::Play(int16_t *buffer, int size) {
 
 }
+
+void ISound::Initialize() {
+
+}

@@ -11,15 +11,16 @@ CAm::CAm(QObject *parent, Mode mode) :
     filter = new CFIR<int16_t>();
     filter->setOrder(64);
     filter->setWindow(winfunc->getWindow());
-    filter->setSampleRate(22050);
+    filter->setSampleRate(SAMPLERATE);
     filter->lowpass(11000);
 
 }
 
 void CAm::doWork() {
+    update = true;
     int i, pcm;
     // First downsample
-    IDemodulator::downsample(buffer,len);
+    len = IDemodulator::downsample(buffer,len);
     // Do demodulation
     for (i = 0; i < len; i += 2) {
         // hypot uses floats but won't overflow
@@ -27,18 +28,12 @@ void CAm::doWork() {
         pcm = buffer[i] * buffer[i];
         pcm += buffer[i+1] * buffer[i+1];
         // Output stereo buffer only
-        buffer[i/2] = (int)sqrt(pcm) * 1;
+        buffer[i] = (int)sqrt(pcm) * 1;
+        buffer[i+1] = (int)sqrt(pcm) * 1;
     }
-    // so new len is
-    len = len/2;
     // Apply audio filter
-    //filter->apply(buffer,len);
+    len = IDemodulator::resample(buffer,len,filterfreq);
     IDemodulator::processSound(buffer,len);
+    update = false;
 }
 
-void CAm::slotSetFilter(uint frequency) {
-    qDebug() << "Change frequency filter to " << frequency << " Hz";
-    filter = frequency;
-    IDemodulator.slotSetFilter(frequency);
-    //filter->lowpass(frequency);
-}

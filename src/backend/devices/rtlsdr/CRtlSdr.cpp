@@ -102,6 +102,14 @@ bool CRtlSdr::open() {
         power = false;
         return false;
     }
+
+    r = rtlsdr_set_freq_correction(dongle.dev,43);
+    if (r < 0) {
+        qDebug() << "Failed to set ppm rate to " << 43 << "\n";
+        power = false;
+        return false;
+    }
+
     qDebug() << "Dongle sample rate " << rtlsdr_get_sample_rate(dongle.dev);
 
     // Build a data reader thead
@@ -118,7 +126,11 @@ void CRtlSdr::close() {
     // Stop thread
     rtlsdr_cancel_async(dongle.dev);
     // Join on leave
+#ifdef WIN32
+    if (dongle.thread.p != 0)
+#else
     if (dongle.thread != 0)
+#endif
         pthread_join(dongle.thread, NULL);
     // Close rtl device
     int r = rtlsdr_close(dongle.dev);
@@ -161,8 +173,13 @@ void CRtlSdr::setAgcControl(bool state) {
 }
 
 void CRtlSdr::Demodulate() {
+    while(demo->update) Sleep(10);
     demod.buf_len = dongle.buf_len;
-    memcpy(demod.buf16, dongle.buf16, 2*dongle.buf_len);
-    emit sigSampleRead(demod.buf16, demod.buf_len);
-    //qDebug() << "Dongle buffer len=" << dongle.buf_len;
+    memcpy(demod.buf16, dongle.buf16, dongle.buf_len);
+    demo->setData(demod.buf16,demod.buf_len);
+    QMetaObject::invokeMethod(demo, "doWork");
+}
+
+void CRtlSdr::setDemodulator(IDemodulator *value) {
+    demo = value;
 }
