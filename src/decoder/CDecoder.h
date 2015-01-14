@@ -50,13 +50,15 @@ signals:
     void sendData(QString msg);
 
 public slots:
-    void slotDataBuffer(int16_t *buffer, int size);
+    //void slotDataBuffer(int16_t *buffer, int size);
+    void doWork();
     void slotSendData(QString data);
     void slotSetDemodulator(uint demod, uint channel, uint bufferSize);
     void slotThreshold(int value);
     void slotSetCorrelationLength(int value);
     void slotChangeWindowFunction(CFFT::windowFunction fct);
     void slotSetChannel(int channel);
+    void setData(int16_t *buffer, int size);
 
 private:
     QList<IDecoder*> list;
@@ -70,6 +72,8 @@ private:
     int16_t *data16bitsr;
     uint scope;
     IDecoder *demodulator;
+    int16_t *buffer;
+    int size;
 
     // FFT
     CFFT *fftw;

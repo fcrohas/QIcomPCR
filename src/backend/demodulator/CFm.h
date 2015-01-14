@@ -30,6 +30,11 @@ private:
     int fast_atan2(int y, int x);
     int polar_disc_fast(int ar, int aj, int br, int bj);
     int deemph_a;
+    // Filters
+    CWindowFunc *winfunc;
+    // FIR bandpass filter
+    CFIR<int16_t> *filter;
+
 };
 
 #endif // CFM_H

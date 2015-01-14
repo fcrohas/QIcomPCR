@@ -56,9 +56,13 @@ CDecoder::~CDecoder()
 
 }
 
-void CDecoder::slotDataBuffer(int16_t *buffer, int size)
+//void CDecoder::slotDataBuffer(int16_t *buffer, int size)
+void CDecoder::doWork()
 {
-
+    if (buffer == NULL)
+        return;
+    if ((data8bitsl == NULL) || (data8bitsr==NULL))
+        return;
     int channel=0, bufferSize=0, channelSize=size/2;
     // fill complex
     for (int i=0, j=0; i < size; i+=2,j++) {
@@ -211,4 +215,9 @@ void CDecoder::slotSetCorrelationLength(int value)
 void CDecoder::slotChangeWindowFunction(CFFT::windowFunction fct)
 {
     fftw->setWindow(fct,FFTSIZE);
+}
+
+void CDecoder::setData(int16_t *buffer, int size) {
+    this->buffer = buffer;
+    this->size = size;
 }

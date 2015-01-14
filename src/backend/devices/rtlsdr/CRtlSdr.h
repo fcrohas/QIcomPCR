@@ -4,6 +4,7 @@
 #include <QDebug>
 #include "IDevice.h"
 #include "IDemodulator.h"
+#include "pa_ringbuffer.h"
 #include <pthread.h>
 #ifdef WIN32
 #pragma warning( push )
@@ -15,6 +16,7 @@
 #endif
 #include <rtl-sdr.h>
 
+#define RTLSDR_SAMPLE_RATE 1024000
 #define DEFAULT_SAMPLE_RATE		24000
 #define DEFAULT_BUF_LENGTH		(1 * 16384)
 #define MAXIMUM_OVERSAMPLE		16

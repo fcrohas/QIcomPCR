@@ -37,10 +37,11 @@ extern "C" {
     {
         CPortAudio *This = (CPortAudio *) userData;
         int16_t *out = (int16_t*)outputBuffer;
-        long bytes = frameCount*2;
+        long bytes = frameCount;
         memset(out, 0, bytes);
         (void) inputBuffer;		/* Prevent unused variable warning. */
         int avail = PaUtil_GetRingBufferReadAvailable(&This->playRingBuffer);
+        //qDebug() << "avail=" << avail << " framecount=" << frameCount << " time=" << timeInfo->currentTime << " status=" << statusFlags << " \r\n";
         // Wait for enought frame to play
         PaUtil_ReadRingBuffer(&This->playRingBuffer,out,(avail<bytes)?avail:bytes);
         return paContinue;
@@ -83,17 +84,21 @@ CPortAudio::~CPortAudio()
     int error;
     if (stream != NULL)
     {
-        error = Pa_StopStream(stream);
+        error = Pa_AbortStream(stream);
         if( error != paNoError )
-           qDebug() <<   QString("PortAudio Pa_StopStream error: %1\n").arg(Pa_GetErrorText( error ) );
+           qDebug() <<   QString("PortAudio Pa_AbortStream error: %1\n").arg(Pa_GetErrorText( error ) );
         error = Pa_Terminate();
         if( error != paNoError )
            qDebug() <<   QString("PortAudio Pa_Terminate error: %1\n").arg(Pa_GetErrorText( error ) );
     }
-    if (playRingBufferData)
+    if (playRingBufferData) {
         delete [] playRingBufferData;
-    if (recordRingBufferData)
+        playRingBufferData = NULL;
+    }
+    if (recordRingBufferData) {
         delete [] recordRingBufferData;
+        recordRingBufferData = NULL;
+    }
 }
 
 void CPortAudio::Record(QString &filename, bool start)
@@ -105,7 +110,7 @@ void CPortAudio::Initialize()
 {
     int error;
     qDebug() << "Portaudio Thread run() " << inputParameters.device;
-    outputParameters.channelCount = 2;       /* stereo output */
+    outputParameters.channelCount = 1;       /* stereo output */
     outputParameters.sampleFormat = paInt16;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
@@ -252,4 +257,5 @@ void CPortAudio::setChannel(uint value)
 void CPortAudio::Play(int16_t *buffer, int size) {
     long avail = PaUtil_GetRingBufferWriteAvailable(&playRingBuffer);
     PaUtil_WriteRingBuffer(&playRingBuffer, buffer, (avail<size)?avail:size);
+    //DecodeBuffer(buffer,size);
 }

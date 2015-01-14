@@ -17,7 +17,7 @@ CAm::CAm(QObject *parent, Mode mode) :
 }
 
 void CAm::doWork() {
-    update = true;
+    update.lock();
     int i, pcm;
     // First downsample
     len = IDemodulator::downsample(buffer,len);
@@ -34,6 +34,6 @@ void CAm::doWork() {
     // Apply audio filter
     len = IDemodulator::resample(buffer,len,filterfreq);
     IDemodulator::processSound(buffer,len);
-    update = false;
+    update.unlock();
 }
 

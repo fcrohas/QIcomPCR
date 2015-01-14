@@ -54,6 +54,7 @@ private:
     CDecoder *decod;
     SNDFILE*	pFile;
     QString data;
+    QThread *decoder;
 };
 
 #endif // ISOUND_H

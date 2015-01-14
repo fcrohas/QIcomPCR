@@ -8,7 +8,9 @@ CCommand::CCommand(QObject *parent) :
     scopewidth(5000000),
     polarity(0),
     reverse(0),
-    sound(NULL)
+    sound(NULL),
+    demoThread(NULL),
+    demo(NULL)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -80,6 +82,11 @@ void CCommand::setModulation(uint value)
 {
     if (demo != NULL) {
         //disconnect(m_device,SIGNAL(sigSampleRead(int16_t*,int)));
+        /*if (demoThread!=NULL) {
+            demoThread->terminate();
+            delete demoThread;
+        }*/
+        //demo->update.unlock();
         delete demo;
         demo = NULL;
     }

@@ -2,7 +2,7 @@
 
 extern "C" {
 
-    static void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
+static void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
     {
         int i;
         CRtlSdr *This = (CRtlSdr *)ctx;
@@ -15,6 +15,7 @@ extern "C" {
                 buf[i] = 127;}
             s->mute = 0;
         }
+
         for (i=0; i<(int)len; i++) {
             s->buf16[i] = (int16_t)buf[i] - 127;}
         s->buf_len = len;
@@ -47,13 +48,13 @@ CRtlSdr::CRtlSdr(QObject * parent)
 }
 
 CRtlSdr::~CRtlSdr() {
-
+    close();
 }
 
 void CRtlSdr::Initialize(struct dongle_state *s, struct demodule_state *d)
 {
     // dongle state init
-    s->rate = 1024000;
+    s->rate = RTLSDR_SAMPLE_RATE;
     s->gain = AUTO_GAIN; // tenths of a dB
     s->mute = 0;
     s->direct_sampling = 0;
@@ -173,10 +174,11 @@ void CRtlSdr::setAgcControl(bool state) {
 }
 
 void CRtlSdr::Demodulate() {
-    while(demo->update) Sleep(10);
+    demo->update.lock();
     demod.buf_len = dongle.buf_len;
     memcpy(demod.buf16, dongle.buf16, dongle.buf_len);
     demo->setData(demod.buf16,demod.buf_len);
+    demo->update.unlock();
     QMetaObject::invokeMethod(demo, "doWork");
 }
 

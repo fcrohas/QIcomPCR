@@ -6,7 +6,6 @@
 #ifdef WITH_SAMPLERATE
 #include <samplerate.h>
 #endif
-//#define SAMPLERATE 22050
 
 class IDemodulator : public QObject
 {
@@ -14,6 +13,7 @@ class IDemodulator : public QObject
 public:
     enum Mode { eLSB=0, eUSB=1, eAM=2, eCW=3, eUkn=4, eFM=5, eWFM=6};
     explicit IDemodulator(QObject *parent = 0, IDemodulator::Mode mode = IDemodulator::eUkn);
+    ~IDemodulator();
     void setSoundDevice(ISound *device);
     void setData(int16_t *buffer,int len);
     void processSound(int16_t *buffer,int len);
@@ -21,7 +21,9 @@ public:
     int downsample(int16_t *buffer, int len, int factor = 0);
     // Resample
     int resample(int16_t *buffer, int len, int samplerate);
-    bool update;
+    // Low pass resample
+    int low_pass_real(int16_t *buffer, int len);
+    QMutex update;
 signals:
     void finished();
 

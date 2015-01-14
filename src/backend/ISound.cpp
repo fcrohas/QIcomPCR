@@ -22,17 +22,19 @@ ISound::ISound(QObject *parent) :
     QThread(parent)
   ,pFile(NULL)
 {
-
+    decoder = new QThread();
 }
 
 ISound::~ISound()
 {
-
+    decoder->terminate();
 }
 
 void ISound::SetDecoder(CDecoder *value, Mode mode)
 {
     decod = value;
+    decod->moveToThread(decoder);
+    decoder->start();
 }
 
 CDecoder *ISound::GetDecoder()
@@ -47,8 +49,8 @@ void ISound::DecodeBuffer(int16_t *buffer, int size)
         sf_count_t bytewrite;
         bytewrite = sf_writef_short(pFile, buffer, size/2);
     }
-    decod->slotDataBuffer(buffer, size);
-
+    decod->setData(buffer,size);
+    QMetaObject::invokeMethod(decod, "doWork");
 }
 
 void ISound::setRunning(bool value)

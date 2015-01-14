@@ -5,30 +5,43 @@ CFm::CFm(QObject *parent, Mode mode) :
     avg(0)
 {
     deemph_a = (int)round(1.0/((1.0-exp(-1.0/(filterfreq * 75e-6)))));
+    // Build Bandpass filter
+    /*
+    winfunc = new CWindowFunc(this);
+    winfunc->init(64);
+    winfunc->hamming();
+    // Set FIR filter
+    filter = new CFIR<int16_t>();
+    filter->setOrder(64);
+    filter->setWindow(winfunc->getWindow());
+    filter->setSampleRate(filterfreq*2);
+    filter->lowpass(filterfreq);
+    */
 }
 
 void CFm::doWork() {
-    update = true;
+    update.lock();
     len = IDemodulator::downsample(buffer,len);
     int16_t pr = pre_real;
     int16_t pj = pre_img;
     int pcm = 0;
     for (int i = 0; i < len; i += 2) {
-        pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
-        //pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
+        //pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
+        pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
         pr = buffer[i];
         pj = buffer[i+1];
-        buffer[i] = (int16_t)pcm;
-        buffer[i+1] = (int16_t)pcm;
+        buffer[i/2] = (int16_t)pcm;
     }
+    len = len/2;
     pre_real = pr;
     pre_img = pj;
     // Deemphasis filter if WBFM mode
     if (mode == eWFM)
         deemph_filter(buffer,len);
-    len = IDemodulator::resample(buffer,len,filterfreq);
+    len = IDemodulator::resample(buffer,len,(filterfreq));
+    //len = IDemodulator::low_pass_real(buffer,len);
     IDemodulator::processSound(buffer,len);
-    update = false;
+    update.unlock();
 }
 
 int CFm::esbensen(int ar, int aj, int br, int bj)
@@ -95,7 +108,7 @@ void CFm::deemph_filter(int16_t *buffer,int len)
     int i, d;
     // de-emph IIR
     // avg = avg * (1 - alpha) + sample * alpha;
-    for (i = 0; i < len; i+=2) {
+    for (i = 0; i < len; i++) {
         d = buffer[i] - avg;
         if (d > 0) {
             avg += (d + deemph_a/2) / deemph_a;
@@ -103,6 +116,5 @@ void CFm::deemph_filter(int16_t *buffer,int len)
             avg += (d - deemph_a/2) / deemph_a;
         }
         buffer[i] = (int16_t)avg;
-        buffer[i+1] = (int16_t)avg;
     }
 }

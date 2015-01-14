@@ -44,18 +44,16 @@ CMainWindow::CMainWindow(QWidget *parent) :
 {
     theMainWindow = this;
     ui->setupUi(this);
-
+    cmd = new CCommand(this);
 #ifdef WITH_PULSEAUDIO
     sound  = new CPulseSound(this);
 #endif
 #ifdef WITH_PORTAUDIO
     sound  = new CPortAudio(this,ISound::ePlay);
-#endif
-
-    cmd = new CCommand(this);
     cmd->setSoundDevice(sound);
+#endif
     dbgWin = new CDebugWindow(this,ui);
-    demodulator = new CDecoder(this);
+    demodulator = new CDecoder();
     remote = new CRemoteControl(this);
     settings =new CSettings(this);
 
@@ -604,6 +602,7 @@ void CMainWindow::slotStopPlay(bool value)
         sound->SetDecoder(demodulator);
         demodulator->initBuffer(32768);
         //sound->start();
+        sound->setRunning(true);
         sound->Initialize();
         delete params;
     } else {
