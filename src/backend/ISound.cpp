@@ -33,7 +33,6 @@ ISound::~ISound()
 void ISound::SetDecoder(CDecoder *value, Mode mode)
 {
     decod = value;
-    decod->moveToThread(decoder);
     decoder->start();
 }
 

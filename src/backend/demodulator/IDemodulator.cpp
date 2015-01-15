@@ -8,9 +8,10 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
     prev_index(0),
     outputbufferf(NULL),
     inputbufferf(NULL),
-    filterfreq(230000)
+    filterfreq(230000),
+    len(0)
 {
-    downSampleFactor = 1024000/(filterfreq); // Sample rate is twice filter size
+    downSampleFactor = 1024000/filterfreq; // Sample rate is twice filter size
     this->mode = mode;
     // Build resample converter
     int error = 0;
@@ -27,7 +28,7 @@ IDemodulator::~IDemodulator() {
 
 void IDemodulator::slotSetFilter(uint frequency) {
     filterfreq = frequency;
-    downSampleFactor = 1024000/(filterfreq); // Sample rate is twice filter size
+    downSampleFactor = 1024000/filterfreq; // Sample rate is twice filter size
 }
 
 void IDemodulator::setSoundDevice(ISound *device) {
@@ -84,12 +85,12 @@ int IDemodulator::resample(int16_t *buffer, int len, int samplerate) {
     dataconv.input_frames = len;
     dataconv.data_in = inputbufferf;
     dataconv.data_out = outputbufferf;
-    dataconv.output_frames = 4096;
+    dataconv.output_frames = len;
     dataconv.src_ratio = ratio;
     dataconv.end_of_input = 0;
     // Do convert
     int ret = src_process(converter, &dataconv);
-    if (ret == 0) {
+    if (ret != 0) {
         qDebug() << "input frames("<< len<<") used is " << dataconv.input_frames_used << "frames gen is " << dataconv.output_frames_gen <<" error="<< src_strerror (ret) <<"\r\n";
     }
     // Convert back to int16_t aka short
@@ -118,4 +119,24 @@ int IDemodulator::low_pass_real(int16_t *buffer, int len)
         i2 += 1;
     }
     return i2;
+}
+
+int IDemodulator::rms(int step)
+/* largely lifted from rtl_power */
+{
+    int i;
+    long p, t, s;
+    double dc, err;
+
+    p = t = 0L;
+    for (i=0; i<len; i+=step) {
+        s = (long)buffer[i];
+        t += s;
+        p += s * s;
+    }
+    /* correct for dc offset in squares */
+    dc = (double)(t*step) / (double)len;
+    err = t * 2 * dc - dc * dc * len;
+
+    return (int)sqrt((p-err) / len);
 }

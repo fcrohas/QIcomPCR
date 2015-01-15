@@ -155,8 +155,6 @@ void CRtlSdr::setFrequency(uint freq) {
     int ret = rtlsdr_set_center_freq(dongle.dev, freq);
     if (ret<0)
         qDebug() << "Frequency not set to " << freq << "\n";
-    else
-        qDebug() << "Frequency set to " << freq << "\n";
 }
 
 uint CRtlSdr::getFrequency() {
@@ -176,7 +174,7 @@ void CRtlSdr::setAgcControl(bool state) {
 void CRtlSdr::Demodulate() {
     demo->update.lock();
     demod.buf_len = dongle.buf_len;
-    memcpy(demod.buf16, dongle.buf16, dongle.buf_len);
+    memcpy(demod.buf16, dongle.buf16, dongle.buf_len*2);
     demo->setData(demod.buf16,demod.buf_len);
     demo->update.unlock();
     QMetaObject::invokeMethod(demo, "doWork");

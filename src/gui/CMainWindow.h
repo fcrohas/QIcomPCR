@@ -156,7 +156,7 @@ class CMainWindow : public QMainWindow
         CBandScope *myBandScope;
 
         // Demodulator
-        CDecoder *demodulator;
+        CDecoder *decoder;
 
         // Remote Control
         CRemoteControl *remote;

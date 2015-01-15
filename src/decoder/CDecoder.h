@@ -20,6 +20,7 @@
 #define CDECODER_H
 
 #include <QObject>
+#include <QThread>
 #include "IDecoder.h"
 #ifdef WITH_ACARS
     #include "CAcars.h"
@@ -33,7 +34,7 @@
 //#define FFTW // Use FFTW library for fourrier transform, else use SPUC
 #define MAXBLOCK 64 // for a max buffer of 32768 and sound buffer of 512 per channel
 
-class CDecoder : public QObject
+class CDecoder : public QThread
 {
     Q_OBJECT
 public:

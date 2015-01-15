@@ -27,6 +27,11 @@ CCommand::CCommand(QObject *parent) :
     samplewidth = scopewidth / stepsize;
     /// Demodulator
     demo = NULL;
+
+    // timer event display refresh
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(getSNR()));
+    timer->start(200); // 200ms ???
 }
 
 void CCommand::setPower(bool value)
@@ -121,7 +126,7 @@ void CCommand::setFilter(uint value)
         case e6k : value = 6000; break;
         case e15k : value = 15000; break;
         case e50k : value = 50000; break;
-        case e230k : value = 230000; break;
+        case e230k : value = 170000; break;
     }
 
     currentRadio->filter = value;
@@ -145,7 +150,7 @@ void CCommand::setRadioMode(uint value)
 
     data = QString("J00%1").arg(value, 2, 16, QChar('0')).toUpper();
     radiomode = value;
-    qDebug() << "Radio Mode " << data << "\n";
+    //qDebug() << "Radio Mode " << data << "\n";
     emit sendData(data);
 }
 
@@ -158,7 +163,7 @@ void CCommand::setIFShift(uint value)
 
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->ifshift = value;
-    qDebug() << "IFShift " << data << "\n";
+    //qDebug() << "IFShift " << data << "\n";
     emit sendData(data);
 }
 
@@ -170,7 +175,7 @@ void CCommand::setSquelch(uint value)
 
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->squelch = value;
-    qDebug() << "Squelch " << data << "\n";
+    //qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
 
@@ -183,7 +188,7 @@ void CCommand::setToneSquelch(uint value)
 
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->squelch = value;
-    qDebug() << "Squelch " << data << "\n";
+    //qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
 
@@ -195,7 +200,7 @@ void CCommand::setDTCS(uint value)
 
     data = data.arg(polarity, 1, 16, QChar('0')).arg(reverse, 1, 16, QChar('0')).arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->squelch = value;
-    qDebug() << "Squelch " << data << "\n";
+    //qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
 
@@ -211,7 +216,7 @@ void CCommand::setNoiseBlanker(bool value)
     data = (radio == 0) ? "J46%1" : "J66%1";
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->nb = value;
-    qDebug() << "Noise Blanker " << data << "\n";
+    //qDebug() << "Noise Blanker " << data << "\n";
     emit sendData(data);
 }
 
@@ -221,7 +226,7 @@ void CCommand::setVoiceControl(bool value)
     data = (radio == 0) ? "J50%1" : "J70%1";
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->vsc = value;
-    qDebug() << "Voice Control " << data << "\n";
+    //qDebug() << "Voice Control " << data << "\n";
     emit sendData(data);
 }
 
@@ -230,7 +235,7 @@ void CCommand::setSoundVolume(uint value)
     QString data;
     data = (radio == 0) ? "J40%1" : "J60%1";
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
-    qDebug() << "Sound Volume " << data << "\n";
+    //qDebug() << "Sound Volume " << data << "\n";
     currentRadio->volume = value;
     emit sendData(data);
 }
@@ -239,7 +244,7 @@ void CCommand::setSoundMute(bool value)
 {
     QString data;
     data = QString("JA2%1").arg(!value, 2, 16, QChar('0')).toUpper();
-    qDebug() << "Sound Mute " << data << "\n";
+    //qDebug() << "Sound Mute " << data << "\n";
     emit sendData(data);
 }
 
@@ -275,7 +280,7 @@ bool CCommand::Open()
         sleep(1);
         retry++;
     }
-    return power;
+    return opened;
 }
 
 void CCommand::Close()
@@ -313,7 +318,7 @@ long CCommand::getSendCount()
 void CCommand::setBandScope(radioA antenna, int refresh, bool power)
 {
     QString data("ME0000%1%2%3%4%5");
-    qDebug() << "Band scope change " << QString("%1").arg(samplewidth, 2, 16, QChar('0')) << " step size " << QString("%1").arg(stepsize, 8, 10, QChar('0'));
+    //qDebug() << "Band scope change " << QString("%1").arg(samplewidth, 2, 16, QChar('0')) << " step size " << QString("%1").arg(stepsize, 8, 10, QChar('0'));
     data = data.arg(antenna+1).arg(samplewidth, 2, 16, QChar('0')).arg(refresh, 2, 16, QChar('0')).arg(power, 2, 16, QChar('0')).arg(stepsize, 8, 10, QChar('0'));
     scopepower = power;
     scoperefresh = refresh;
@@ -344,7 +349,9 @@ void CCommand::setSoundDevice(ISound *sound) {
 }
 
 void CCommand::slotSamplesRead(int16_t *buffer, int len) {
-    //while (demo->update) sleep(10);
-    demo->setData(buffer,len);
-    QMetaObject::invokeMethod(demo, "doWork");
+
+}
+
+void CCommand::getSNR() {
+    emit dataChanged(QString("I1%1").arg(demo->rms(1),2,16));
 }

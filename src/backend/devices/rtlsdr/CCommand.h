@@ -2,6 +2,7 @@
 #define CCOMMAND_H
 
 #include <QObject>
+#include <QTimer>
 #include <CRtlSdr.h>
 #include <IDemodulator.h>
 #include "CAm.h"
@@ -130,6 +131,7 @@ public slots:
 private slots:
     void slotReceivedData(QString value);
     void slotSamplesRead(int16_t *buffer,int len);
+    void getSNR();
 
 private:
     // Radio currently working on
@@ -174,6 +176,8 @@ private:
     ISound *sound;
     // Demodulator thread
     QThread *demoThread;
+    // Timer event
+    QTimer *timer;
 };
 
 #endif // CCOMMAND_H

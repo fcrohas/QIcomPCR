@@ -53,7 +53,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     cmd->setSoundDevice(sound);
 #endif
     dbgWin = new CDebugWindow(this,ui);
-    demodulator = new CDecoder();
+    decoder = new CDecoder(this);
     remote = new CRemoteControl(this);
     settings =new CSettings(this);
 
@@ -83,7 +83,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
         radioList.append(new CSettings::radio);
     }
     // Connect sound with demodulator
-    sound->SetDecoder(demodulator);
+    sound->SetDecoder(decoder);
     connectSignals();
     mySpectrum->setAxis(0,16384,0,256);
     dock = addToolBar("File");
@@ -128,14 +128,14 @@ void CMainWindow::connectSignals()
     connect( display, SIGNAL(frequencyChanged(QString)), this,SLOT(slotFrequency(QString)));
     connect( myBandScope, SIGNAL(frequencyChanged(QString)), this, SLOT(slotFrequency(QString)));
     // Connect spectrum widget
-    connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
+    connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
 
     // Connect Demodulator to debug windows
-    connect(demodulator,SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
+    connect(decoder,SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
 
     // Set threshold
-    connect(ui->threshold, SIGNAL(valueChanged(int)), demodulator, SLOT(slotThreshold(int)));
-    connect(ui->correlationLength,SIGNAL(valueChanged(int)), demodulator, SLOT(slotSetCorrelationLength(int)));
+    connect(ui->threshold, SIGNAL(valueChanged(int)), decoder, SLOT(slotThreshold(int)));
+    connect(ui->correlationLength,SIGNAL(valueChanged(int)), decoder, SLOT(slotSetCorrelationLength(int)));
 
     // Connect Decoder
     connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
@@ -181,7 +181,7 @@ void CMainWindow::connectSignals()
     connect(remote,SIGNAL(sigBandScope(bool)), this, SLOT(slotBandScope(bool)));
     connect(remote,SIGNAL(sigBandScopeWidth(int)), this, SLOT(slotBandScopeWidth(int)));
     connect(remote,SIGNAL(sigBandScopeStep(int)), this, SLOT(slotBandScopeStep(int)));
-    connect(demodulator,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
+    connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
     connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
@@ -445,8 +445,8 @@ void CMainWindow::slotSwitchSound(bool value)
         qDebug() << "sound output " << params->outputDevice;
         sound->selectOutputDevice(params->outputDevice);
         delete params;
-        sound->SetDecoder(demodulator);
-        demodulator->initBuffer(32768);
+        sound->SetDecoder(decoder);
+        decoder->initBuffer(32768);
         sound->setRunning(true);
         sound->start();
     }
@@ -503,14 +503,14 @@ void CMainWindow::slotDecoderChange(int value)
 {
     int channel = ui->channel->currentIndex();
     qDebug() << "CMainWindow::slotDecoderChange(" << value << ")";
-    demodulator->slotSetDemodulator(value,channel,16384);
+    decoder->slotSetDemodulator(value,channel,16384);
     // Connect Demodulator to debug windows
-    connect(demodulator->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
-    connect(mySpectrum, SIGNAL(frequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    connect(myDecoder, SIGNAL(threshold(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
-    connect(mySpectrum, SIGNAL(bandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
-    connect(remote, SIGNAL(sigSelectFrequency(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    connect(remote, SIGNAL(sigSelectBandwidth(double)), demodulator->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    connect(decoder->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
+    connect(mySpectrum, SIGNAL(frequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    connect(myDecoder, SIGNAL(threshold(double)), decoder->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
+    connect(mySpectrum, SIGNAL(bandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    connect(remote, SIGNAL(sigSelectFrequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    connect(remote, SIGNAL(sigSelectBandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     //connect(myDecoder, SIGNAL(threshold(double)), this, SLOT(slotThreshold(double)));
     //myDecoder->setScaleType(CSpectrumWidget::eTime);
     if (value == 4) {
@@ -532,7 +532,7 @@ void CMainWindow::slotDecoderChange(int value)
 void CMainWindow::slotChannelChange(int value)
 {
     qDebug() << "CMainWindow::slotChannelChange(" << value << ")";
-    demodulator->slotSetChannel(value);
+    decoder->slotSetChannel(value);
     ui->channel->setCurrentIndex (value);
     //demodulator->slotSetDemodulator(ui->decoderList->currentIndex(), value, 16384);
 }
@@ -542,15 +542,15 @@ void CMainWindow::slotScopeChanged(int value)
     qDebug() << "cb changed =" << value;
     mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
     if (value == 1) {
-        demodulator->setScopeType(1);
+        decoder->setScopeType(1);
         mySpectrum->setAxis(0,FFTSIZE,0,50);
     } else
     if (value == 2) {
-        demodulator->setScopeType(1);
+        decoder->setScopeType(1);
         mySpectrum->setAxis(0,FFTSIZE,0,WATERFALL_MAX);
     }
     else {
-        demodulator->setScopeType(0);
+        decoder->setScopeType(0);
         mySpectrum->setAxis(0,1024,0,256);
     }
 }
@@ -575,7 +575,7 @@ void CMainWindow::slotLoadFile()
         // Create new sound reader from file
         sound = new CSoundFile(this);
         sound->Load(fileName);
-        sound->SetDecoder(demodulator);
+        sound->SetDecoder(decoder);
         sound->setRunning(true);
         connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
     }
@@ -599,8 +599,8 @@ void CMainWindow::slotStopPlay(bool value)
         sound->selectInputDevice(params->inputDevice);
         qDebug() << "sound output " << params->outputDevice;
         sound->selectOutputDevice(params->outputDevice);
-        sound->SetDecoder(demodulator);
-        demodulator->initBuffer(32768);
+        sound->SetDecoder(decoder);
+        decoder->initBuffer(32768);
         //sound->start();
         sound->setRunning(true);
         sound->Initialize();
@@ -616,11 +616,11 @@ void CMainWindow::slotStopPlay(bool value)
 
 void CMainWindow::slotWindowFunction(QString value)
 {
-    if(value == "Blackman-Harris") demodulator->slotChangeWindowFunction(CFFT::BlackmanHarris);
-    if(value == "Blackman") demodulator->slotChangeWindowFunction(CFFT::Blackman);
-    if(value == "Hann") demodulator->slotChangeWindowFunction(CFFT::Hann);
-    if(value == "Hamming") demodulator->slotChangeWindowFunction(CFFT::Hamming);
-    if(value == "Rectangle") demodulator->slotChangeWindowFunction(CFFT::Rectangle);
+    if(value == "Blackman-Harris") decoder->slotChangeWindowFunction(CFFT::BlackmanHarris);
+    if(value == "Blackman") decoder->slotChangeWindowFunction(CFFT::Blackman);
+    if(value == "Hann") decoder->slotChangeWindowFunction(CFFT::Hann);
+    if(value == "Hamming") decoder->slotChangeWindowFunction(CFFT::Hamming);
+    if(value == "Rectangle") decoder->slotChangeWindowFunction(CFFT::Rectangle);
 }
 
 void CMainWindow::slotRecordAudio(bool value)
@@ -685,5 +685,5 @@ void CMainWindow::slotSettings()
 void CMainWindow::slotThreshold(double threshold)
 {
     int channel = ui->channel->currentIndex();
-    demodulator->getDemodulatorFromChannel(channel)->setThreshold(threshold);
+    decoder->getDemodulatorFromChannel(channel)->setThreshold(threshold);
 }

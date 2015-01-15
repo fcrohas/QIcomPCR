@@ -26,8 +26,8 @@ void CFm::doWork() {
     int16_t pj = pre_img;
     int pcm = 0;
     for (int i = 0; i < len; i += 2) {
-        //pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
-        pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
+        pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
+        //pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
         pr = buffer[i];
         pj = buffer[i+1];
         buffer[i/2] = (int16_t)pcm;
@@ -38,7 +38,7 @@ void CFm::doWork() {
     // Deemphasis filter if WBFM mode
     if (mode == eWFM)
         deemph_filter(buffer,len);
-    len = IDemodulator::resample(buffer,len,(filterfreq));
+    len = IDemodulator::resample(buffer,len,filterfreq);
     //len = IDemodulator::low_pass_real(buffer,len);
     IDemodulator::processSound(buffer,len);
     update.unlock();

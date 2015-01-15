@@ -21,7 +21,7 @@
 #include "CDecoder.h"
 
 CDecoder::CDecoder(QObject *parent) :
-    QObject(parent),
+    QThread(parent),
     xval(NULL),
     yval(NULL),
     data8bitsl(NULL),

@@ -110,7 +110,7 @@ void CPortAudio::Initialize()
 {
     int error;
     qDebug() << "Portaudio Thread run() " << inputParameters.device;
-    outputParameters.channelCount = 1;       /* stereo output */
+    outputParameters.channelCount = 1;       /* mono output */
     outputParameters.sampleFormat = paInt16;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
@@ -257,5 +257,5 @@ void CPortAudio::setChannel(uint value)
 void CPortAudio::Play(int16_t *buffer, int size) {
     long avail = PaUtil_GetRingBufferWriteAvailable(&playRingBuffer);
     PaUtil_WriteRingBuffer(&playRingBuffer, buffer, (avail<size)?avail:size);
-    //DecodeBuffer(buffer,size);
+    DecodeBuffer(buffer,size);
 }

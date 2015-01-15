@@ -2,6 +2,7 @@
 #define IDEMODULATOR_H
 
 #include <QObject>
+#include <QMutex>
 #include "ISound.h"
 #ifdef WITH_SAMPLERATE
 #include <samplerate.h>
@@ -23,6 +24,8 @@ public:
     int resample(int16_t *buffer, int len, int samplerate);
     // Low pass resample
     int low_pass_real(int16_t *buffer, int len);
+    // RMS power for snr
+    int rms(int step);
     QMutex update;
 signals:
     void finished();

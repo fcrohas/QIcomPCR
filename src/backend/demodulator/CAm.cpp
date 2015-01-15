@@ -28,8 +28,7 @@ void CAm::doWork() {
         pcm = buffer[i] * buffer[i];
         pcm += buffer[i+1] * buffer[i+1];
         // Output stereo buffer only
-        buffer[i] = (int)sqrt(pcm) * 1;
-        buffer[i+1] = (int)sqrt(pcm) * 1;
+        buffer[i/2] = (int)sqrt(pcm);
     }
     // Apply audio filter
     len = IDemodulator::resample(buffer,len,filterfreq);
