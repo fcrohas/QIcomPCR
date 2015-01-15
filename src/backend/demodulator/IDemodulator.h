@@ -26,6 +26,8 @@ public:
     int low_pass_real(int16_t *buffer, int len);
     // RMS power for snr
     int rms(int step);
+    // MAD power
+    int mad(int step);
     QMutex update;
 signals:
     void finished();

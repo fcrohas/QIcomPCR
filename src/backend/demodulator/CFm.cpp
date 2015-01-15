@@ -6,17 +6,16 @@ CFm::CFm(QObject *parent, Mode mode) :
 {
     deemph_a = (int)round(1.0/((1.0-exp(-1.0/(filterfreq * 75e-6)))));
     // Build Bandpass filter
-    /*
+
     winfunc = new CWindowFunc(this);
-    winfunc->init(64);
-    winfunc->hamming();
+    winfunc->init(108);
+    winfunc->blackman();
     // Set FIR filter
     filter = new CFIR<int16_t>();
-    filter->setOrder(64);
+    filter->setOrder(108);
     filter->setWindow(winfunc->getWindow());
-    filter->setSampleRate(filterfreq*2);
-    filter->lowpass(filterfreq);
-    */
+    filter->setSampleRate(filterfreq);
+    filter->bandpass(7485.0,10000.0);
 }
 
 void CFm::doWork() {
@@ -26,8 +25,8 @@ void CFm::doWork() {
     int16_t pj = pre_img;
     int pcm = 0;
     for (int i = 0; i < len; i += 2) {
-        pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
-        //pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
+        //pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
+        pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
         pr = buffer[i];
         pj = buffer[i+1];
         buffer[i/2] = (int16_t)pcm;
@@ -38,6 +37,7 @@ void CFm::doWork() {
     // Deemphasis filter if WBFM mode
     if (mode == eWFM)
         deemph_filter(buffer,len);
+    filter->apply(buffer,len);
     len = IDemodulator::resample(buffer,len,filterfreq);
     //len = IDemodulator::low_pass_real(buffer,len);
     IDemodulator::processSound(buffer,len);
@@ -101,6 +101,8 @@ int CFm::polar_disc_fast(int ar, int aj, int br, int bj)
 void CFm::slotSetFilter(uint frequency) {
     IDemodulator::slotSetFilter(frequency);
     deemph_a = (int)round(1.0/((1.0-exp(-1.0/(filterfreq * 75e-6)))));
+    filter->setSampleRate(filterfreq);
+    filter->bandpass(7485.0,5000.0);
 }
 
 void CFm::deemph_filter(int16_t *buffer,int len)

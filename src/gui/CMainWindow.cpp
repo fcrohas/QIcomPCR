@@ -254,8 +254,8 @@ void CMainWindow::slotSendData(QString &data)
 
 void CMainWindow::slotUpdateStatus()
 {
-    QString data("Data sent %1 bytes and received %2 bytes");
-    status->slotUpdate(data.arg(cmd->getSendCount()).arg(cmd->getReadCount()));
+    //QString data("Data sent %1 bytes and received %2 bytes");
+    //status->slotUpdate(data.arg(cmd->getSendCount()).arg(cmd->getReadCount()));
 }
 
 void CMainWindow::slotReceivedData(QString data)
@@ -313,10 +313,12 @@ void CMainWindow::slotReceivedData(QString data)
     QString receiveUnit("");
     QString sentUnit("");
     if (received > 9999)   { received = received / 1000.0; receiveUnit = "k"; }
-    if (received > 999999) { received = received / 100000.0; receiveUnit = "M"; }
+    if (received > 9999) { received = received / 1000.0; receiveUnit = "M"; }
+    if (received > 9999) { received = received / 1000.0; receiveUnit = "G"; }
 
-    if (sent > 9999)   { received = received / 1000.0; sentUnit = "k"; }
-    if (sent > 999999) { received = received / 100000.0; sentUnit = "M";}
+    if (sent > 9999)   { sent = sent / 1000.0; sentUnit = "k"; }
+    if (sent > 9999) { sent = sent / 1000.0; sentUnit = "M";}
+    if (sent > 9999) { sent = sent / 1000.0; sentUnit = "G";}
 
 
     status->slotUpdate(info.arg(sent).arg(received).arg(sentUnit).arg(receiveUnit));

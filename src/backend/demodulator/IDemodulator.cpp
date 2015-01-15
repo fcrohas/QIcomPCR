@@ -9,9 +9,10 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
     outputbufferf(NULL),
     inputbufferf(NULL),
     filterfreq(230000),
+    mode(eWFM),
     len(0)
 {
-    downSampleFactor = 1024000/filterfreq; // Sample rate is twice filter size
+    downSampleFactor = ((1024000)/filterfreq) + 1; // Sample rate is twice filter size
     this->mode = mode;
     // Build resample converter
     int error = 0;
@@ -28,7 +29,7 @@ IDemodulator::~IDemodulator() {
 
 void IDemodulator::slotSetFilter(uint frequency) {
     filterfreq = frequency;
-    downSampleFactor = 1024000/filterfreq; // Sample rate is twice filter size
+    downSampleFactor =((1024000)/filterfreq) + 1; // Sample rate is twice filter size
 }
 
 void IDemodulator::setSoundDevice(ISound *device) {
@@ -139,4 +140,24 @@ int IDemodulator::rms(int step)
     err = t * 2 * dc - dc * dc * len;
 
     return (int)sqrt((p-err) / len);
+}
+
+int IDemodulator::mad(int step)
+/* mean average deviation */
+{
+    int i=0, sum=0, ave=0;
+    if (len == 0)
+        {return 0;}
+    for (i=0; i<len; i+=step) {
+        sum += buffer[i];
+    }
+    ave = sum / (len * step);
+    sum = 0;
+    for (i=0; i<len; i+=step) {
+        sum += abs(buffer[i] - ave);
+    }
+    int result = sum / (len / step);
+    // limit result between 0 and 255;
+    result = result * 255 / 32768 + 127;
+    return result;
 }

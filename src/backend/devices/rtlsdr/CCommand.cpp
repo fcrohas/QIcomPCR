@@ -31,17 +31,19 @@ CCommand::CCommand(QObject *parent) :
     // timer event display refresh
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(getSNR()));
-    timer->start(200); // 200ms ???
+    timer->start(1000); // 200ms ???
 }
 
 void CCommand::setPower(bool value)
 {
     if (value) {
         power = m_device->open();
+        emit dataChanged("H101");
     } else {
         if (power) {
             m_device->close();
             power = false;
+            emit dataChanged("H100");
         }
     }
 }
@@ -273,6 +275,7 @@ bool CCommand::Open()
         if (m_device->open()) {
             opened = true;
             qDebug() << "Connected";
+            emit dataChanged("H101");
             break;
         }
         sleep(1);
@@ -286,6 +289,7 @@ bool CCommand::Open()
 void CCommand::Close()
 {
     // Power it off
+    emit dataChanged("H100");
     setPower(false);
 }
 
@@ -353,5 +357,6 @@ void CCommand::slotSamplesRead(int16_t *buffer, int len) {
 }
 
 void CCommand::getSNR() {
-    emit dataChanged(QString("I1%1").arg(demo->rms(1),2,16));
+    qDebug() << "SNR=" << QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')) << "\r\n";
+    emit dataChanged(QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')));
 }

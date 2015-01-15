@@ -2,6 +2,27 @@
 
 extern "C" {
 
+void rotate_90(unsigned char *buf, uint32_t len)
+/* 90 rotation is 1+0j, 0+1j, -1+0j, 0-1j
+   or [0, 1, -3, 2, -4, -5, 7, -6] */
+{
+    uint32_t i;
+    unsigned char tmp;
+    for (i=0; i<len; i+=8) {
+        /* uint8_t negation = 255 - x */
+        tmp = 255 - buf[i+3];
+        buf[i+3] = buf[i+2];
+        buf[i+2] = tmp;
+
+        buf[i+4] = 255 - buf[i+4];
+        buf[i+5] = 255 - buf[i+5];
+
+        tmp = 255 - buf[i+6];
+        buf[i+6] = buf[i+7];
+        buf[i+7] = tmp;
+    }
+}
+
 static void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
     {
         int i;
@@ -15,7 +36,7 @@ static void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
                 buf[i] = 127;}
             s->mute = 0;
         }
-
+        //rotate_90(buf,len);
         for (i=0; i<(int)len; i++) {
             s->buf16[i] = (int16_t)buf[i] - 127;}
         s->buf_len = len;
@@ -45,6 +66,10 @@ CRtlSdr::CRtlSdr(QObject * parent)
             }
         }
     }
+    log_t.dataCount = 0;
+    log_t.dataReceive = 0;
+    log_t.dataSent = 0;
+    log_t.isConnected = false;
 }
 
 CRtlSdr::~CRtlSdr() {
@@ -54,8 +79,8 @@ CRtlSdr::~CRtlSdr() {
 void CRtlSdr::Initialize(struct dongle_state *s, struct demodule_state *d)
 {
     // dongle state init
-    s->rate = RTLSDR_SAMPLE_RATE;
-    s->gain = AUTO_GAIN; // tenths of a dB
+    s->rate = 1024000; //RTLSDR_SAMPLE_RATE;
+    s->gain = 1; // tenths of a dB
     s->mute = 0;
     s->direct_sampling = 0;
     s->offset_tuning = 0;
@@ -116,6 +141,7 @@ bool CRtlSdr::open() {
     // Build a data reader thead
     pthread_create(&dongle.thread, NULL, dongle_thread_fn, (void *)(this));
     power = true;
+    log_t.isConnected = true;
     return true;
 }
 
@@ -124,6 +150,7 @@ void CRtlSdr::write(QString &data) {
 }
 
 void CRtlSdr::close() {
+    log_t.isConnected = false;
     // Stop thread
     rtlsdr_cancel_async(dongle.dev);
     // Join on leave
@@ -173,6 +200,7 @@ void CRtlSdr::setAgcControl(bool state) {
 
 void CRtlSdr::Demodulate() {
     demo->update.lock();
+    log_t.dataReceive += dongle.buf_len;
     demod.buf_len = dongle.buf_len;
     memcpy(demod.buf16, dongle.buf16, dongle.buf_len*2);
     demo->setData(demod.buf16,demod.buf_len);

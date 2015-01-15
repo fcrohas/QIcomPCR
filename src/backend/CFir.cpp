@@ -163,21 +163,22 @@ void CFIR<T>::apply(T *&in, int size)
         return;
     }
 
-    if (buffer == NULL) {
-        buffer = new T[size];
-    }
+//    if (buffer == NULL) {
+//        buffer = new T[size];
+//    }
     // loop on buffer and apply filter
 #if 1
     for (int i=0; i<size; i++) {
         T sample = 0.0;
         // act as a ring buffer for current and previous call
-        buffer[i] = in[i];
+        //buffer[i] = in[i];
         // direct fir filter
         for (int j=0; j<N; j++) {
-            if ((i-j) < 0)
-                sample += buffer[size+i-j] * tfir[j]; // use previous buffer call values
-            else
-                sample += buffer[i-j] * tfir[j]; // use current buffer values
+//            if ((i-j) > 0)
+//                sample += buffer[size+i-j] * tfir[j]; // use previous buffer call values
+//            else
+//                sample += buffer[i-j] * tfir[j]; // use current buffer values
+            sample += in[i] * tfir[j];
         }
         // Save
         in[i] = sample;
