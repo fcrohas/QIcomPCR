@@ -18,6 +18,8 @@ public:
     void setSoundDevice(ISound *device);
     void setData(int16_t *buffer,int len);
     void processSound(int16_t *buffer,int len);
+    // Samplerate
+    void setSampleRate(uint frequency);
     // Down sample filter
     int downsample(int16_t *buffer, int len, int factor = 0);
     // Resample
@@ -46,13 +48,15 @@ protected:
     int prev_index;
     int now_r;
     int now_j;
-    int downSampleFactor;
+    int decimation;
     // resample buffer
     float *inputbufferf;
     float *outputbufferf;
     // Sample rate conversion
     SRC_STATE* converter;
     SRC_DATA dataconv;
+    // samplerate
+    uint samplerate;
 };
 
 #endif // IDEMODULATOR_H

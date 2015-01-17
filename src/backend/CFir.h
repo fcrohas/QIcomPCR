@@ -21,6 +21,7 @@
 
 #include <QObject>
 #include <math.h>
+#include <stdint.h>
 #include <limits>
 #include <QDebug>
 
@@ -38,12 +39,16 @@ public:
     void setOrder(int value);
     void setSampleRate(double value);
     void apply(T *&in, int size);
+    void apply(int16_t *&in, int size);
+    void intToFloat( int16_t *input, double *output, int length );
+    void floatToInt( double *input, int16_t *output, int length );
 private:
     void convert();
     double *win;
     double *fir;
     T *tfir;
     T *buffer;
+    double *bufferd;
     int N;
     double M;
     double wc;

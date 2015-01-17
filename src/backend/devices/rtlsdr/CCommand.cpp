@@ -9,8 +9,7 @@ CCommand::CCommand(QObject *parent) :
     polarity(0),
     reverse(0),
     sound(NULL),
-    demoThread(NULL),
-    demo(NULL)
+    demoThread(NULL)
 {
     // Initialize radio struct
     radioList = new QList<settings_t*>();
@@ -26,7 +25,7 @@ CCommand::CCommand(QObject *parent) :
     // Initialize sample width
     samplewidth = scopewidth / stepsize;
     /// Demodulator
-    demo = NULL;
+    currentRadio->demodulator = NULL;
 
     // timer event display refresh
     timer = new QTimer(this);
@@ -87,36 +86,38 @@ uint CCommand::getSquelch()
 // At this time, only set to device on frequency set
 void CCommand::setModulation(uint value)
 {
-    if (demo != NULL) {
-        //disconnect(m_device,SIGNAL(sigSampleRead(int16_t*,int)));
-        /*if (demoThread!=NULL) {
+    /*if (currentRadio->demodulator != NULL) {
+        //disconnect(SIGNAL(sigSetFilter(uint)), currentRadio->demodulator);
+        if (demoThread!=NULL) {
             demoThread->terminate();
             delete demoThread;
-        }*/
+        }
         //demo->update.unlock();
-        delete demo;
-        demo = NULL;
-    }
+        delete currentRadio->demodulator;
+        currentRadio->demodulator = NULL;
+    }*/
 
     currentRadio->modulation = value;
     switch(value) {
-        case eFM : demo = new CFm(NULL,IDemodulator::eFM); break;
-        case eAM : demo = new CAm(NULL,IDemodulator::eAM); break;
-        case eWFM : demo = new CFm(NULL,IDemodulator::eWFM); break;
-        case eLSB : demo = new CSsb(NULL,IDemodulator::eLSB); break;
-        case eUSB : demo = new CSsb(NULL,IDemodulator::eUSB); break;
+        case eFM : currentRadio->demodulator = new CFm(NULL,IDemodulator::eFM); break;
+        case eAM : currentRadio->demodulator = new CAm(NULL,IDemodulator::eAM); break;
+        case eWFM : currentRadio->demodulator = new CFm(NULL,IDemodulator::eWFM); break;
+        case eLSB : currentRadio->demodulator = new CSsb(NULL,IDemodulator::eLSB); break;
+        case eUSB : currentRadio->demodulator = new CSsb(NULL,IDemodulator::eUSB); break;
     }
-    if (demo != NULL) {
+    if (currentRadio->demodulator != NULL) {
+        // set current SDR sampling rate
+        currentRadio->demodulator->setSampleRate(RTLSDR_SAMPLE_RATE);
         // Set demodulator to thread
-        demo->setSoundDevice(sound);
+        currentRadio->demodulator->setSoundDevice(sound);
         demoThread = new QThread();
-        demo->moveToThread(demoThread);
-        connect(demo, SIGNAL(finished()), demoThread, SLOT(quit()));
-        connect(demo, SIGNAL(finished()), demo, SLOT(deleteLater()));
+        currentRadio->demodulator->moveToThread(demoThread);
+        connect(currentRadio->demodulator, SIGNAL(finished()), demoThread, SLOT(quit()));
+        connect(currentRadio->demodulator, SIGNAL(finished()), currentRadio->demodulator, SLOT(deleteLater()));
         connect(demoThread, SIGNAL(finished()), demoThread, SLOT(deleteLater()));
         //connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),this,SLOT(slotSamplesRead(int16_t*,int)));
-        m_device->setDemodulator(demo);
-        connect(this,SIGNAL(sigSetFilter(uint)),demo,SLOT(slotSetFilter(uint)));
+        m_device->setDemodulator(currentRadio->demodulator);
+        connect(this,SIGNAL(sigSetFilter(uint)),currentRadio->demodulator,SLOT(slotSetFilter(uint)));
         demoThread->start();
     }
 }
@@ -128,14 +129,15 @@ void CCommand::setFilter(uint value)
         case e6k : value = 6000; break;
         case e15k : value = 15000; break;
         case e50k : value = 50000; break;
-        case e230k : value = 170000; break;
+        case e230k : value = 230000; break;
     }
 
     currentRadio->filter = value;
     // send new filter value
     emit sigSetFilter(value);
+    //demo->slotSetFilter(value);
     // Once filter is set call back frequency
-    setFrequency(currentRadio->frequency);
+    //setFrequency(currentRadio->frequency);
 }
 
 void CCommand::setRadio(uint value)
@@ -279,6 +281,7 @@ bool CCommand::Open()
             break;
         }
         sleep(1);
+        emit dataChanged("H100");
         m_device->close();
         sleep(1);
         retry++;
@@ -357,6 +360,6 @@ void CCommand::slotSamplesRead(int16_t *buffer, int len) {
 }
 
 void CCommand::getSNR() {
-    qDebug() << "SNR=" << QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')) << "\r\n";
-    emit dataChanged(QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')));
+    //qDebug() << "SNR=" << QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')) << "\r\n";
+    emit dataChanged(QString("I%1%2").arg((radio==0)?"1":"5").arg(currentRadio->demodulator->mad(2),2,16, QChar('0')));
 }

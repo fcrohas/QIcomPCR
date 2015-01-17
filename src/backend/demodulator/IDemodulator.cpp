@@ -9,10 +9,12 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
     outputbufferf(NULL),
     inputbufferf(NULL),
     filterfreq(230000),
+    samplerate(1024000),
     mode(eWFM),
     len(0)
 {
-    downSampleFactor = ((1024000)/filterfreq) + 1; // Sample rate is twice filter size
+    qDebug() << "IDemodulator constructor\r\n";
+    // save mode
     this->mode = mode;
     // Build resample converter
     int error = 0;
@@ -20,16 +22,19 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
     if (error != 0) {
         qDebug() << " Error creating sample rate converter : " << src_strerror(error);
     }
+    slotSetFilter(filterfreq);
 }
 
 IDemodulator::~IDemodulator() {
+    // Destroy sample converter
     if (converter != NULL)
         src_delete(converter);
 }
 
 void IDemodulator::slotSetFilter(uint frequency) {
     filterfreq = frequency;
-    downSampleFactor =((1024000)/filterfreq) + 1; // Sample rate is twice filter size
+    decimation =(samplerate/filterfreq); // Sample rate is twice filter size
+    qDebug() << "decimation Factor=" << decimation << " samplerate=" << samplerate <<" filterfreq=" << filterfreq <<"\r\n";
 }
 
 void IDemodulator::setSoundDevice(ISound *device) {
@@ -53,7 +58,7 @@ void IDemodulator::processSound(int16_t *buffer, int len) {
 int IDemodulator::downsample(int16_t *buffer, int len, int factor)
 /* simple square window FIR */
 {
-    if (factor == 0) factor = downSampleFactor;
+    if (factor == 0) factor = decimation;
     int i=0, i2=0;
     while (i < len) {
         now_r += buffer[i];
@@ -70,6 +75,8 @@ int IDemodulator::downsample(int16_t *buffer, int len, int factor)
         now_j = 0;
         i2 += 2;
     }
+    // Windowing sample
+
     return i2;
 }
 
@@ -160,4 +167,8 @@ int IDemodulator::mad(int step)
     // limit result between 0 and 255;
     result = result * 255 / 32768 + 127;
     return result;
+}
+
+void IDemodulator::setSampleRate(uint frequency) {
+    samplerate = frequency;
 }

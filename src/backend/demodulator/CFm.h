@@ -33,7 +33,7 @@ private:
     // Filters
     CWindowFunc *winfunc;
     // FIR bandpass filter
-    CFIR<int16_t> *filter;
+    CFIR<double> *filter;
 
 };
 

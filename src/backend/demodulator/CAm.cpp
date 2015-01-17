@@ -8,12 +8,9 @@ CAm::CAm(QObject *parent, Mode mode) :
     winfunc->init(64);
     winfunc->hamming();
     // Set FIR filter
-    filter = new CFIR<int16_t>();
+    filter = new CFIR<double>();
     filter->setOrder(64);
     filter->setWindow(winfunc->getWindow());
-    filter->setSampleRate(SAMPLERATE);
-    filter->lowpass(11000);
-
 }
 
 void CAm::doWork() {
@@ -31,7 +28,7 @@ void CAm::doWork() {
         buffer[i/2] = (int)sqrt(pcm);
     }
     // Apply audio filter
-    len = IDemodulator::resample(buffer,len,filterfreq);
+    len = IDemodulator::resample(buffer,len,samplerate/decimation);
     IDemodulator::processSound(buffer,len);
     update.unlock();
 }

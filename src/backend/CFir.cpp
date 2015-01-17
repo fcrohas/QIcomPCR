@@ -26,7 +26,7 @@ CFIR<T>::CFIR() :
     update(false),
     scaleFactor(1.0)
 {
-
+    qDebug() << "CFir Contructor\r\n";
     tmin = std::numeric_limits<T>::min(); // minimum value
     if (tmin < -127) tmin = -1.0;
     tmax = std::numeric_limits<T>::max(); // maximum value
@@ -60,7 +60,6 @@ void CFIR<T>::lowpass(double frequency)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
-    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -81,7 +80,6 @@ void CFIR<T>::highpass(double frequency)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
-    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -103,7 +101,6 @@ void CFIR<T>::bandpass(double centerfreq, double bandwidth)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
-    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -125,7 +122,6 @@ void CFIR<T>::stopband(double centerfreq, double bandwidth)
         if (win != NULL)
             fir[i] = fir[i] * win [i];
     }
-    convert();
     delete [] buffer;
     buffer = NULL;
     update = false;
@@ -154,6 +150,8 @@ void CFIR<T>::setSampleRate(double value)
     fs = value;
 }
 
+
+// the FIR filter function
 template<class T>
 void CFIR<T>::apply(T *&in, int size)
 {
@@ -163,27 +161,28 @@ void CFIR<T>::apply(T *&in, int size)
         return;
     }
 
-//    if (buffer == NULL) {
-//        buffer = new T[size];
-//    }
+    if (buffer == NULL) {
+        buffer = new T[size];
+    }
     // loop on buffer and apply filter
 #if 1
     for (int i=0; i<size; i++) {
         T sample = 0.0;
         // act as a ring buffer for current and previous call
-        //buffer[i] = in[i];
+        buffer[i] = in[i];
         // direct fir filter
         for (int j=0; j<N; j++) {
-//            if ((i-j) > 0)
-//                sample += buffer[size+i-j] * tfir[j]; // use previous buffer call values
-//            else
-//                sample += buffer[i-j] * tfir[j]; // use current buffer values
-            sample += in[i] * tfir[j];
+            if ((i-j) > 0)
+                sample += buffer[size+i-j] * tfir[j]; // use previous buffer call values
+            else
+                sample += buffer[i-j] * tfir[j]; // use current buffer values
+            //sample += in[i] * tfir[j];
         }
         // Save
         in[i] = sample;
     }
-#else
+#endif
+#if 0
     __m128d X, Y, Z;
     for (int i=0; i<size; i++) {
         double sample = 0.0;
@@ -220,7 +219,7 @@ void CFIR<T>::convert() {
         if (fir[i]>maxvalue) maxvalue=fir[i];
     }
     scaleFactor = std::min(abs(tmin/minvalue), abs(tmax/maxvalue));
-    if (scaleFactor > 127) scaleFactor = 127;
+    if (scaleFactor > 16384) scaleFactor = 16384;
     qDebug() << "scale factor is " << scaleFactor;
     if (scaleFactor == 0) scaleFactor = 1.0;
     for (int i=0; i < N; i++) {
@@ -228,6 +227,65 @@ void CFIR<T>::convert() {
     }
 }
 
+// the FIR filter function
+template<class T>
+void CFIR<T>::apply(int16_t *&in, int size)
+{
+    if (update)
+        return;
+    if (in == NULL) {
+        return;
+    }
+
+    if (bufferd == NULL) {
+        bufferd = new double[size];
+    }
+    // loop on buffer and apply filter
+#if 1
+    double *inputp;
+    double acc;
+    // Convert for int16_t
+    intToFloat(in,bufferd,size);
+    // apply the filter to each input sample
+    for ( int n = 0; n < size; n++ ) {
+        inputp = &bufferd[N - 1 + n];
+        acc = 0;
+        for ( int k = 0; k < N; k++ ) {
+            acc += tfir[k] * (*inputp--);
+        }
+        in[n] = acc;
+    }
+    // convert back
+    floatToInt(bufferd,in,size);
+#endif
+}
+
+template<class T>
+void CFIR<T>::intToFloat( int16_t *input, double *output, int length )
+{
+    int i;
+
+    for ( i = 0; i < length; i++ ) {
+        output[i] = (double)input[i];
+    }
+}
+
+template<class T>
+void CFIR<T>::floatToInt( double *input, int16_t *output, int length )
+{
+    int i;
+
+    for ( i = 0; i < length; i++ ) {
+        if ( input[i] > 32767.0 ) {
+            input[i] = 32767.0;
+        } else if ( input[i] < -32768.0 ) {
+            input[i] = -32768.0;
+        }
+        // convert
+        output[i] = (int16_t)input[i];
+    }
+}
+
 template class CFIR<int>;
-template class CFIR<short>;
+//template class CFIR<short>;
 template class CFIR<double>;

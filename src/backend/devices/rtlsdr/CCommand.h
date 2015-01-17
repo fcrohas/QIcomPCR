@@ -149,6 +149,7 @@ private:
         bool nb; // Noise blanker
         bool vsc;
         uint volume;
+        IDemodulator *demodulator;
     };
     settings_t *currentRadio;
     // List of radio antenna settings
@@ -168,8 +169,6 @@ private:
     int polarity;
     int reverse;
     bool scopepower;
-    // Software Demodulator
-    IDemodulator *demo;
     // Device driver
     CRtlSdr * m_device;
     // Sound device
