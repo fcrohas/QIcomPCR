@@ -21,7 +21,9 @@ private:
     // Filters
     CWindowFunc *winfunc;
     // FIR bandpass filter
-    CFIR<double> *filter;
+    CFIR<int16_t> *filter;
+    // filter
+    void slotSetFilter(uint frequency);
 };
 
 #endif // CAM_H

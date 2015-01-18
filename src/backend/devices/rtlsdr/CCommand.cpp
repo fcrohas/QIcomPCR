@@ -111,13 +111,13 @@ void CCommand::setModulation(uint value)
         // Set demodulator to thread
         currentRadio->demodulator->setSoundDevice(sound);
         demoThread = new QThread();
-        currentRadio->demodulator->moveToThread(demoThread);
         connect(currentRadio->demodulator, SIGNAL(finished()), demoThread, SLOT(quit()));
         connect(currentRadio->demodulator, SIGNAL(finished()), currentRadio->demodulator, SLOT(deleteLater()));
         connect(demoThread, SIGNAL(finished()), demoThread, SLOT(deleteLater()));
         //connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),this,SLOT(slotSamplesRead(int16_t*,int)));
         m_device->setDemodulator(currentRadio->demodulator);
         connect(this,SIGNAL(sigSetFilter(uint)),currentRadio->demodulator,SLOT(slotSetFilter(uint)));
+        currentRadio->demodulator->moveToThread(demoThread);
         demoThread->start();
     }
 }

@@ -39,24 +39,31 @@ public slots:
     void slotSetFilter(uint frequency);
 
 private:
-    ISound *sound;
-protected:
-    Mode mode;
-    int filterfreq;
-    int16_t *buffer;
-    int len;
+    // samplerate
+    uint samplerate;
+    // simple downsample internal
     int prev_index;
     int now_r;
     int now_j;
-    int decimation;
-    // resample buffer
-    float *inputbufferf;
-    float *outputbufferf;
+    // sound device
+    ISound *sound;
     // Sample rate conversion
     SRC_STATE* converter;
     SRC_DATA dataconv;
-    // samplerate
-    uint samplerate;
+    // resample buffer
+    float *inputbufferf;
+    float *outputbufferf;
+
+protected:
+    Mode mode;
+    int filterfreq;
+    // decimation 1st stage
+    int decimation;
+    // intermediate sampling frequency after 1st stage
+    int intfreq;
+    // internal thread buffer
+    int16_t *buffer;
+    int len;
 };
 
 #endif // IDEMODULATOR_H

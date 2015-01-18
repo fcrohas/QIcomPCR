@@ -29,11 +29,18 @@ private:
     void deemph_filter(int16_t *buffer,int len);
     int fast_atan2(int y, int x);
     int polar_disc_fast(int ar, int aj, int br, int bj);
+    int polar_discriminant(int ar, int aj, int br, int bj);
+    // deemphasis coef
     int deemph_a;
     // Filters
     CWindowFunc *winfunc;
     // FIR bandpass filter
-    CFIR<double> *filter;
+    CFIR<int16_t> *filter;
+    // Init PLL
+    void initPLL();
+    // process PLL
+    void  processPll(int i, int q);
+
 
 };
 

@@ -10,10 +10,12 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
     inputbufferf(NULL),
     filterfreq(230000),
     samplerate(1024000),
+    decimation(4),
+    intfreq(256000),
     mode(eWFM),
     len(0)
 {
-    qDebug() << "IDemodulator constructor\r\n";
+    qDebug() << "IDemodulator constructor...\r\n";
     // save mode
     this->mode = mode;
     // Build resample converter
@@ -23,6 +25,7 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
         qDebug() << " Error creating sample rate converter : " << src_strerror(error);
     }
     slotSetFilter(filterfreq);
+    qDebug() << "IDemodulator constructor\r\n";
 }
 
 IDemodulator::~IDemodulator() {
@@ -33,7 +36,6 @@ IDemodulator::~IDemodulator() {
 
 void IDemodulator::slotSetFilter(uint frequency) {
     filterfreq = frequency;
-    decimation =(samplerate/filterfreq); // Sample rate is twice filter size
     qDebug() << "decimation Factor=" << decimation << " samplerate=" << samplerate <<" filterfreq=" << filterfreq <<"\r\n";
 }
 
@@ -170,5 +172,11 @@ int IDemodulator::mad(int step)
 }
 
 void IDemodulator::setSampleRate(uint frequency) {
+    // sample rate of input device
     samplerate = frequency;
+    // Want 250K samplerate for work
+    decimation = samplerate / 250000;
+    // first intermediate frequency
+    intfreq = samplerate / decimation;
+
 }

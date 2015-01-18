@@ -159,7 +159,8 @@ void CRtlSdr::write(QString &data) {
 void CRtlSdr::close() {
     log_t.isConnected = false;
     // Stop thread
-    rtlsdr_cancel_async(dongle.dev);
+    if (dongle.dev != NULL)
+        rtlsdr_cancel_async(dongle.dev);
     // Join on leave
 #ifdef WIN32
     if (dongle.thread.p != 0)

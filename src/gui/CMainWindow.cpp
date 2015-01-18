@@ -521,7 +521,7 @@ void CMainWindow::slotDecoderChange(int value)
         mySpectrum->setPickerType(CSpectrumWidget::eRttyPicker);
     }
     else if (value==3) {
-        myDecoder->setAxis(0,512,0.0,127.0);
+        myDecoder->setAxis(0,512,0.0,15.0);
         myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
         mySpectrum->setPickerType(CSpectrumWidget::eCwPicker);
     } else {
@@ -605,6 +605,7 @@ void CMainWindow::slotStopPlay(bool value)
         decoder->initBuffer(32768);
         //sound->start();
         sound->setRunning(true);
+        connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
         sound->Initialize();
         delete params;
     } else {

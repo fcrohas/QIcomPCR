@@ -3,32 +3,36 @@
 CFm::CFm(QObject *parent, Mode mode) :
     IDemodulator(parent),
     avg(0),
-    filter(NULL)
+    filter(NULL),
+    deemph_a(1)
 {
-    qDebug() << "CFM constructor\r\n";
+    qDebug() << "CFM constructor...\r\n";
     // Build Window blackman
     winfunc = new CWindowFunc(this);
-    winfunc->init(108);
+    winfunc->init(32);
     winfunc->blackmanharris();
     // Set FIR filter
     // Build Bandpass filter
-    filter = new CFIR<double>();
-    filter->setOrder(108);
+    filter = new CFIR<int16_t>();
+    filter->setOrder(32);
     filter->setWindow(winfunc->getWindow());
     slotSetFilter(filterfreq);
+    this->mode = mode;
+    qDebug() << "CFM constructor\r\n";
 }
 
 void CFm::doWork() {
     update.lock();
-    int intermediatefreq = samplerate/decimation;
-    len = IDemodulator::downsample(buffer,len);
+    len = IDemodulator::downsample(buffer,len,decimation);
     int16_t pr = pre_real;
     int16_t pj = pre_img;
     int pcm = 0;
     // demodulate FM
     for (int i = 0; i < len; i += 2) {
-        //pcm = esbensen(buffer[i], buffer[i+1], pr, pj);
-        pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
+        if (mode == eWFM)
+            pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
+        else
+            pcm = polar_discriminant(buffer[i], buffer[i+1], pr, pj);
         pr = buffer[i];
         pj = buffer[i+1];
         buffer[i/2] = (int16_t)pcm;
@@ -36,12 +40,13 @@ void CFm::doWork() {
     // Update new length for one channel
     len = len/2;
     // Deemphasis filter if WBFM mode
-    if (mode == eWFM)
+    if (mode == eWFM) {
         deemph_filter(buffer,len);
-    // resample for sound output
-    len = IDemodulator::resample(buffer,len,intermediatefreq);
-    // Apply audio filter
+    }
+    // Apply audio filter 30 Hz - 11kHz
     filter->apply(buffer,len);
+    // resample for sound output
+    len = IDemodulator::resample(buffer,len,intfreq);
     // send sound to queue
     IDemodulator::processSound(buffer,len);
     update.unlock();
@@ -69,6 +74,15 @@ void CFm::multiply(int ar, int aj, int br, int bj, int *cr, int *cj)
 {
     *cr = ar*br - aj*bj;
     *cj = aj*br + ar*bj;
+}
+
+int CFm::polar_discriminant(int ar, int aj, int br, int bj)
+{
+    int cr, cj;
+    double angle;
+    multiply(ar, aj, br, -bj, &cr, &cj);
+    angle = atan2((double)cj, (double)cr);
+    return (int)(angle / 3.14159 * (1<<14));
 }
 
 int CFm::fast_atan2(int y, int x)
@@ -103,11 +117,17 @@ int CFm::polar_disc_fast(int ar, int aj, int br, int bj)
 
 void CFm::slotSetFilter(uint frequency) {
     IDemodulator::slotSetFilter(frequency);
-    deemph_a = (int)round(1.0/((1.0-exp(-1.0/(filterfreq * 75e-6)))));
     if (filter != NULL) {
         filter->setSampleRate(22050);
-        //filter->bandpass(4030.0,8000.0);
-        filter->lowpass(4000.0);
+        if (mode == eWFM) {
+            deemph_a = (int)round(1.0/((1.0-exp(-1.0/(intfreq * 75e-6)))));
+            filter->bandpass(5530.0,11000.0);
+        }
+        else {
+            filter->lowpass(frequency);
+        }
+        //
+        filter->convert();
     }
 }
 
@@ -125,4 +145,46 @@ void CFm::deemph_filter(int16_t *buffer,int len)
         }
         buffer[i] = (int16_t)avg;
     }
+}
+
+void CFm::initPLL() {
+    /*
+    _phase = 0.0f;
+    var norm = (float) (2.0 * Math.PI / _sampleRate);
+    _frequencyRadian = _defaultFrequency * norm;
+    _minFrequencyRadian = (_defaultFrequency - _range) * norm;
+    _maxFrequencyRadian = (_defaultFrequency + _range) * norm;
+    _alpha = 2.0f * _zeta * _bandwidth * norm;
+    _beta = (_alpha * _alpha) / (4.0f * _zeta * _zeta);
+    _phaseAdj = _phaseAdjM * _sampleRate + _phaseAdjB;
+    _lockAlpha = (float) (1.0 - Math.Exp(-1.0 / (_sampleRate * _lockTime)));
+    _lockOneMinusAlpha = 1.0f - _lockAlpha;
+    */
+}
+
+void CFm::processPll(int i, int q) {
+    /*
+    var osc = Trig.SinCos(_phase);
+
+    osc *= sample;
+    var phaseError = -osc.ArgumentFast();
+
+    _frequencyRadian += _beta * phaseError;
+
+    if (_frequencyRadian > _maxFrequencyRadian)
+    {
+        _frequencyRadian = _maxFrequencyRadian;
+    }
+    else if (_frequencyRadian < _minFrequencyRadian)
+    {
+        _frequencyRadian = _minFrequencyRadian;
+    }
+
+    _phaseErrorAvg = _lockOneMinusAlpha * _phaseErrorAvg + _lockAlpha * phaseError * phaseError;
+    _phase += _frequencyRadian + _alpha * phaseError;
+    _phase %= (float) (2.0 * Math.PI);
+    _adjustedPhase = _phase + _phaseAdj;
+
+    return osc;
+    */
 }

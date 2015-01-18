@@ -38,7 +38,7 @@ extern "C" {
         CPortAudio *This = (CPortAudio *) userData;
         int16_t *out = (int16_t*)outputBuffer;
         long bytes = frameCount;
-        memset(out, 0, bytes);
+        memset(out, 0, bytes*2);
         (void) inputBuffer;		/* Prevent unused variable warning. */
         int avail = PaUtil_GetRingBufferReadAvailable(&This->playRingBuffer);
         //qDebug() << "avail=" << avail << " framecount=" << frameCount << " time=" << timeInfo->currentTime << " status=" << statusFlags << " \r\n";
