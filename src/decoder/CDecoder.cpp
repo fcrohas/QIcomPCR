@@ -221,3 +221,7 @@ void CDecoder::setData(int16_t *buffer, int size) {
     this->buffer = buffer;
     this->size = size;
 }
+
+void CDecoder::setDecoder(CDecoder::decoder_t decoder) {
+    this->decoder = decoder;
+}

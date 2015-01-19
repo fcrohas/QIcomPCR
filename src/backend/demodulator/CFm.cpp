@@ -1,7 +1,7 @@
 #include "CFm.h"
 
 CFm::CFm(QObject *parent, Mode mode) :
-    IDemodulator(parent),
+    CDemodulatorBase(parent),
     avg(0),
     filter(NULL),
     deemph_a(1)
@@ -23,7 +23,7 @@ CFm::CFm(QObject *parent, Mode mode) :
 
 void CFm::doWork() {
     update.lock();
-    len = IDemodulator::downsample(buffer,len,decimation);
+    len = CDemodulatorBase::downsample(buffer,len,decimation);
     int16_t pr = pre_real;
     int16_t pj = pre_img;
     int pcm = 0;
@@ -46,9 +46,9 @@ void CFm::doWork() {
     // Apply audio filter 30 Hz - 11kHz
     filter->apply(buffer,len);
     // resample for sound output
-    len = IDemodulator::resample(buffer,len,intfreq);
+    len = CDemodulatorBase::resample(buffer,len,intfreq);
     // send sound to queue
-    IDemodulator::processSound(buffer,len);
+    CDemodulatorBase::processSound(buffer,len);
     update.unlock();
 }
 
@@ -116,7 +116,7 @@ int CFm::polar_disc_fast(int ar, int aj, int br, int bj)
 }
 
 void CFm::slotSetFilter(uint frequency) {
-    IDemodulator::slotSetFilter(frequency);
+    CDemodulatorBase::slotSetFilter(frequency);
     if (filter != NULL) {
         filter->setSampleRate(22050);
         if (mode == eWFM) {

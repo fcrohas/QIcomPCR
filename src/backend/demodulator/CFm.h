@@ -2,13 +2,13 @@
 #define CFM_H
 
 #include <QObject>
-#include <IDemodulator.h>
+#include <CDemodulatorBase.h>
 
-class CFm : public IDemodulator
+class CFm : public CDemodulatorBase
 {
     Q_OBJECT
 public:
-    explicit CFm(QObject *parent=0,IDemodulator::Mode mode = IDemodulator::eFM);
+    explicit CFm(QObject *parent=0,CDemodulatorBase::Mode mode = CDemodulatorBase::eFM);
 
 signals:
 

@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <ISound.h>
 #include <pa_ringbuffer.h>
 #include <stdint.h>
 #include "consts.h"
@@ -32,7 +33,7 @@
 #define DOWNSAMPLE 11025
 #endif
 
-class CSoundStream : public QObject
+class CSoundStream : public ISound
 {
     Q_OBJECT
 public:

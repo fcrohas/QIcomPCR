@@ -2,13 +2,13 @@
 #define CSSB_H
 
 #include <QObject>
-#include <IDemodulator.h>
+#include <CDemodulatorBase.h>
 
-class CSsb : public IDemodulator
+class CSsb : public CDemodulatorBase
 {
     Q_OBJECT
 public:
-    explicit CSsb(QObject *parent=0, IDemodulator::Mode mode = IDemodulator::eLSB);
+    explicit CSsb(QObject *parent=0, CDemodulatorBase::Mode mode = CDemodulatorBase::eLSB);
 signals:
 
 public slots:

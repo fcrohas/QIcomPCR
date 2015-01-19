@@ -21,27 +21,16 @@
 #define CMAINWINDOW_H
 
 #include <QMainWindow>
-#include "CCommand.h"
+#include "CBackend.h"
 #include "CDebugWindow.h"
 #include "CRemoteControl.h"
 #include "CLcdWidget.h"
-#ifdef WITH_PULSEAUDIO
-#include "CPulseSound.h"
-#endif
-#ifdef WITH_PORTAUDIO
-#include "CPortAudio.h"
-#endif
-#ifdef WITH_SNDFILE
-#include "CSoundFile.h"
-#endif
-#include "CSettings.h"
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
 #include "CBandScope.h"
 #include "CDisplay.h"
 #include "CDecoder.h"
 #include "CFft.h"
-#include "ISound.h"
 #include "CDlgSettings.h"
 
 #define MAX_RADIO 2
@@ -129,8 +118,8 @@ class CMainWindow : public QMainWindow
         // Bandscope
         int bandscopeActivate;
 
-        // CommandBuilder
-        CCommand * cmd;
+        // Backend job
+        CBackend *backend;
 
         // Windows
         CDebugWindow *dbgWin;
@@ -138,9 +127,7 @@ class CMainWindow : public QMainWindow
         //Widgets
         CLcdWidget *lcd1;
         CLcdWidget *lcd2;
-#if defined(WITH_SNDFILE) || defined(WITH_PORTAUDIO) || defined(WITH_PULSEAUDIO)
-        ISound *sound;
-#endif
+
         CStatusWidget *status;
 
         // Timer
@@ -167,9 +154,6 @@ class CMainWindow : public QMainWindow
         // Display
         CDisplay *display;
 
-        // Settings
-        CSettings *settings;
-
         // Restore settings
         void restoreSettings();
 
@@ -186,7 +170,7 @@ class CMainWindow : public QMainWindow
         void connectSignals();
 
         // List of radio
-        QList<CSettings::radio*> radioList;
+        QList<CSettings::radio_t*> radioList;
 
 };
 

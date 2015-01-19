@@ -1,6 +1,6 @@
-#include "IDemodulator.h"
+#include "CDemodulatorBase.h"
 
-IDemodulator::IDemodulator(QObject *parent, Mode mode) :
+CDemodulatorBase::CDemodulatorBase(QObject *parent, Mode mode) :
     QObject(parent),
     sound(NULL),
     now_r(0),
@@ -28,36 +28,36 @@ IDemodulator::IDemodulator(QObject *parent, Mode mode) :
     qDebug() << "IDemodulator constructor\r\n";
 }
 
-IDemodulator::~IDemodulator() {
+CDemodulatorBase::~CDemodulatorBase() {
     // Destroy sample converter
     if (converter != NULL)
         src_delete(converter);
 }
 
-void IDemodulator::slotSetFilter(uint frequency) {
+void CDemodulatorBase::slotSetFilter(uint frequency) {
     filterfreq = frequency;
     qDebug() << "decimation Factor=" << decimation << " samplerate=" << samplerate <<" filterfreq=" << filterfreq <<"\r\n";
 }
 
-void IDemodulator::setSoundDevice(ISound *device) {
+void CDemodulatorBase::setSoundDevice(ISound *device) {
     qDebug() << "Sound device is set to demodulator";
     sound = device;
 }
 
-void IDemodulator::doWork() {
+void CDemodulatorBase::doWork() {
 }
 
-void IDemodulator::setData(int16_t *buffer, int len) {
+void CDemodulatorBase::setData(int16_t *buffer, int len) {
     this->buffer = buffer;
     this->len = len;
 }
 
-void IDemodulator::processSound(int16_t *buffer, int len) {
+void CDemodulatorBase::processSound(int16_t *buffer, int len) {
     if (sound != NULL)
         sound->Play(buffer,len);
 }
 
-int IDemodulator::downsample(int16_t *buffer, int len, int factor)
+int CDemodulatorBase::downsample(int16_t *buffer, int len, int factor)
 /* simple square window FIR */
 {
     if (factor == 0) factor = decimation;
@@ -82,7 +82,7 @@ int IDemodulator::downsample(int16_t *buffer, int len, int factor)
     return i2;
 }
 
-int IDemodulator::resample(int16_t *buffer, int len, int samplerate) {
+int CDemodulatorBase::resample(int16_t *buffer, int len, int samplerate) {
     if (inputbufferf == NULL)
         inputbufferf = new float[len];
     if (outputbufferf == NULL)
@@ -108,7 +108,7 @@ int IDemodulator::resample(int16_t *buffer, int len, int samplerate) {
     return dataconv.output_frames_gen;
 }
 
-int IDemodulator::low_pass_real(int16_t *buffer, int len)
+int CDemodulatorBase::low_pass_real(int16_t *buffer, int len)
 /* simple square window FIR */
 // add support for upsampling?
 {
@@ -131,7 +131,7 @@ int IDemodulator::low_pass_real(int16_t *buffer, int len)
     return i2;
 }
 
-int IDemodulator::rms(int step)
+int CDemodulatorBase::rms(int step)
 /* largely lifted from rtl_power */
 {
     int i;
@@ -151,7 +151,7 @@ int IDemodulator::rms(int step)
     return (int)sqrt((p-err) / len);
 }
 
-int IDemodulator::mad(int step)
+int CDemodulatorBase::mad(int step)
 /* mean average deviation */
 {
     int i=0, sum=0, ave=0;
@@ -171,7 +171,7 @@ int IDemodulator::mad(int step)
     return result;
 }
 
-void IDemodulator::setSampleRate(uint frequency) {
+void CDemodulatorBase::setSampleRate(uint frequency) {
     // sample rate of input device
     samplerate = frequency;
     // Want 250K samplerate for work

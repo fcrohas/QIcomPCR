@@ -20,7 +20,7 @@
 #define CFFT_H
 
 #include <QObject>
-#include "CWindowFunc.h"
+#include <filter/CWindowFunc.h>
 #include <math.h>
 #include <stdint.h>
 #include <QDebug>

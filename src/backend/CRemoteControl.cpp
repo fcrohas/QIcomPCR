@@ -56,94 +56,14 @@ void CRemoteControl::decode(char *buffer)
     if (decodedString.startsWith("INIT")) {
         emit sigInitialize(true);
     } else
-    if (decodedString.startsWith("PWRON")) {
-        emit sigInitialize(true);
-        //emit sigPower(true);
+    if (isRadioCommand(decodedString)) {
+        emit sigRadio(radio);
     } else
-    if (decodedString.startsWith("PWROFF")) {
-        emit sigPower(false);
+    if (isBandscopeCommand(decodedString)) {
+        emit sigBandScope(bandscope);
     } else
-    if (decodedString.startsWith("AGCON")) {
-        emit sigAutomaticGainControl(true);
-    } else
-    if (decodedString.startsWith("AGCOFF")) {
-        emit sigAutomaticGainControl(false);
-    } else
-    if (decodedString.startsWith("VSCON")) {
-        emit sigVoiceControl(true);
-    } else
-    if (decodedString.startsWith("VSCOFF")) {
-        emit sigVoiceControl(false);
-    } else
-    if (decodedString.startsWith("FILTER")) {
-        QString filter = decodedString.replace("FILTER","");
-        if (filter == "230000") emit sigFilter(CCommand::e230k);
-        if (filter == "50000")  emit sigFilter(CCommand::e50k);
-        if (filter == "15000")  emit sigFilter(CCommand::e15k);
-        if (filter == "6000")   emit sigFilter(CCommand::e6k);
-        if (filter == "2800")  emit sigFilter(CCommand::e28k);
-    } else
-    if (decodedString.startsWith("FREQ")) {
-        QString frequency = decodedString.replace("FREQ","");
-        //qDebug() << "frequency remote " << frequency.toUInt();
-        emit sigFrequency(frequency.toUInt());
-    } else
-    if (decodedString.startsWith("IF")) {
-        QString shift = decodedString.replace("IF","");
-        emit sigIFShift(shift.toUInt());
-    } else
-    if (decodedString.startsWith("SQUELCH")) {
-        QString sq = decodedString.replace("SQUELCH","");
-        emit sigSquelch(sq.toUInt());
-    } else
-    if (decodedString.startsWith("MOD")) {
-        QString modulation = decodedString.replace("MOD","");
-        if (modulation == "WFM") emit sigModulation(CCommand::eWFM);
-        if (modulation == "FM")  emit sigModulation(CCommand::eFM);
-        if (modulation == "AM")  emit sigModulation(CCommand::eAM);
-        if (modulation == "LSB") emit sigModulation(CCommand::eLSB);
-        if (modulation == "USB") emit sigModulation(CCommand::eUSB);
-        if (modulation == "CW")  emit sigModulation(CCommand::eCW);
-    } else
-    if (decodedString.startsWith("SFREQ")) {
-        QString frequency = decodedString.replace("SFREQ","");
-        emit sigSelectFrequency(frequency.toDouble());
-    } else
-    if (decodedString.startsWith("SFRQW")) {
-        QString width = decodedString.replace("SFRQW","");
-        emit sigSelectBandwidth(width.toDouble());
-    } else
-    if (decodedString.startsWith("NBON")) {
-        emit sigNoiseBlanker(true);
-    } else
-    if (decodedString.startsWith("NBOFF")) {
-        emit sigNoiseBlanker(true);
-    } else
-    if (decodedString.startsWith("BDSON")) {
-        emit sigBandScope(true);
-    } else
-    if (decodedString.startsWith("BDSOFF")) {
-        emit sigBandScope(false);
-    } else
-    if (decodedString.startsWith("BDSW")) {
-        QString width= decodedString.replace("BDSW","");
-        emit sigBandScopeWidth(width.toInt());
-    } else
-    if (decodedString.startsWith("BDSS")) {
-        QString step= decodedString.replace("BDSS","");
-        emit sigBandScopeStep(step.toInt());
-    } else
-    if (decodedString.startsWith("RADIO")) {
-        QString radio= decodedString.replace("RADIO","");
-        emit sigRadio(radio.toInt());
-    } else
-    if (decodedString.startsWith("CHAN")) {
-        QString value= decodedString.replace("CHAN","");
-        emit sigChannel(value.toInt());
-    } else
-    if (decodedString.startsWith("DEC")) {
-        QString value= decodedString.replace("DEC","");
-        emit sigDecoder(value.toInt());
+    if (isDecoderCommand(decodedString)) {
+        emit sigDecoder(decoder);
     } else
     if (decodedString.startsWith("WT")) {
         QString params = decodedString.replace("WT","");
@@ -204,4 +124,119 @@ void CRemoteControl::controledRate(double *xval, double *yval, int size)
             avg[i] = (yval[i] + avg[i]) / 2.0;
         }
     }
+}
+
+bool CRemoteControl::isRadioCommand(QString decodedString) {
+    bool found = true;
+    if (decodedString.startsWith("PWRON")) {
+        radio.power = true;
+    } else
+    if (decodedString.startsWith("PWROFF")) {
+        radio.power = false;
+    } else
+    if (decodedString.startsWith("RADIO")) {
+        QString antenna= decodedString.replace("RADIO","");
+        radio.antenna = antenna.toInt();
+        emit sigRadio(radio);
+    } else
+    if (decodedString.startsWith("AGCON")) {
+        radio.agc = true;
+    } else
+    if (decodedString.startsWith("AGCOFF")) {
+        radio.agc = false;
+    } else
+    if (decodedString.startsWith("VSCON")) {
+        radio.vsc = true;
+    } else
+    if (decodedString.startsWith("VSCOFF")) {
+        radio.vsc = false;
+    } else
+    if (decodedString.startsWith("FILTER")) {
+        QString filter = decodedString.replace("FILTER","");
+        if (filter == "230000") radio.filter = CCommand::e230k;
+        if (filter == "50000")  radio.filter = CCommand::e50k;
+        if (filter == "15000")  radio.filter = CCommand::e15k;
+        if (filter == "6000")   radio.filter = CCommand::e6k;
+        if (filter == "2800")  radio.filter = CCommand::e28k;
+    } else
+    if (decodedString.startsWith("FREQ")) {
+        QString frequency = decodedString.replace("FREQ","");
+        radio.frequency = frequency.toUInt();
+    } else
+    if (decodedString.startsWith("IF")) {
+        QString shift = decodedString.replace("IF","");
+        radio.ifshift = shift.toUInt();
+    } else
+    if (decodedString.startsWith("SQUELCH")) {
+        QString sq = decodedString.replace("SQUELCH","");
+        radio.squelch = sq.toUInt();
+    } else
+    if (decodedString.startsWith("MOD")) {
+        QString modulation = decodedString.replace("MOD","");
+        if (modulation == "WFM") radio.modulation = CCommand::eWFM;
+        if (modulation == "FM")  radio.modulation = CCommand::eFM;
+        if (modulation == "AM")  radio.modulation = CCommand::eAM;
+        if (modulation == "LSB") radio.modulation = CCommand::eLSB;
+        if (modulation == "USB") radio.modulation = CCommand::eUSB;
+        if (modulation == "CW")  radio.modulation = CCommand::eCW;
+    } else
+    if (decodedString.startsWith("NBON")) {
+        radio.nb = true;
+    } else
+    if (decodedString.startsWith("NBOFF")) {
+        radio.nb = false;
+    } else
+        found = false;
+    return found;
+}
+
+bool CRemoteControl::isBandscopeCommand(QString decodedString) {
+    bool found = true;
+    /* Bandscope */
+    if (decodedString.startsWith("BDSON")) {
+        bandscope.power = true;
+        emit sigBandScope(bandscope);
+    } else
+    if (decodedString.startsWith("BDSOFF")) {
+        bandscope.power = false;
+        emit sigBandScope(bandscope);
+    } else
+    if (decodedString.startsWith("BDSW")) {
+        QString width= decodedString.replace("BDSW","");
+        bandscope.width = width.toInt();
+        emit sigBandScope(bandscope);
+    } else
+    if (decodedString.startsWith("BDSS")) {
+        QString step= decodedString.replace("BDSS","");
+        bandscope.step = step.toInt();
+        emit sigBandScope(bandscope);
+    } else
+        found = false;
+    return found;
+}
+
+bool CRemoteControl::isDecoderCommand(QString decodedString) {
+    bool found = true;
+    if (decodedString.startsWith("CHAN")) {
+        QString value= decodedString.replace("CHAN","");
+        decoder.channel = value.toInt();
+        emit sigDecoder(decoder);
+    } else
+    if (decodedString.startsWith("DEC")) {
+        QString value= decodedString.replace("DEC","");
+        decoder.type = value.toInt();
+        emit sigDecoder(decoder);
+    } else
+    if (decodedString.startsWith("SFREQ")) {
+        QString frequency = decodedString.replace("SFREQ","");
+        decoder.frequency = frequency.toDouble();
+        emit sigDecoder(decoder);
+    } else
+    if (decodedString.startsWith("SFRQW")) {
+        QString width = decodedString.replace("SFRQW","");
+        decoder.bandwidth = width.toDouble();
+        emit sigDecoder(decoder);
+    } else
+        found = false;
+    return found;
 }

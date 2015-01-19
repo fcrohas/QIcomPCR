@@ -23,8 +23,8 @@
 #include <IDecoder.h>
 #include <math.h>
 #include <qdebug.h>
-#include <CWindowFunc.h>
-#include <CFir.h>
+#include <filter/CWindowFunc.h>
+#include <filter/CFir.h>
 #include <consts.h>
 
 #define STOPBITS 1.5

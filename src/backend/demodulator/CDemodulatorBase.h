@@ -1,20 +1,21 @@
-#ifndef IDEMODULATOR_H
-#define IDEMODULATOR_H
+#ifndef CDEMODULATORBASE_H
+#define CDEMODULATORBASE_H
 
 #include <QObject>
 #include <QMutex>
 #include "ISound.h"
+
 #ifdef WITH_SAMPLERATE
 #include <samplerate.h>
 #endif
 
-class IDemodulator : public QObject
+class CDemodulatorBase : public QObject
 {
     Q_OBJECT
 public:
     enum Mode { eLSB=0, eUSB=1, eAM=2, eCW=3, eUkn=4, eFM=5, eWFM=6};
-    explicit IDemodulator(QObject *parent = 0, IDemodulator::Mode mode = IDemodulator::eUkn);
-    ~IDemodulator();
+    explicit CDemodulatorBase(QObject *parent = 0, CDemodulatorBase::Mode mode = CDemodulatorBase::eUkn);
+    ~CDemodulatorBase();
     void setSoundDevice(ISound *device);
     void setData(int16_t *buffer,int len);
     void processSound(int16_t *buffer,int len);
@@ -30,6 +31,7 @@ public:
     int rms(int step);
     // MAD power
     int mad(int step);
+    //
     QMutex update;
 signals:
     void finished();
@@ -66,4 +68,4 @@ protected:
     int len;
 };
 
-#endif // IDEMODULATOR_H
+#endif // CDEMODULATORBASE_H

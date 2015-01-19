@@ -80,8 +80,8 @@ if(WITH_ICOMPCR)
 endif(WITH_ICOMPCR)
 
 if(WITH_RTLSDR)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CVirtualSound.h)
-    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CVirtualSound.cpp)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp)
     # NOMINMAX to avoid windows.h bug
     add_definitions(-DWITH_RTLSDR)
     if(WIN32)
@@ -131,10 +131,11 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/decoder/CMorse.cpp
     ${CMAKE_SOURCE_DIR}/src/decoder/CPogsag.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CAm.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/IDemodulator.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulatorBase.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFm.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CSsb.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulatorFactory.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.cpp
@@ -142,9 +143,9 @@ set(qicompcr_SRCS
     ${CMAKE_SOURCE_DIR}/src/backend/IDecoder.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/CFir.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/CIir.cpp
-    ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/filter/CFir.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/filter/CIir.cpp
+    ${CMAKE_SOURCE_DIR}/src/backend/filter/CWindowFunc.cpp
     ${CMAKE_SOURCE_DIR}/src/backend/CBackend.cpp
     ${qicompcr_SRCS}
 )
@@ -162,18 +163,19 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSoundStream.h
     ${CMAKE_SOURCE_DIR}/src/backend/CRemoteControl.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CAm.h
-    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/IDemodulator.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulatorBase.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFm.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CSsb.h
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulatorFactory.H
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.h
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.h
     ${CMAKE_SOURCE_DIR}/src/backend/IDecoder.h
     ${CMAKE_SOURCE_DIR}/src/backend/ISound.h
     ${CMAKE_SOURCE_DIR}/src/backend/CSettings.h
-    ${CMAKE_SOURCE_DIR}/src/backend/CFir.h
-    ${CMAKE_SOURCE_DIR}/src/backend/CIir.h
-    ${CMAKE_SOURCE_DIR}/src/backend/CWindowFunc.h
+    ${CMAKE_SOURCE_DIR}/src/backend/filter/CFir.h
+    ${CMAKE_SOURCE_DIR}/src/backend/filter/CIir.h
+    ${CMAKE_SOURCE_DIR}/src/backend/filter/CWindowFunc.h
     ${CMAKE_SOURCE_DIR}/src/backend/consts.h
     ${CMAKE_SOURCE_DIR}/src/backend/CBackend.h
     CApplication.h

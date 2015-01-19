@@ -216,6 +216,6 @@ void CRtlSdr::Demodulate() {
     QMetaObject::invokeMethod(demo, "doWork");
 }
 
-void CRtlSdr::setDemodulator(IDemodulator *value) {
+void CRtlSdr::setDemodulator(CDemodulatorBase *value) {
     demo = value;
 }

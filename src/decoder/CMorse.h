@@ -25,11 +25,11 @@
 #include <math.h>
 #define FIR
 #ifdef FIR
-#include <CFir.h>
+#include <filter/CFir.h>
 #else
-#include <CIir.h>
+#include <filter/CIir.h>
 #endif
-#include <CWindowFunc.h>
+#include <filter/CWindowFunc.h>
 #include <consts.h>
 
 // x is sample index and f frequency

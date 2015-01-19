@@ -38,25 +38,14 @@ CMainWindow *theMainWindow = 0;
 CMainWindow::CMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
-    ,sound(NULL),
-    bandscopeActivate(-1)
-
 {
     theMainWindow = this;
     ui->setupUi(this);
-    cmd = new CCommand(this);
-#ifdef WITH_PULSEAUDIO
-    sound  = new CPulseSound(this);
-#endif
-#ifdef WITH_PORTAUDIO
-    sound  = new CPortAudio(this,ISound::ePlay);
-    cmd->setSoundDevice(sound);
-#endif
-    dbgWin = new CDebugWindow(this,ui);
-    decoder = new CDecoder(this);
-    remote = new CRemoteControl(this);
-    settings =new CSettings(this);
+    // Build backend controler
+    backend = new CBackend();
 
+    // Build widgets UI
+    dbgWin = new CDebugWindow(this,ui);
     status = new CStatusWidget(this);
     display = new CDisplay(this);
     // Spectrum widget
@@ -80,10 +69,8 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->layoutFrequencies->addWidget(display);
     // Add two default radio struct
     for (int i=0; i<MAX_RADIO; i++) {
-        radioList.append(new CSettings::radio);
+        radioList.append(new CSettings::radio_t);
     }
-    // Connect sound with demodulator
-    sound->SetDecoder(decoder);
     connectSignals();
     mySpectrum->setAxis(0,16384,0,256);
     dock = addToolBar("File");
@@ -96,20 +83,14 @@ CMainWindow::CMainWindow(QWidget *parent) :
 CMainWindow::~CMainWindow()
 {
     saveSettings();
-    if (sound) {
-        sound->setRunning(false);
-        sound->terminate();
-        delete sound;
-        sound = NULL;
-    }
 }
 
 void CMainWindow::connectSignals()
 {
-    connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
+    //connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
     connect(ui->pushPower, SIGNAL(toggled(bool)), this, SLOT(powerOn(bool)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
-    connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
+    //connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     connect(ui->volume1, SIGNAL(valueChanged(double)), this,SLOT(slotVolume1(double)));
     //connect(ui->volume2, SIGNAL(valueChanged(double)), this,SLOT(slotVolume2(double)));
     connect(ui->knobSquelch,SIGNAL(valueChanged(double)), this, SLOT(slotSquelch(double)));
@@ -127,7 +108,7 @@ void CMainWindow::connectSignals()
     // Frequency
     connect( display, SIGNAL(frequencyChanged(QString)), this,SLOT(slotFrequency(QString)));
     connect( myBandScope, SIGNAL(frequencyChanged(QString)), this, SLOT(slotFrequency(QString)));
-    // Connect spectrum widget
+    /*// Connect spectrum widget
     connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
 
     // Connect Demodulator to debug windows
@@ -136,7 +117,7 @@ void CMainWindow::connectSignals()
     // Set threshold
     connect(ui->threshold, SIGNAL(valueChanged(int)), decoder, SLOT(slotThreshold(int)));
     connect(ui->correlationLength,SIGNAL(valueChanged(int)), decoder, SLOT(slotSetCorrelationLength(int)));
-
+    */
     // Connect Decoder
     connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
 
@@ -157,31 +138,15 @@ void CMainWindow::connectSignals()
     // Step size change
     connect(ui->pushStepUp,SIGNAL(clicked()), this, SLOT(slotStepUp()));
     connect(ui->pushStepDown,SIGNAL(clicked()), this, SLOT(slotStepDown()));
-
-    // Connect remote to event
-    connect(remote,SIGNAL(sigAutomaticGainControl(bool)), cmd, SLOT(setAutomaticGainControl(bool)));
-    connect(remote,SIGNAL(sigNoiseBlanker(bool)), cmd, SLOT(setNoiseBlanker(bool)));
-    connect(remote,SIGNAL(sigSoundMute(bool)), cmd, SLOT(setSoundMute(bool)));
-    connect(remote,SIGNAL(sigVoiceControl(bool)), cmd, SLOT(setVoiceControl(bool)));
-    connect(remote,SIGNAL(sigFilter(uint)), cmd, SLOT(setFilter(uint)));
-    connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
-    connect(remote,SIGNAL(sigIFShift(uint)), cmd, SLOT(setIFShift(uint)));
-    connect(remote,SIGNAL(sigPower(bool)), cmd, SLOT(setPower(bool)));
-    connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
-    connect(remote,SIGNAL(sigRadioMode(uint)), cmd, SLOT(setRadioMode(uint)));
-    connect(remote,SIGNAL(sigSoundVolume(uint)), cmd, SLOT(setSoundVolume(uint)));
-    connect(remote,SIGNAL(sigFrequency(uint)), cmd, SLOT(setFrequency(uint)));
-    connect(remote,SIGNAL(sigModulation(uint)), cmd, SLOT(setModulation(uint)));
-    connect(remote,SIGNAL(sigSquelch(uint)), cmd, SLOT(setSquelch(uint)));
+/*
     connect(remote,SIGNAL(sigChannel(int)), this, SLOT(slotChannelChange(int)));
     connect(remote,SIGNAL(sigDecoder(int)), this, SLOT(slotDecoderChange(int)));
-    connect(remote,SIGNAL(sigRadio(uint)), cmd, SLOT(setRadio(uint)));
-    connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
     connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
     connect(remote,SIGNAL(sigBandScope(bool)), this, SLOT(slotBandScope(bool)));
     connect(remote,SIGNAL(sigBandScopeWidth(int)), this, SLOT(slotBandScopeWidth(int)));
     connect(remote,SIGNAL(sigBandScopeStep(int)), this, SLOT(slotBandScopeStep(int)));
     connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
+*/
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
     connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
@@ -194,7 +159,8 @@ void CMainWindow::restoreSettings()
 {
     // restore radio saved values
     for (int i=0; i<MAX_RADIO; i++) {
-        CSettings::radio radio = settings->getRadio(i);
+/*
+        CSettings::radio_t radio = settings->getRadio(i);
         radioList[i]->frequency = radio.frequency;
         radioList[i]->step = radio.step;
         radioList[i]->IF = radio.IF;
@@ -220,6 +186,7 @@ void CMainWindow::restoreSettings()
         slotVSC(radio.vsc);
         slotAGC(radio.agc);
         slotVolume1(radio.volume);
+*/
     }
 }
 
@@ -227,29 +194,23 @@ void CMainWindow::saveSettings()
 {
     for (int i=0; i<MAX_RADIO; i++) {
         radioList[i]->step = display->getStep(i);
-        settings->setRadio(i,radioList[i]);
+        //settings->setRadio(i,radioList[i]);
     }
 }
 
 void CMainWindow::powerOn(bool value)
 {
     if (value) {
-        if (cmd->Open()) {
-            cmd->Initialize();
+            backend->setPower(value);
         } else ui->pushPower->setChecked(false);
         // Radio is powered on need to restoreprevious settings now
         restoreSettings();
-    } else {
-        cmd->Close();
-        // Radio is power off save settings now
-        saveSettings();
-    }
-    status->setState(cmd->getPower());
+    //status->setState(cmd->getPower());
 }
 
 void CMainWindow::slotSendData(QString &data)
 {
-    cmd->write(data);
+    //cmd->write(data);
 }
 
 void CMainWindow::slotUpdateStatus()
@@ -308,8 +269,8 @@ void CMainWindow::slotReceivedData(QString data)
 
     // Update status bar
     QString info("Data sent %1 %3bytes and received %2 %4bytes");
-    int received = cmd->getReadCount();
-    int sent       = cmd->getSendCount();
+    int received = 0; //cmd->getReadCount();
+    int sent       = 0; //cmd->getSendCount();
     QString receiveUnit("");
     QString sentUnit("");
     if (received > 9999)   { received = received / 1000.0; receiveUnit = "k"; }
@@ -328,8 +289,8 @@ void CMainWindow::slotReceivedData(QString data)
 void CMainWindow::slotVolume1(double value)
 {
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setSoundVolume(value);
+    //cmd->setRadio(current);
+    //cmd->setSoundVolume(value);
     ui->volume1->setValue(value);
     radioList[current]->volume = value;
     // Save to radio struct
@@ -338,8 +299,8 @@ void CMainWindow::slotVolume1(double value)
 void CMainWindow::slotSquelch(double value)
 {
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setSquelch(value);
+    //cmd->setRadio(current);
+    //cmd->setSquelch(value);
     ui->knobSquelch->setValue(value);
     // save to radio
     radioList[current]->squelch = value;
@@ -348,8 +309,8 @@ void CMainWindow::slotSquelch(double value)
 void CMainWindow::slotIF(double value)
 {
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setIFShift(value);
+    //cmd->setRadio(current);
+    //cmd->setIFShift(value);
     display->setIF(value);
     ui->knobIF->setValue(value);
     // save to radio
@@ -360,8 +321,8 @@ void CMainWindow::slotFrequency(QString value)
 {
     if (value != "") {
         int current = display->getRadio();
-        cmd->setRadio(current);
-        cmd->setFrequency(value.toInt());
+        //cmd->setRadio(current);
+        //cmd->setFrequency(value.toInt());
 
         // Set bandscope central frequency only on corerct entry
         if (current == bandscopeActivate)
@@ -393,8 +354,8 @@ void CMainWindow::slotFilter(int filter)
     qDebug() << "Filter " << filter;
     // Convert buttongroup to enum value
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setFilter((CCommand::filter)filter);
+    //cmd->setRadio(current);
+    //cmd->setFilter((CCommand::filter)filter);
     display->setFilter((CCommand::filter)filter);
     // save to radio
     radioList[current]->filter = (CCommand::filter)filter;
@@ -408,8 +369,8 @@ void CMainWindow::slotModulation(int mode)
     qDebug() << "Modulation " << mode;
     // Convert buttongroup to enum value
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setModulation((CCommand::mode)mode);
+    //cmd->setRadio(current);
+    //cmd->setModulation((CCommand::mode)mode);
     display->setMode((CCommand::mode)mode);
     // save to radio
     radioList[current]->mode = (CCommand::filter)mode;
@@ -428,45 +389,14 @@ void CMainWindow::slotRadioClicked(int value)
 
 void CMainWindow::slotSwitchSound(bool value)
 {
-#if defined(WITH_SNDFILE) || defined(WITH_PORTAUDIO) || defined(WITH_PULSEAUDIO)
-    if (value == true) {
-        if (sound == NULL) {
-#ifdef WITH_PULSEAUDIO
-            sound  = new CPulseSound(this);
-#endif
-#ifdef WITH_PORTAUDIO
-            sound  = new CPortAudio(this,ISound::eRecord);
-            cmd->setSoundDevice(sound);
-#endif
-        }
-        // Restore sound settings
-        CSettings::global *params = new CSettings::global();
-        settings->getGlobal(params);
-        qDebug() << "sound input " << params->inputDevice;
-        sound->selectInputDevice(params->inputDevice);
-        qDebug() << "sound output " << params->outputDevice;
-        sound->selectOutputDevice(params->outputDevice);
-        delete params;
-        sound->SetDecoder(decoder);
-        decoder->initBuffer(32768);
-        sound->setRunning(true);
-        sound->start();
-    }
-    else {
-        sound->setRunning(false);
-        sound->terminate();
-        sound->wait();
-        //delete sound;
-        //sound = NULL;
-    }
-#endif
+
 }
 
 void CMainWindow::slotNoiseBlanker(bool value)
 {
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setNoiseBlanker(value);
+    //cmd->setRadio(current);
+    //cmd->setNoiseBlanker(value);
     ui->pushNoiseBlanker->setChecked(value);
     // save to radio
     radioList[current]->nb = value;
@@ -475,8 +405,8 @@ void CMainWindow::slotNoiseBlanker(bool value)
 void CMainWindow::slotAGC(bool value)
 {
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setAutomaticGainControl(value);
+    //cmd->setRadio(current);
+    //cmd->setAutomaticGainControl(value);
     ui->pushAGC->setChecked(value);
     // save to radio
     radioList[current]->agc = value;
@@ -485,8 +415,8 @@ void CMainWindow::slotAGC(bool value)
 void CMainWindow::slotVSC(bool value)
 {
     int current = display->getRadio();
-    cmd->setRadio(current);
-    cmd->setVoiceControl(value);
+    //cmd->setRadio(current);
+    //cmd->setVoiceControl(value);
     ui->pushVSC->setChecked(value);
     // save to radio
     radioList[current]->vsc = value;
@@ -567,7 +497,7 @@ void CMainWindow::slotLoadFile()
     // File dialog chooser
     QString fileName = QFileDialog::getOpenFileName(this,
          tr("Open Sound"), QDir::homePath(), tr("Sound Files (*.wav *.flac *.au *.voc *.ogg)"));
-#ifdef WITH_SNDFILE
+#ifdef WITH_SNDFILE1
     if (!fileName.isEmpty()) {
         // Close sound card reader
         if (sound) {
@@ -587,34 +517,7 @@ void CMainWindow::slotLoadFile()
 
 void CMainWindow::slotStopPlay(bool value)
 {
-    if (value == true) {
-#ifdef WITH_PULSEAUDIO
-        sound  = new CPulseSound(this);
-#endif
-#ifdef WITH_PORTAUDIO
-        sound  = new CPortAudio(this,ISound::ePlay);
-        cmd->setSoundDevice(sound);
-#endif
-        CSettings::global *params = new CSettings::global();
-        settings->getGlobal(params);
-        qDebug() << "sound input " << params->inputDevice;
-        sound->selectInputDevice(params->inputDevice);
-        qDebug() << "sound output " << params->outputDevice;
-        sound->selectOutputDevice(params->outputDevice);
-        sound->SetDecoder(decoder);
-        decoder->initBuffer(32768);
-        //sound->start();
-        sound->setRunning(true);
-        connect(remote,SIGNAL(sigRadio(uint)), sound, SLOT(setChannel(uint)));
-        sound->Initialize();
-        delete params;
-    } else {
-        sound->setRunning(false);
-        sleep(5);
-        sound->terminate();
-        //delete sound;
-        //sound = NULL;
-    }
+
 }
 
 void CMainWindow::slotWindowFunction(QString value)
@@ -628,20 +531,20 @@ void CMainWindow::slotWindowFunction(QString value)
 
 void CMainWindow::slotRecordAudio(bool value)
 {
-    if (sound != NULL)  {
+    //if (sound != NULL)  {
         if (value == true) {
             // File dialog chooser
             QString fileName = QFileDialog::getSaveFileName(this,
                  tr("Record Sound"), QDir::homePath(), tr("Sound Files (*.wav)"));
             if (!fileName.isEmpty()) {
                 fileName = fileName.append(".wav");
-                sound->Record(fileName, true);
+                //sound->Record(fileName, true);
             }
         } else {
             QString fileName("");
-            sound->Record(fileName, false);
+            //sound->Record(fileName, false);
         }
-    }
+    //}
 }
 
 void CMainWindow::slotRefreshRate(int value)
@@ -654,10 +557,10 @@ void CMainWindow::slotBandScope(bool value)
 
     if (value) {
         bandscopeActivate = display->getRadio();
-        cmd->setBandScope((CCommand::radioA)bandscopeActivate,04,true);
+        //cmd->setBandScope((CCommand::radioA)bandscopeActivate,04,true);
     } else {
         bandscopeActivate = -1;
-        cmd->setBandScope(CCommand::eRadio1,04,false);
+        //cmd->setBandScope(CCommand::eRadio1,04,false);
     }
 }
 
@@ -665,24 +568,26 @@ void CMainWindow::slotBandScopeWidth(int value)
 {
     qDebug() << "Band Scope Width "<< value;
     myBandScope->setBandWidth(bandwidth[value]);
-    cmd->setBandScopeWidth(bandwidth[value]);
+    //cmd->setBandScopeWidth(bandwidth[value]);
 }
 
 void CMainWindow::slotBandScopeStep(int value)
 {
     qDebug() << "Band Scope Step "<< value;
     myBandScope->setStep(stepsize[value]);
-    cmd->setBandScopeStep(stepsize[value]);
+    //cmd->setBandScopeStep(stepsize[value]);
 }
 
 void CMainWindow::slotSettings()
 {
+    /*
     CDlgSettings *dlgparam = new CDlgSettings(this, settings);
     dlgparam->addInputSoundDevices(sound->getDeviceList());
     dlgparam->addOutputSoundDevices(sound->getDeviceList());
     dlgparam->initialize();
     dlgparam->exec();
     delete dlgparam;
+    */
 }
 
 void CMainWindow::slotThreshold(double threshold)

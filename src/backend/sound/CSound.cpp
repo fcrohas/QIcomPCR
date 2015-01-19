@@ -18,8 +18,20 @@
 **********************************************************************************************/
 #include "CSound.h"
 
-CSound::CSound(QObject *parent) :
-    ISound(parent)
-{
+ISound *CSound::Builder(SoundType type) {
+    ISound *sound = NULL;
+    // Build factory
+    switch(type) {
+#ifdef WITH_SNDFILE
+        case eFile : return sound = new CSoundFile(); break;
+#endif
+#ifdef WITH_PORTAUDIO
+        case ePortAudio : return sound = new CPortAudio(); break;
+#endif
+#ifdef WITH_PULSEAUDIO
+        case ePulse : return new CPulseAudio();  break;
+#endif
+        case eStream : return sound = new CSoundStream(); break;
+    }
+    return sound;
 }
-

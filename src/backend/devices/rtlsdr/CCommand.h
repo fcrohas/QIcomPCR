@@ -4,10 +4,8 @@
 #include <QObject>
 #include <QTimer>
 #include <CRtlSdr.h>
-#include <IDemodulator.h>
-#include "CAm.h"
-#include "CFm.h"
-#include "CSsb.h"
+#include <CDemodulatorBase.h>
+#include <CDemodulatorFactory.h>
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -21,6 +19,33 @@ class CCommand : public QObject
     Q_OBJECT
 public:
     explicit CCommand(QObject *parent = 0);
+
+    // Radio settings per antenna
+    struct radio_t {
+        uint antenna;
+        uint frequency; // eg. 0106500000 for 106.5 Mhz padding is needed
+        uint mode; // enum mode
+        uint modulation;
+        uint filter; // enum filter
+        uint ifshift; // 00=min deviation, FF=max deviation
+        uint squelch; // 00=min deviation, FF=max deviation
+        bool agc; // false=off ,true=on
+        bool nb; // Noise blanker
+        bool vsc;
+        bool mute;
+        bool power;
+        uint volume;
+        CDemodulatorBase *demodulator;
+    };
+
+    struct bandscope_t {
+        bandscope_t() : width(1024000),step(25000),power(false) {}
+        int width;
+        int step;
+        int samplewidth;
+        int refresh;
+        bool power;
+    };
 
     // Power command
     bool getPower();
@@ -61,6 +86,12 @@ signals:
     void sigSetFilter(uint frequency);
 
 public slots:
+    // Radio slot
+    void setRadio(CCommand::radio_t radio);
+
+    // bandscope slot
+    void setBandscope(CCommand::bandscope_t bandscope);
+
     // Power command
     void setPower(bool value);
 
@@ -121,9 +152,6 @@ public slots:
     long getSendCount();
 
     // Bandscope function
-    void setBandScope(radioA antenna,int refresh, bool power);
-    void setBandScopeWidth(int value);
-    void setBandScopeStep(int value);
     void setToneSquelch(uint value);
     void setDTCS(uint value);
     void setSoundDevice(ISound *sound);
@@ -134,26 +162,12 @@ private slots:
     void getSNR();
 
 private:
-    // Radio currently working on
-    uint radio; // enum radio
 
-    // Radio settings per antenna
-    struct settings_t {
-        uint frequency; // eg. 0106500000 for 106.5 Mhz padding is needed
-        uint mode; // enum mode
-        uint modulation;
-        uint filter; // enum filter
-        uint ifshift; // 00=min deviation, FF=max deviation
-        uint squelch; // 00=min deviation, FF=max deviation
-        bool agc; // false=off ,true=on
-        bool nb; // Noise blanker
-        bool vsc;
-        uint volume;
-        IDemodulator *demodulator;
-    };
-    settings_t *currentRadio;
+    // Radio currently working on
+    int radio;
+    radio_t *currentRadio;
     // List of radio antenna settings
-    QList<settings_t*> *radioList;
+    QList<radio_t*> *radioList;
 
     // Power state
     bool power;
@@ -162,10 +176,7 @@ private:
     uint radiomode; // 0=both, 1=single, 2=diversity
 
     // BandScope
-    int samplewidth;
-    int scopewidth;
-    int stepsize;
-    int scoperefresh;
+    bandscope_t bandscope;
     int polarity;
     int reverse;
     bool scopepower;

@@ -2,15 +2,15 @@
 #define CAM_H
 
 #include <QObject>
-#include <IDemodulator.h>
-#include "CFir.h"
-#include "CWindowFunc.h"
+#include <CDemodulatorBase.h>
+#include "filter/CFir.h"
+#include "filter/CWindowFunc.h"
 
-class CAm : public IDemodulator
+class CAm : public CDemodulatorBase
 {
     Q_OBJECT
 public:
-    explicit CAm(QObject *parent = 0, IDemodulator::Mode mode = IDemodulator::eAM);
+    explicit CAm(QObject *parent = 0, CDemodulatorBase::Mode mode = CDemodulatorBase::eAM);
 
 signals:
 

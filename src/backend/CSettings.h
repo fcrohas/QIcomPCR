@@ -31,7 +31,7 @@ public:
     void reload();
     void save();
 
-    struct radio {
+    struct radio_t {
         int frequency;
         int step;
         int filter;
@@ -44,10 +44,11 @@ public:
         int volume;
     };
 
-    struct sound {
+    struct sound_t {
         int volume;
         bool soundcard;
         bool activated;
+        bool mute;
     };
 
     struct global {
@@ -58,11 +59,11 @@ public:
         int fftSize;
     };
 
-    radio getRadio(int value);
-    void setRadio(int radionum, radio *value);
+    radio_t getRadio(int value);
+    void setRadio(int radionum, radio_t *value);
 
-    sound getSound(int value);
-    void setSound(int radionum, sound *value);
+    sound_t getSound(int value);
+    void setSound(int radionum, sound_t *value);
 
     void getGlobal(global *value);
     void setGlobal(global *value);

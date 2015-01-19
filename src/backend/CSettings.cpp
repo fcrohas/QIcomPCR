@@ -24,9 +24,9 @@ CSettings::CSettings(QObject *parent) :
 
 }
 
-CSettings::radio CSettings::getRadio(int value)
+CSettings::radio_t CSettings::getRadio(int value)
 {
-    radio current;
+    radio_t current;
     beginGroup(QString("Radio/Antenna%1").arg(value));
     current.frequency = this->value("Frequency", 106500000).toInt(); // RTS FM
     current.filter = this->value("Filter", CCommand::e230k).toInt(); // WFM Filter
@@ -42,7 +42,7 @@ CSettings::radio CSettings::getRadio(int value)
     return current;
 }
 
-void CSettings::setRadio(int radionum,CSettings::radio *value)
+void CSettings::setRadio(int radionum,CSettings::radio_t *value)
 {
     beginGroup(QString("Radio/Antenna%1").arg(radionum));
     this->setValue("Frequency",value->frequency);
@@ -58,9 +58,9 @@ void CSettings::setRadio(int radionum,CSettings::radio *value)
     endGroup();
 }
 
-CSettings::sound CSettings::getSound(int value)
+CSettings::sound_t CSettings::getSound(int value)
 {
-    sound current;
+    sound_t current;
     beginGroup(QString("Sound/Channel%1").arg(value));
     current.volume = this->value("Volume", 15).toInt(); // Volume
     current.soundcard = this->value("SoundOnPC", false).toBool(); // Volume
@@ -69,7 +69,7 @@ CSettings::sound CSettings::getSound(int value)
     return current;
 }
 
-void CSettings::setSound(int radionum, CSettings::sound *value)
+void CSettings::setSound(int radionum, sound_t *value)
 {
     beginGroup(QString("Sound/Channel%1").arg(radionum));
     this->setValue("Volume",value->volume);

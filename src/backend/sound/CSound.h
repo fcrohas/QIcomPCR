@@ -20,13 +20,23 @@
 #define CSOUND_H
 
 #include <ISound.h>
+#ifdef WITH_SNDFILE
+#include <CSoundFile.h>
+#endif
+#ifdef WITH_PORTAUDIO
+#include <CPortAudio.h>
+#endif
+#ifdef WITH_PULSEAUDIO
+#include <CPulseAudio.h>
+#endif
+#include <CSoundStream.h>
 
-class CSound : public ISound
+class CSound : public QObject
 {
     Q_OBJECT
 public:
-    explicit CSound(QObject *parent = 0);
-    
+    enum SoundType { ePulse=0, ePortAudio=1, eFile=2, eStream=3};
+    static ISound *Builder(SoundType type);
 signals:
     
 public slots:

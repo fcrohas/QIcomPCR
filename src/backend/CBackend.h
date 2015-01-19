@@ -21,17 +21,57 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #define CBACKEND_H
 
 #include <QObject>
+#include <CSound.h>
+#include <CDecoder.h>
+#include <CCommand.h>
+#include <CSettings.h>
+#include <CRemoteControl.h>
 
 class CBackend : public QObject
 {
     Q_OBJECT
 public:
     explicit CBackend(QObject *parent = 0);
-    
+    ~CBackend();
+    void initializeRemote();
+    void initializeDecoders();
+    // Settings load/save
+    void restoreSettings();
+    void saveSettings();
+
 signals:
     
 public slots:
-    
+    // Power device
+    void setPower(bool value);
+    // Bandscope properties setter/getter
+    void setBandscopeProperties(CCommand::bandscope_t scope);
+    CCommand::bandscope_t getBandscopeProperties();
+    // Decoder setter/getter
+    void setDecoder(CDecoder::decoder_t decoder);
+    CDecoder::decoder_t getDecoder();
+    // Radio setter/getter
+    void setRadio(CCommand::radio_t radio);
+    CCommand::radio_t getRadio();
+
+private:
+    // Sound control
+    ISound *sound;
+    // Decoders
+    CDecoder *decoders;
+    // Device control
+    CCommand *cmd;
+    // Settings class loader
+    CSettings *settings;
+    // Remote controler command
+    CRemoteControl *remote;
+    // radio struct
+    CCommand::radio_t radio;
+    // bandscope struct
+    CCommand::bandscope_t bandscope;
+    // decoder struct
+    CDecoder::decoder_t decoder;
+
 };
 
 #endif // CBACKEND_H

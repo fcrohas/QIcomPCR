@@ -1,7 +1,7 @@
 #include "CAm.h"
 
 CAm::CAm(QObject *parent, Mode mode) :
-    IDemodulator(parent)
+    CDemodulatorBase(parent)
 {
     // Build Bandpass filter
     winfunc = new CWindowFunc(this);
@@ -18,7 +18,7 @@ void CAm::doWork() {
     update.lock();
     int i, pcm;
     // First downsample
-    len = IDemodulator::downsample(buffer,len, decimation);
+    len = CDemodulatorBase::downsample(buffer,len, decimation);
     // Do demodulation
     for (i = 0; i < len; i += 2) {
         // hypot uses floats but won't overflow
@@ -33,13 +33,13 @@ void CAm::doWork() {
     // apply filter
     filter->apply(buffer, len);
     // Apply audio filter
-    len = IDemodulator::resample(buffer,len,intfreq);
-    IDemodulator::processSound(buffer,len);
+    len = CDemodulatorBase::resample(buffer,len,intfreq);
+    CDemodulatorBase::processSound(buffer,len);
     update.unlock();
 }
 
 void CAm::slotSetFilter(uint frequency) {
-    IDemodulator::slotSetFilter(frequency);
+    CDemodulatorBase::slotSetFilter(frequency);
     if (filter != NULL) {
         filter->setSampleRate(22050);
         filter->lowpass(frequency);

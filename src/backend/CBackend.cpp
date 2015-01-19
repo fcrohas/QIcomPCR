@@ -22,4 +22,108 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 CBackend::CBackend(QObject *parent) :
     QObject(parent)
 {
+    // Install sound device
+    sound = CSound::Builder(CSound::ePortAudio);
+    // Install Decoder
+    decoders = new CDecoder(this);
+    // Install Radio device
+    cmd = new CCommand(this);
+    // Remote control TCP/IP
+    remote = new CRemoteControl(this);
+    // Settings load/save
+    settings =new CSettings(this);
+    // Initialize step
+    initializeRemote();
+    // Restore settings
+    restoreSettings();
+}
+
+CBackend::~CBackend() {
+    // Shutdown device
+    setPower(false);
+    // Save settings
+    saveSettings();
+    // Free
+    delete sound;
+    delete decoders;
+    delete remote;
+    delete settings;
+    delete cmd;
+}
+
+void CBackend::initializeRemote() {
+    // Connect remote to radio device event
+    connect(remote,SIGNAL(sigRadio(CCommand::radio_t)), cmd, SLOT(setRadio(CCommand::radio_t)));
+    // Connect remote to bandscope event
+    connect(remote,SIGNAL(sigBandScope(CCommand::bandscope_t)), cmd, SLOT(setBandscope(CCommand::bandscope_t)));
+    // Connect remote to decoder event
+    connect(remote,SIGNAL(sigDecoder(CDecoder::decoder_t)), decoders, SLOT(setDecoder(CDecoder::decoder_t)));
+    // Connect sound event
+    connect(remote,SIGNAL(sigSoundMute(bool)), cmd, SLOT(setSoundMute(bool)));
+    connect(remote,SIGNAL(sigSoundVolume(uint)), cmd, SLOT(setSoundVolume(uint)));
+    // Control remote
+    connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(setPower(bool)));
+}
+
+void CBackend::initializeDecoders() {
+    // Send decoder event to remote control
+    connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
+    // Connect Demodulator to debug windows
+    connect(decoders,SIGNAL(sendData(QString)),this,SLOT(setDemodulatorData(QString)));
+    // Connect spectrum widget
+    //connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
+
+
+}
+
+void CBackend::restoreSettings() {
+
+}
+
+void CBackend::saveSettings() {
+
+}
+
+void CBackend::setPower(bool value) {
+    if (value) {
+        if (cmd->Open()) {
+            cmd->Initialize();
+        }
+        // Radio is powered on need to restoreprevious settings now
+        restoreSettings();
+    } else {
+        cmd->Close();
+        // Radio is power off save settings now
+        saveSettings();
+    }
+}
+
+// Bandscope properties
+void CBackend::setBandscopeProperties(CCommand::bandscope_t scope) {
+    this->bandscope = scope;
+    cmd->setBandscope(scope);
+}
+
+CCommand::bandscope_t CBackend::getBandscopeProperties() {
+    return this->bandscope;
+}
+
+// Decoder properties
+void CBackend::setDecoder(CDecoder::decoder_t decoder) {
+    this->decoder = decoder;
+    //decoder.setDecoder(decoder);
+}
+
+CDecoder::decoder_t CBackend::getDecoder() {
+    return this->decoder;
+}
+
+// Radio properties
+void CBackend::setRadio(CCommand::radio_t radio) {
+    this->radio = radio;
+    cmd->setRadio(radio);
+}
+
+CCommand::radio_t CBackend::getRadio() {
+    return this->radio;
 }

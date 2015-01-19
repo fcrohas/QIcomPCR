@@ -4,26 +4,22 @@
 CCommand::CCommand(QObject *parent) :
     QObject(parent),
     m_device(NULL),
-    stepsize(100000),
-    scopewidth(5000000),
     polarity(0),
     reverse(0),
     sound(NULL),
     demoThread(NULL)
 {
     // Initialize radio struct
-    radioList = new QList<settings_t*>();
-    currentRadio = new settings_t;
+    radioList = new QList<radio_t*>();
+    currentRadio = new radio_t;
     // Add two radio entry in list
-    radioList->append(new settings_t);
-    radioList->append(new settings_t);
+    radioList->append(new radio_t);
+    radioList->append(new radio_t);
 
     // Init serial connection object
     m_device = new CRtlSdr(this);
     connect(m_device, SIGNAL(sigData(QString)), this, SLOT(slotReceivedData(QString)));
 
-    // Initialize sample width
-    samplewidth = scopewidth / stepsize;
     /// Demodulator
     currentRadio->demodulator = NULL;
 
@@ -86,25 +82,8 @@ uint CCommand::getSquelch()
 // At this time, only set to device on frequency set
 void CCommand::setModulation(uint value)
 {
-    /*if (currentRadio->demodulator != NULL) {
-        //disconnect(SIGNAL(sigSetFilter(uint)), currentRadio->demodulator);
-        if (demoThread!=NULL) {
-            demoThread->terminate();
-            delete demoThread;
-        }
-        //demo->update.unlock();
-        delete currentRadio->demodulator;
-        currentRadio->demodulator = NULL;
-    }*/
-
     currentRadio->modulation = value;
-    switch(value) {
-        case eFM : currentRadio->demodulator = new CFm(NULL,IDemodulator::eFM); break;
-        case eAM : currentRadio->demodulator = new CAm(NULL,IDemodulator::eAM); break;
-        case eWFM : currentRadio->demodulator = new CFm(NULL,IDemodulator::eWFM); break;
-        case eLSB : currentRadio->demodulator = new CSsb(NULL,IDemodulator::eLSB); break;
-        case eUSB : currentRadio->demodulator = new CSsb(NULL,IDemodulator::eUSB); break;
-    }
+    currentRadio->demodulator = CDemodulatorFactory::Builder((CDemodulatorBase::Mode)value);
     if (currentRadio->demodulator != NULL) {
         // set current SDR sampling rate
         currentRadio->demodulator->setSampleRate(RTLSDR_SAMPLE_RATE);
@@ -135,9 +114,6 @@ void CCommand::setFilter(uint value)
     currentRadio->filter = value;
     // send new filter value
     emit sigSetFilter(value);
-    //demo->slotSetFilter(value);
-    // Once filter is set call back frequency
-    //setFrequency(currentRadio->frequency);
 }
 
 void CCommand::setRadio(uint value)
@@ -322,29 +298,6 @@ long CCommand::getSendCount()
     return m_device->log_t.dataSent;
 }
 
-void CCommand::setBandScope(radioA antenna, int refresh, bool power)
-{
-    QString data("ME0000%1%2%3%4%5");
-    //qDebug() << "Band scope change " << QString("%1").arg(samplewidth, 2, 16, QChar('0')) << " step size " << QString("%1").arg(stepsize, 8, 10, QChar('0'));
-    data = data.arg(antenna+1).arg(samplewidth, 2, 16, QChar('0')).arg(refresh, 2, 16, QChar('0')).arg(power, 2, 16, QChar('0')).arg(stepsize, 8, 10, QChar('0'));
-    scopepower = power;
-    scoperefresh = refresh;
-    emit sendData(data);
-}
-
-void CCommand::setBandScopeWidth(int value)
-{
-    scopewidth = value;
-    samplewidth = scopewidth / stepsize;
-    setBandScope((radioA)radio, scoperefresh, scopepower);
-}
-
-void CCommand::setBandScopeStep(int value)
-{
-    stepsize= value;
-    setBandScope((radioA)radio, scoperefresh, scopepower);
-}
-
 uint CCommand::getSoundVolume()
 {
     return currentRadio->volume;
@@ -362,4 +315,18 @@ void CCommand::slotSamplesRead(int16_t *buffer, int len) {
 void CCommand::getSNR() {
     //qDebug() << "SNR=" << QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')) << "\r\n";
     emit dataChanged(QString("I%1%2").arg((radio==0)?"1":"5").arg(currentRadio->demodulator->mad(2),2,16, QChar('0')));
+}
+
+void CCommand::setRadio(CCommand::radio_t radio) {
+
+}
+
+void CCommand::setBandscope(CCommand::bandscope_t bandscope) {
+    QString data("ME0000%1%2%3%4%5");
+    bandscope.samplewidth = bandscope.width / bandscope.step;
+    data = data.arg(currentRadio->antenna +1).arg(bandscope.samplewidth, 2, 16, QChar('0'))
+                                     .arg(bandscope.refresh, 2, 16, QChar('0'))
+                                     .arg(bandscope.power, 2, 16, QChar('0'))
+                                     .arg(bandscope.step, 8, 10, QChar('0'));
+    emit sendData(data);
 }

@@ -45,6 +45,9 @@ class CRemoteControl: public QObject
       QTime time;
       bool connected;
       double *avg;
+      CCommand::bandscope_t bandscope;
+      CCommand::radio_t radio;
+      CDecoder::decoder_t decoder;
 
       struct datastream_t {
           datastream_t() : refreshRate(0.0), enabled(false), low(0), high(0) {}
@@ -54,63 +57,28 @@ class CRemoteControl: public QObject
           int high;
       };
       datastream_t datastream;
+      bool isRadioCommand(QString decodedString);
+      bool isDecoderCommand(QString decodedString);
+      bool isBandscopeCommand(QString decodedString);
 
     signals:
       void command(QString &value);
 
+      // Radio
+      void sigRadio(CCommand::radio_t radio);
+
       // Init device
       void sigInitialize(bool);
 
-      // Power command
-      void sigPower(bool value);
-
-      // Set frequency
-      void sigFrequency(uint value);
-
-      // Set frequency modulation
-      void sigModulation(uint value);
-
-      // set Automatic Gain Control Mode
-      void sigAutomaticGainControl(bool value);
-
-      // set Noise Blanker
-      void sigNoiseBlanker(bool value);
-
-      // Set Antenna
-      void sigRadio(uint value);
-
-      // Set Filter
-      void sigFilter(uint value);
-
-      // Set IFShift
-      void sigIFShift(uint value);
-
-      // set Voice Control
-      void sigVoiceControl(bool value);
-
-      // set Radio mode
-      void sigRadioMode(uint value);
-
       // Bandscope mode
-      void sigBandScope(bool value);
-      void sigBandScopeWidth(int value);
-      void sigBandScopeStep(int value);
+      void sigBandScope(CCommand::bandscope_t bandscope);
 
       // set Sound Output
       void sigSoundVolume(uint value);
       void sigSoundMute(bool value);
 
-      // set Squelch
-      void sigSquelch(uint value);
-
-      // Frequency
-      void sigSelectFrequency(double value);
-      void sigSelectBandwidth(double value);
-
-      // Frequency
-      void sigChannel(int value);
-      void sigDecoder(int value);
-
+      // Decoder
+      void sigDecoder(CDecoder::decoder_t decoder);
 };
 
 #endif // CREMOTECONTROL_H

@@ -20,7 +20,7 @@
 
 
 CSoundStream::CSoundStream(QObject *parent) :
-    QObject(parent),
+    ISound(parent),
     client(NULL),
     frame_size(0),
     offset(1),

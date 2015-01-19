@@ -45,6 +45,12 @@ public:
     enum scopeType {time=0, fft=1, waterfall=2};
     void setScopeType(uint scope);
     IDecoder* getDemodulatorFromChannel(int channel);
+    struct decoder_t {
+        uint frequency;
+        uint bandwidth;
+        uint type;
+        uint channel;
+    } decoder;
 
 signals:
     void sigRawSamples(double *xval, double *yval, int size);
@@ -52,6 +58,7 @@ signals:
 
 public slots:
     //void slotDataBuffer(int16_t *buffer, int size);
+    void setDecoder(CDecoder::decoder_t decoder);
     void doWork();
     void slotSendData(QString data);
     void slotSetDemodulator(uint demod, uint channel, uint bufferSize);
