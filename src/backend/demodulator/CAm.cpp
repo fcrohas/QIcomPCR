@@ -1,7 +1,8 @@
 #include "CAm.h"
 
 CAm::CAm(QObject *parent, Mode mode) :
-    CDemodulatorBase(parent)
+    CDemodulatorBase(parent),
+    filter(NULL)
 {
     // Build Bandpass filter
     winfunc = new CWindowFunc(this);

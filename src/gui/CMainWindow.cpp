@@ -46,7 +46,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
 
     // Build widgets UI
     dbgWin = new CDebugWindow(this,ui);
-    status = new CStatusWidget(this);
+    statusbar = new CStatusWidget(this);
     display = new CDisplay(this);
     // Spectrum widget
     mySpectrum = new CSpectrumWidget(this);
@@ -60,7 +60,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->DumpView->addWidget(myDecoder);
     // Decoder text
     ui->decoderText->setReadOnly(true);
-    statusBar()->addPermanentWidget(status);
+    statusBar()->addPermanentWidget(statusbar);
 
     // Set Squelch max
     ui->knobSquelch->setScale(0.0,255.0);
@@ -69,7 +69,7 @@ CMainWindow::CMainWindow(QWidget *parent) :
     ui->layoutFrequencies->addWidget(display);
     // Add two default radio struct
     for (int i=0; i<MAX_RADIO; i++) {
-        radioList.append(new CSettings::radio_t);
+        radioList.append(new CCommand::radio_t);
     }
     connectSignals();
     mySpectrum->setAxis(0,16384,0,256);
@@ -87,6 +87,7 @@ CMainWindow::~CMainWindow()
 
 void CMainWindow::connectSignals()
 {
+    connect(backend,SIGNAL(sigStatus(CCommand::status_t)), this, SLOT(slotReceivedData(CCommand::status_t)));
     //connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
     connect(ui->pushPower, SIGNAL(toggled(bool)), this, SLOT(powerOn(bool)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
@@ -108,16 +109,11 @@ void CMainWindow::connectSignals()
     // Frequency
     connect( display, SIGNAL(frequencyChanged(QString)), this,SLOT(slotFrequency(QString)));
     connect( myBandScope, SIGNAL(frequencyChanged(QString)), this, SLOT(slotFrequency(QString)));
-    /*// Connect spectrum widget
-    connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
-
-    // Connect Demodulator to debug windows
-    connect(decoder,SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
 
     // Set threshold
-    connect(ui->threshold, SIGNAL(valueChanged(int)), decoder, SLOT(slotThreshold(int)));
-    connect(ui->correlationLength,SIGNAL(valueChanged(int)), decoder, SLOT(slotSetCorrelationLength(int)));
-    */
+    //connect(ui->threshold, SIGNAL(valueChanged(int)), decoder, SLOT(slotThreshold(int)));
+    //connect(ui->correlationLength,SIGNAL(valueChanged(int)), decoder, SLOT(slotSetCorrelationLength(int)));
+
     // Connect Decoder
     connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
 
@@ -138,15 +134,7 @@ void CMainWindow::connectSignals()
     // Step size change
     connect(ui->pushStepUp,SIGNAL(clicked()), this, SLOT(slotStepUp()));
     connect(ui->pushStepDown,SIGNAL(clicked()), this, SLOT(slotStepDown()));
-/*
-    connect(remote,SIGNAL(sigChannel(int)), this, SLOT(slotChannelChange(int)));
-    connect(remote,SIGNAL(sigDecoder(int)), this, SLOT(slotDecoderChange(int)));
-    connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(powerOn(bool)));
-    connect(remote,SIGNAL(sigBandScope(bool)), this, SLOT(slotBandScope(bool)));
-    connect(remote,SIGNAL(sigBandScopeWidth(int)), this, SLOT(slotBandScopeWidth(int)));
-    connect(remote,SIGNAL(sigBandScopeStep(int)), this, SLOT(slotBandScopeStep(int)));
-    connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
-*/
+
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
     connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
@@ -159,11 +147,11 @@ void CMainWindow::restoreSettings()
 {
     // restore radio saved values
     for (int i=0; i<MAX_RADIO; i++) {
-/*
-        CSettings::radio_t radio = settings->getRadio(i);
+
+        CCommand::radio_t radio = backend->getRadioSettings(i);
         radioList[i]->frequency = radio.frequency;
         radioList[i]->step = radio.step;
-        radioList[i]->IF = radio.IF;
+        radioList[i]->ifshift = radio.ifshift;
         radioList[i]->squelch = radio.squelch;
         radioList[i]->mode = radio.mode;
         radioList[i]->filter = radio.filter;
@@ -176,9 +164,8 @@ void CMainWindow::restoreSettings()
         display->setRadio(i);
         display->setStepFromValue(radio.step);
         // other device
-        cmd->setRadio(i);
         slotFrequency(QString("%1").arg(radio.frequency));
-        slotIF(radio.IF);
+        slotIF(radio.ifshift);
         slotSquelch(radio.squelch);
         slotFilter(radio.filter);
         slotModulation(radio.mode);
@@ -186,7 +173,6 @@ void CMainWindow::restoreSettings()
         slotVSC(radio.vsc);
         slotAGC(radio.agc);
         slotVolume1(radio.volume);
-*/
     }
 }
 
@@ -194,7 +180,7 @@ void CMainWindow::saveSettings()
 {
     for (int i=0; i<MAX_RADIO; i++) {
         radioList[i]->step = display->getStep(i);
-        //settings->setRadio(i,radioList[i]);
+        //backend->setRadio(i,radioList[i]);
     }
 }
 
@@ -205,7 +191,7 @@ void CMainWindow::powerOn(bool value)
         } else ui->pushPower->setChecked(false);
         // Radio is powered on need to restoreprevious settings now
         restoreSettings();
-    //status->setState(cmd->getPower());
+    statusbar->setState(backend->getPower());
 }
 
 void CMainWindow::slotSendData(QString &data)
@@ -216,61 +202,39 @@ void CMainWindow::slotSendData(QString &data)
 void CMainWindow::slotUpdateStatus()
 {
     //QString data("Data sent %1 bytes and received %2 bytes");
-    //status->slotUpdate(data.arg(cmd->getSendCount()).arg(cmd->getReadCount()));
+    //statusbar->slotUpdate(data.arg(cmd->getSendCount()).arg(cmd->getReadCount()));
 }
 
-void CMainWindow::slotReceivedData(QString data)
+void CMainWindow::slotReceivedData(CCommand::status_t status)
 {
     bool found = false;
-    // Signal antenne 1
-    if (data.contains("I1")) {
-        double value;
-        bool ok;
-        value = data.mid(data.indexOf("I1")+2,2).toUInt(&ok,16);
-        if ((ok) /* && (ui->radio1->isChecked())*/) {
-            display->setSignal(0,value);
-            remote->sendData(QString("@SA%1@").arg(value));
+    // Signal antenne
+    if (this->status.snr[0] != status.snr[0]) display->setSignal(0,status.snr[0]);
+    if (this->status.snr[1] != status.snr[1]) display->setSignal(1,status.snr[1]);
+    if (this->status.power  != status.power) {
+        if (status.power) {
+            statusBar()->showMessage(tr("Online"));
+        } else {
+            statusBar()->showMessage(tr("Offline"));
         }
-        found = true;
+        statusbar->setState(status.power);
     }
-    // Signal antenne 2
-    if (data.contains("I5")) {
-        double value;
-        bool ok;
-        value = data.mid(data.indexOf("I5")+2,2).toUInt(&ok,16);
-        if ((ok) /* && (ui->radio2->isChecked())*/) {
-            display->setSignal(1,value);
-            remote->sendData(QString("@SB%1@").arg(value));
-        }
-        found = true;
-    }
-    if (data.contains("H100")) {
-        statusBar()->showMessage(tr("Offline"));
-        status->setState(false);
-        remote->sendData(QString("@PWROFF@"));
-        found = true;
-    }
-    if (data.contains("H101")) {
-        statusBar()->showMessage(tr("Online"));
-        status->setState(true);
-        remote->sendData(QString("@PWRON@"));
-        found = true;
-    }
+    /*
     if (data.contains("NE")) {
         myBandScope->setSamples(data);
-        remote->sendData(QString("@BDS%1@").arg(data.replace("NE1","")));
+        //remote->sendData(QString("@BDS%1@").arg(data.replace("NE1","")));
         found = true;
     }
     if (!found) {
         dbgWin->slotDebugSerial(data);
-        remote->sendData(QString("@DBG\r\n%1@").arg(data));
+        //remote->sendData(QString("@DBG\r\n%1@").arg(data));
     }
-
+    */
 
     // Update status bar
     QString info("Data sent %1 %3bytes and received %2 %4bytes");
-    int received = 0; //cmd->getReadCount();
-    int sent       = 0; //cmd->getSendCount();
+    int received = status.readCount;
+    int sent       = status.sendCount;
     QString receiveUnit("");
     QString sentUnit("");
     if (received > 9999)   { received = received / 1000.0; receiveUnit = "k"; }
@@ -282,39 +246,36 @@ void CMainWindow::slotReceivedData(QString data)
     if (sent > 9999) { sent = sent / 1000.0; sentUnit = "G";}
 
 
-    status->slotUpdate(info.arg(sent).arg(received).arg(sentUnit).arg(receiveUnit));
+    statusbar->slotUpdate(info.arg(sent).arg(received).arg(sentUnit).arg(receiveUnit));
 
 }
 
 void CMainWindow::slotVolume1(double value)
 {
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setSoundVolume(value);
     ui->volume1->setValue(value);
     radioList[current]->volume = value;
+    backend->setRadio(*radioList[current]);
     // Save to radio struct
 }
 
 void CMainWindow::slotSquelch(double value)
 {
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setSquelch(value);
     ui->knobSquelch->setValue(value);
     // save to radio
     radioList[current]->squelch = value;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotIF(double value)
 {
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setIFShift(value);
     display->setIF(value);
     ui->knobIF->setValue(value);
     // save to radio
-    radioList[current]->IF = value;
+    radioList[current]->ifshift = value;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotFrequency(QString value)
@@ -331,6 +292,8 @@ void CMainWindow::slotFrequency(QString value)
         display->setFrequency(value.toInt());
         // save to radio
         radioList[current]->frequency = value.replace(".","").toInt();
+        // update frequency
+        backend->setRadio(*radioList[current]);
     }
 }
 
@@ -380,7 +343,7 @@ void CMainWindow::slotRadioClicked(int value)
 {
     // Update knob settings
     ui->knobSquelch->setValue(radioList[value]->squelch);
-    ui->knobIF->setValue(radioList[value]->IF);
+    ui->knobIF->setValue(radioList[value]->ifshift);
     ui->pushNoiseBlanker->setChecked(radioList[value]->nb);
     ui->pushVSC->setChecked(radioList[value]->vsc);
     ui->pushAGC->setChecked(radioList[value]->agc);
@@ -395,31 +358,28 @@ void CMainWindow::slotSwitchSound(bool value)
 void CMainWindow::slotNoiseBlanker(bool value)
 {
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setNoiseBlanker(value);
     ui->pushNoiseBlanker->setChecked(value);
     // save to radio
     radioList[current]->nb = value;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotAGC(bool value)
 {
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setAutomaticGainControl(value);
     ui->pushAGC->setChecked(value);
     // save to radio
     radioList[current]->agc = value;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotVSC(bool value)
 {
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setVoiceControl(value);
     ui->pushVSC->setChecked(value);
     // save to radio
     radioList[current]->vsc = value;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotDemodulatorData(QString data)
@@ -428,21 +388,22 @@ void CMainWindow::slotDemodulatorData(QString data)
     //ui->decoderText->append(data);
     QScrollBar *sb = ui->decoderText->verticalScrollBar();
     sb->setValue(sb->maximum());
-    remote->sendData(QString("@DEM\t%1@").arg(data));
+    //remote->sendData(QString("@DEM\t%1@").arg(data));
 }
 
 void CMainWindow::slotDecoderChange(int value)
 {
     int channel = ui->channel->currentIndex();
+    decoder.type = value;
     qDebug() << "CMainWindow::slotDecoderChange(" << value << ")";
-    decoder->slotSetDemodulator(value,channel,16384);
+    //decoder->slotSetDemodulator(value,channel,16384);
     // Connect Demodulator to debug windows
-    connect(decoder->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
-    connect(mySpectrum, SIGNAL(frequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    connect(myDecoder, SIGNAL(threshold(double)), decoder->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
-    connect(mySpectrum, SIGNAL(bandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
-    connect(remote, SIGNAL(sigSelectFrequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    connect(remote, SIGNAL(sigSelectBandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    //connect(decoder->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
+    //connect(mySpectrum, SIGNAL(frequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    //connect(myDecoder, SIGNAL(threshold(double)), decoder->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
+    //connect(mySpectrum, SIGNAL(bandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    //connect(remote, SIGNAL(sigSelectFrequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    //connect(remote, SIGNAL(sigSelectBandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     //connect(myDecoder, SIGNAL(threshold(double)), this, SLOT(slotThreshold(double)));
     //myDecoder->setScaleType(CSpectrumWidget::eTime);
     if (value == 4) {
@@ -459,32 +420,33 @@ void CMainWindow::slotDecoderChange(int value)
         myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
         mySpectrum->setPickerType(CSpectrumWidget::eNoPicker);
     }
+    backend->setDecoder(decoder);
 }
 
 void CMainWindow::slotChannelChange(int value)
 {
     qDebug() << "CMainWindow::slotChannelChange(" << value << ")";
-    decoder->slotSetChannel(value);
     ui->channel->setCurrentIndex (value);
-    //demodulator->slotSetDemodulator(ui->decoderList->currentIndex(), value, 16384);
+    decoder.channel = value;
+    backend->setDecoder(decoder);
 }
 
 void CMainWindow::slotScopeChanged(int value)
 {
     qDebug() << "cb changed =" << value;
     mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
+    decoder.type = value;
     if (value == 1) {
-        decoder->setScopeType(1);
         mySpectrum->setAxis(0,FFTSIZE,0,50);
     } else
     if (value == 2) {
-        decoder->setScopeType(1);
         mySpectrum->setAxis(0,FFTSIZE,0,WATERFALL_MAX);
     }
     else {
-        decoder->setScopeType(0);
         mySpectrum->setAxis(0,1024,0,256);
     }
+
+    backend->setDecoder(decoder);
 }
 
 void CMainWindow::slotRemoteData(QString &data)
@@ -522,11 +484,8 @@ void CMainWindow::slotStopPlay(bool value)
 
 void CMainWindow::slotWindowFunction(QString value)
 {
-    if(value == "Blackman-Harris") decoder->slotChangeWindowFunction(CFFT::BlackmanHarris);
-    if(value == "Blackman") decoder->slotChangeWindowFunction(CFFT::Blackman);
-    if(value == "Hann") decoder->slotChangeWindowFunction(CFFT::Hann);
-    if(value == "Hamming") decoder->slotChangeWindowFunction(CFFT::Hamming);
-    if(value == "Rectangle") decoder->slotChangeWindowFunction(CFFT::Rectangle);
+    decoder.window = value;
+    backend->setDecoder(decoder);
 }
 
 void CMainWindow::slotRecordAudio(bool value)
@@ -554,28 +513,29 @@ void CMainWindow::slotRefreshRate(int value)
 
 void CMainWindow::slotBandScope(bool value)
 {
-
+    bandscope.power = value;
     if (value) {
         bandscopeActivate = display->getRadio();
-        //cmd->setBandScope((CCommand::radioA)bandscopeActivate,04,true);
     } else {
         bandscopeActivate = -1;
-        //cmd->setBandScope(CCommand::eRadio1,04,false);
     }
+    backend->setBandscope(bandscope);
 }
 
 void CMainWindow::slotBandScopeWidth(int value)
 {
     qDebug() << "Band Scope Width "<< value;
     myBandScope->setBandWidth(bandwidth[value]);
-    //cmd->setBandScopeWidth(bandwidth[value]);
+    bandscope.width = bandwidth[value];
+    backend->setBandscope(bandscope);
 }
 
 void CMainWindow::slotBandScopeStep(int value)
 {
     qDebug() << "Band Scope Step "<< value;
     myBandScope->setStep(stepsize[value]);
-    //cmd->setBandScopeStep(stepsize[value]);
+    bandscope.step = stepsize[value];
+    backend->setBandscope(bandscope);
 }
 
 void CMainWindow::slotSettings()
@@ -592,6 +552,7 @@ void CMainWindow::slotSettings()
 
 void CMainWindow::slotThreshold(double threshold)
 {
-    int channel = ui->channel->currentIndex();
-    decoder->getDemodulatorFromChannel(channel)->setThreshold(threshold);
+    decoder.channel = ui->channel->currentIndex();
+    decoder.threshold = threshold;
+    backend->setDecoder(decoder);
 }

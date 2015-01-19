@@ -27,7 +27,7 @@
 #include <CPortAudio.h>
 #endif
 #ifdef WITH_PULSEAUDIO
-#include <CPulseAudio.h>
+#include <CPulseSound.h>
 #endif
 #include <CSoundStream.h>
 

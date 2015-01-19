@@ -29,7 +29,7 @@ ISound *CSound::Builder(SoundType type) {
         case ePortAudio : return sound = new CPortAudio(); break;
 #endif
 #ifdef WITH_PULSEAUDIO
-        case ePulse : return new CPulseAudio();  break;
+        case ePulse : return new CPulseSound();  break;
 #endif
         case eStream : return sound = new CSoundStream(); break;
     }

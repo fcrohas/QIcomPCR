@@ -27,25 +27,29 @@ CCommand::CCommand(QObject *parent) :
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(getSNR()));
     timer->start(1000); // 200ms ???
+    // initialize status
+    status.snr[0] = 0;
+    status.snr[1] = 0;
 }
 
 void CCommand::setPower(bool value)
 {
     if (value) {
         power = m_device->open();
-        emit dataChanged("H101");
+        status.power = true;
+
     } else {
         if (power) {
             m_device->close();
-            power = false;
-            emit dataChanged("H100");
+            status.power = false;
         }
     }
+    emit dataChanged(status);
 }
 
 bool CCommand::getPower()
 {
-    return power;
+    return status.power;
 }
 
 void CCommand::setFrequency(uint value)
@@ -113,7 +117,7 @@ void CCommand::setFilter(uint value)
 
     currentRadio->filter = value;
     // send new filter value
-    emit sigSetFilter(value);
+    currentRadio->demodulator->slotSetFilter(value);
 }
 
 void CCommand::setRadio(uint value)
@@ -252,12 +256,14 @@ bool CCommand::Open()
     {
         if (m_device->open()) {
             opened = true;
+            status.power = true;
             qDebug() << "Connected";
-            emit dataChanged("H101");
+            emit dataChanged(status);
             break;
         }
         sleep(1);
-        emit dataChanged("H100");
+        status.power = false;
+        emit dataChanged(status);
         m_device->close();
         sleep(1);
         retry++;
@@ -268,7 +274,8 @@ bool CCommand::Open()
 void CCommand::Close()
 {
     // Power it off
-    emit dataChanged("H100");
+    status.power = false;
+    emit dataChanged(status);
     setPower(false);
 }
 
@@ -280,7 +287,7 @@ void CCommand::Initialize()
 void CCommand::slotReceivedData(QString value)
 {
     //qDebug() << "received " << value;
-    emit dataChanged(value);
+    //emit dataChanged(value);
 }
 
 void CCommand::write(QString &data)
@@ -313,11 +320,26 @@ void CCommand::slotSamplesRead(int16_t *buffer, int len) {
 }
 
 void CCommand::getSNR() {
-    //qDebug() << "SNR=" << QString("I%1%2").arg((radio==0)?"1":"5").arg(demo->mad(2),2,16, QChar('0')) << "\r\n";
-    emit dataChanged(QString("I%1%2").arg((radio==0)?"1":"5").arg(currentRadio->demodulator->mad(2),2,16, QChar('0')));
+    status.readCount = m_device->log_t.dataReceive;
+    status.sendCount = m_device->log_t.dataSent;
+    if (currentRadio->power) {
+        status.snr[radio] = currentRadio->demodulator->mad(2);
+        emit dataChanged(status);
+    }
 }
 
 void CCommand::setRadio(CCommand::radio_t radio) {
+    if (radio.agc != currentRadio->agc) setAutomaticGainControl(radio.agc);
+    if (radio.nb != currentRadio->nb) setNoiseBlanker(radio.nb);
+    if (radio.filter != currentRadio->filter) setFilter(radio.filter);
+    if (radio.frequency != currentRadio->frequency) setFrequency(radio.frequency);
+    if (radio.ifshift != currentRadio->ifshift) setIFShift(radio.ifshift);
+    if (radio.modulation != radio.modulation) setModulation(radio.modulation);
+    if (radio.antenna != currentRadio->antenna) setRadioMode(radio.antenna);
+    if (radio.squelch != currentRadio->squelch) setSquelch(radio.squelch);
+    if (radio.vsc != currentRadio->vsc) setVoiceControl(radio.vsc);
+    if (radio.volume != currentRadio->volume) setSoundVolume(radio.volume);
+    if (radio.power != currentRadio->power) setPower(radio.power);
 
 }
 

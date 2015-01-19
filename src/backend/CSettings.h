@@ -31,19 +31,6 @@ public:
     void reload();
     void save();
 
-    struct radio_t {
-        int frequency;
-        int step;
-        int filter;
-        int IF;
-        int squelch;
-        int mode;
-        bool agc;
-        bool vsc;
-        bool nb;
-        int volume;
-    };
-
     struct sound_t {
         int volume;
         bool soundcard;
@@ -59,8 +46,8 @@ public:
         int fftSize;
     };
 
-    radio_t getRadio(int value);
-    void setRadio(int radionum, radio_t *value);
+    CCommand::radio_t getRadio(int value);
+    void setRadio(int radionum, CCommand::radio_t *value);
 
     sound_t getSound(int value);
     void setSound(int radionum, sound_t *value);

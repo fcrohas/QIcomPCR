@@ -35,24 +35,30 @@ public:
     ~CBackend();
     void initializeRemote();
     void initializeDecoders();
+    void initializeDevice();
     // Settings load/save
+    CCommand::radio_t getRadioSettings(int radio);
     void restoreSettings();
     void saveSettings();
 
 signals:
+    void sigStatus(CCommand::status_t status);
     
 public slots:
     // Power device
     void setPower(bool value);
+    bool getPower();
     // Bandscope properties setter/getter
-    void setBandscopeProperties(CCommand::bandscope_t scope);
-    CCommand::bandscope_t getBandscopeProperties();
+    void setBandscope(CCommand::bandscope_t scope);
+    CCommand::bandscope_t getBandscope();
     // Decoder setter/getter
     void setDecoder(CDecoder::decoder_t decoder);
     CDecoder::decoder_t getDecoder();
     // Radio setter/getter
     void setRadio(CCommand::radio_t radio);
     CCommand::radio_t getRadio();
+    // Radio status
+    void statusChanged(CCommand::status_t status);
 
 private:
     // Sound control

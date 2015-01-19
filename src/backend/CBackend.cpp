@@ -34,6 +34,8 @@ CBackend::CBackend(QObject *parent) :
     settings =new CSettings(this);
     // Initialize step
     initializeRemote();
+    initializeDecoders();
+    initializeDevice();
     // Restore settings
     restoreSettings();
 }
@@ -61,8 +63,6 @@ void CBackend::initializeRemote() {
     // Connect sound event
     connect(remote,SIGNAL(sigSoundMute(bool)), cmd, SLOT(setSoundMute(bool)));
     connect(remote,SIGNAL(sigSoundVolume(uint)), cmd, SLOT(setSoundVolume(uint)));
-    // Control remote
-    connect(remote,SIGNAL(sigInitialize(bool)), this, SLOT(setPower(bool)));
 }
 
 void CBackend::initializeDecoders() {
@@ -71,9 +71,15 @@ void CBackend::initializeDecoders() {
     // Connect Demodulator to debug windows
     connect(decoders,SIGNAL(sendData(QString)),this,SLOT(setDemodulatorData(QString)));
     // Connect spectrum widget
-    //connect(decoder,SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
+    connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)),this,SLOT(slotRawSamples(double*,double*,int)));
+}
 
+void CBackend::initializeDevice() {
+    connect(cmd,SIGNAL(dataChanged(status_t)), this, SLOT(statusChanged(CCommand::status_t)));
+}
 
+CCommand::radio_t CBackend::getRadioSettings(int radio) {
+    return settings->getRadio(radio);
 }
 
 void CBackend::restoreSettings() {
@@ -82,6 +88,10 @@ void CBackend::restoreSettings() {
 
 void CBackend::saveSettings() {
 
+}
+
+bool CBackend::getPower() {
+    return cmd->getPower();
 }
 
 void CBackend::setPower(bool value) {
@@ -99,19 +109,19 @@ void CBackend::setPower(bool value) {
 }
 
 // Bandscope properties
-void CBackend::setBandscopeProperties(CCommand::bandscope_t scope) {
+void CBackend::setBandscope(CCommand::bandscope_t scope) {
     this->bandscope = scope;
     cmd->setBandscope(scope);
 }
 
-CCommand::bandscope_t CBackend::getBandscopeProperties() {
+CCommand::bandscope_t CBackend::getBandscope() {
     return this->bandscope;
 }
 
 // Decoder properties
 void CBackend::setDecoder(CDecoder::decoder_t decoder) {
     this->decoder = decoder;
-    //decoder.setDecoder(decoder);
+    decoders->setDecoder(decoder);
 }
 
 CDecoder::decoder_t CBackend::getDecoder() {
@@ -126,4 +136,8 @@ void CBackend::setRadio(CCommand::radio_t radio) {
 
 CCommand::radio_t CBackend::getRadio() {
     return this->radio;
+}
+
+void CBackend::statusChanged(CCommand::status_t status) {
+    emit sigStatus(status);
 }

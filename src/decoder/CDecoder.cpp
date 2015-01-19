@@ -224,4 +224,10 @@ void CDecoder::setData(int16_t *buffer, int size) {
 
 void CDecoder::setDecoder(CDecoder::decoder_t decoder) {
     this->decoder = decoder;
+    if(this->decoder.window == "Blackman-Harris") slotChangeWindowFunction(CFFT::BlackmanHarris);
+    if(this->decoder.window == "Blackman") slotChangeWindowFunction(CFFT::Blackman);
+    if(this->decoder.window == "Hann") slotChangeWindowFunction(CFFT::Hann);
+    if(this->decoder.window == "Hamming") slotChangeWindowFunction(CFFT::Hamming);
+    if(this->decoder.window == "Rectangle") slotChangeWindowFunction(CFFT::Rectangle);
+
 }

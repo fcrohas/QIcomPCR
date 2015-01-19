@@ -23,13 +23,11 @@
 #include <QMainWindow>
 #include "CBackend.h"
 #include "CDebugWindow.h"
-#include "CRemoteControl.h"
 #include "CLcdWidget.h"
 #include "CStatusWidget.h"
 #include "CSpectrumWidget.h"
 #include "CBandScope.h"
 #include "CDisplay.h"
-#include "CDecoder.h"
 #include "CFft.h"
 #include "CDlgSettings.h"
 
@@ -61,7 +59,7 @@ class CMainWindow : public QMainWindow
     private slots:
         void powerOn(bool value);
         void slotSendData(QString &data);
-        void slotReceivedData(QString data);
+        void slotReceivedData(CCommand::status_t status);
         void slotVolume1(double value);
         void slotSquelch(double value);
         void slotIF(double value);
@@ -128,7 +126,7 @@ class CMainWindow : public QMainWindow
         CLcdWidget *lcd1;
         CLcdWidget *lcd2;
 
-        CStatusWidget *status;
+        CStatusWidget *statusbar;
 
         // Timer
         QTimer *statusTimer;
@@ -141,12 +139,6 @@ class CMainWindow : public QMainWindow
 
         // Bandscope
         CBandScope *myBandScope;
-
-        // Demodulator
-        CDecoder *decoder;
-
-        // Remote Control
-        CRemoteControl *remote;
 
         //QToolbar
         QToolBar *dock;
@@ -170,7 +162,16 @@ class CMainWindow : public QMainWindow
         void connectSignals();
 
         // List of radio
-        QList<CSettings::radio_t*> radioList;
+        QList<CCommand::radio_t*> radioList;
+
+        // Decoder settings struct
+        CDecoder::decoder_t decoder;
+
+        // Bandscope settings
+        CCommand::bandscope_t bandscope;
+
+        // Status of device
+        CCommand::status_t status;
 
 };
 

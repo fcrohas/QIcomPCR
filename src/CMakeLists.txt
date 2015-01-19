@@ -167,7 +167,7 @@ set(qicompcr_HDRS
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFft.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CFm.h
     ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CSsb.h
-    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulatorFactory.H
+    ${CMAKE_SOURCE_DIR}/src/backend/demodulator/CDemodulatorFactory.h
     ${CMAKE_SOURCE_DIR}/src/backend/sound/CSound.h
     ${CMAKE_SOURCE_DIR}/src/backend/IDevice.h
     ${CMAKE_SOURCE_DIR}/src/backend/IDecoder.h

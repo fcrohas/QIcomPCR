@@ -22,6 +22,7 @@ public:
 
     // Radio settings per antenna
     struct radio_t {
+        radio_t() : power(false),antenna(0) {}
         uint antenna;
         uint frequency; // eg. 0106500000 for 106.5 Mhz padding is needed
         uint mode; // enum mode
@@ -29,6 +30,7 @@ public:
         uint filter; // enum filter
         uint ifshift; // 00=min deviation, FF=max deviation
         uint squelch; // 00=min deviation, FF=max deviation
+        uint step;
         bool agc; // false=off ,true=on
         bool nb; // Noise blanker
         bool vsc;
@@ -45,6 +47,14 @@ public:
         int samplewidth;
         int refresh;
         bool power;
+    };
+
+    struct status_t {
+        status_t() : power(false),readCount(0),sendCount(0) {}
+        int snr[2];
+        bool power;
+        int readCount;
+        int sendCount;
     };
 
     // Power command
@@ -82,8 +92,7 @@ public:
 
 signals:
     void sendData(QString &value);
-    void dataChanged(QString value);
-    void sigSetFilter(uint frequency);
+    void dataChanged(CCommand::status_t status);
 
 public slots:
     // Radio slot
@@ -166,6 +175,7 @@ private:
     // Radio currently working on
     int radio;
     radio_t *currentRadio;
+    status_t status;
     // List of radio antenna settings
     QList<radio_t*> *radioList;
 

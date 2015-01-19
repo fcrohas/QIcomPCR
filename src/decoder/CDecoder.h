@@ -50,6 +50,9 @@ public:
         uint bandwidth;
         uint type;
         uint channel;
+        int threshold;
+        uint correlationLength;
+        QString window;
     } decoder;
 
 signals:

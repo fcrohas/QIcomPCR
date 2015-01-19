@@ -24,14 +24,14 @@ CSettings::CSettings(QObject *parent) :
 
 }
 
-CSettings::radio_t CSettings::getRadio(int value)
+CCommand::radio_t CSettings::getRadio(int value)
 {
-    radio_t current;
+    CCommand::radio_t current;
     beginGroup(QString("Radio/Antenna%1").arg(value));
     current.frequency = this->value("Frequency", 106500000).toInt(); // RTS FM
     current.filter = this->value("Filter", CCommand::e230k).toInt(); // WFM Filter
     current.step = this->value("Step", 50000).toInt(); // WFM is 50Khz step
-    current.IF = this->value("IF", 128).toInt(); // Middle by default
+    current.ifshift = this->value("IF", 128).toInt(); // Middle by default
     current.squelch = this->value("Squelch", 0).toInt(); // Middle by default
     current.nb = this->value("NoiseBlanker", CCommand::eNBOff).toBool();
     current.agc = this->value("AGC", CCommand::eAgcOff).toBool();
@@ -42,13 +42,13 @@ CSettings::radio_t CSettings::getRadio(int value)
     return current;
 }
 
-void CSettings::setRadio(int radionum,CSettings::radio_t *value)
+void CSettings::setRadio(int radionum,CCommand::radio_t *value)
 {
     beginGroup(QString("Radio/Antenna%1").arg(radionum));
     this->setValue("Frequency",value->frequency);
     this->setValue("Filter",value->filter);
     this->setValue("Step",value->step);
-    this->setValue("IF", value->IF);
+    this->setValue("IF", value->ifshift);
     this->setValue("Squelch",value->squelch);
     this->setValue("NoiseBlanker",value->nb);
     this->setValue("AGC",value->agc);
