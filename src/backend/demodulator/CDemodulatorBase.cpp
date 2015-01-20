@@ -15,7 +15,7 @@ CDemodulatorBase::CDemodulatorBase(QObject *parent, Mode mode) :
     mode(eWFM),
     len(0)
 {
-    qDebug() << "IDemodulator constructor...\r\n";
+    //qDebug() << "IDemodulator constructor...\r\n";
     // save mode
     this->mode = mode;
     // Build resample converter
@@ -25,7 +25,7 @@ CDemodulatorBase::CDemodulatorBase(QObject *parent, Mode mode) :
         qDebug() << " Error creating sample rate converter : " << src_strerror(error);
     }
     slotSetFilter(filterfreq);
-    qDebug() << "IDemodulator constructor\r\n";
+    //qDebug() << "IDemodulator constructor\r\n";
 }
 
 CDemodulatorBase::~CDemodulatorBase() {
@@ -36,7 +36,7 @@ CDemodulatorBase::~CDemodulatorBase() {
 
 void CDemodulatorBase::slotSetFilter(uint frequency) {
     filterfreq = frequency;
-    qDebug() << "decimation Factor=" << decimation << " samplerate=" << samplerate <<" filterfreq=" << filterfreq <<"\r\n";
+    //qDebug() << "decimation Factor=" << decimation << " samplerate=" << samplerate <<" filterfreq=" << filterfreq <<"\r\n";
 }
 
 void CDemodulatorBase::setSoundDevice(ISound *device) {
@@ -179,4 +179,8 @@ void CDemodulatorBase::setSampleRate(uint frequency) {
     // first intermediate frequency
     intfreq = samplerate / decimation;
 
+}
+
+QString CDemodulatorBase::getName() {
+    return QString("CDemodulatorBase");
 }

@@ -53,7 +53,7 @@ extern "C" {
         int16_t *out = (int16_t*)outputBuffer;
         int16_t *in = (int16_t*)inputBuffer;
         long bytes = frameCount*2;
-        memset(out, 0, bytes);
+        memset(out, 0, bytes*2);
         (void) inputBuffer;		/* Prevent unused variable warning. */
         int avail = PaUtil_GetRingBufferReadAvailable(&This->playRingBuffer);
         PaUtil_ReadRingBuffer(&This->playRingBuffer,out,(avail<bytes)?avail:bytes);
@@ -109,7 +109,7 @@ void CPortAudio::Record(QString &filename, bool start)
 void CPortAudio::Initialize()
 {
     int error;
-    qDebug() << "Portaudio Thread run() " << inputParameters.device;
+    //qDebug() << "Portaudio Thread run() " << inputParameters.device;
     outputParameters.channelCount = 1;       /* mono output */
     outputParameters.sampleFormat = paInt16;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
@@ -118,9 +118,6 @@ void CPortAudio::Initialize()
     inputParameters.sampleFormat = paInt16;
     inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = NULL;
-    error = Pa_IsFormatSupported( &inputParameters, NULL, SAMPLERATE );
-    if( error != paNoError )
-        qDebug() <<   QString("PortAudio Pa_IsFormatSupported inputParameters error: %1\n").arg(Pa_GetErrorText( error ) );
     switch(mode) {
         case ePlay :
             error = Pa_OpenStream(&stream, NULL, &outputParameters, SAMPLERATE, FRAME_SIZE, paNoFlag, playbackCallback, (void *) this);
@@ -215,7 +212,7 @@ QHash<QString,int> CPortAudio::getDeviceList()
     Pa_Terminate();
     Pa_Initialize();
     numDevices = Pa_GetDeviceCount();
-    qDebug() << "device count " << numDevices;
+    //qDebug() << "device count " << numDevices;
     if( numDevices < 0 )
     {
         error = numDevices;
@@ -226,7 +223,7 @@ QHash<QString,int> CPortAudio::getDeviceList()
     for( int i=0; i<numDevices; i++ )
     {
         deviceInfo = Pa_GetDeviceInfo( i );
-        qDebug() << QString("device name %1").arg(deviceInfo->name);
+        //qDebug() << QString("device name %1").arg(deviceInfo->name);
         deviceList.insert(deviceInfo->name, i);
     }
     return deviceList;
@@ -234,11 +231,13 @@ QHash<QString,int> CPortAudio::getDeviceList()
 
 void CPortAudio::selectInputDevice(QString device)
 {
+    //qDebug() << "input device index " << deviceList.value(device) << "\r\n";
     inputParameters.device = deviceList.value(device);
 }
 
 void CPortAudio::selectOutputDevice(QString device)
 {
+    //qDebug() << "output device index " << deviceList.value(device) << "\r\n";
     outputParameters.device = deviceList.value(device);
 }
 

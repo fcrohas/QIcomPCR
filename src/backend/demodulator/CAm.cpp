@@ -48,3 +48,7 @@ void CAm::slotSetFilter(uint frequency) {
         filter->convert();
     }
 }
+
+QString CAm::getName() {
+    return QString("CAm");
+}

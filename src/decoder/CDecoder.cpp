@@ -28,7 +28,8 @@ CDecoder::CDecoder(QObject *parent) :
     data8bitsr(NULL),
     data16bitsl(NULL),
     data16bitsr(NULL),
-    selectedChannel(0)
+    selectedChannel(0),
+    buffer(NULL)
 {
     fftw = new CFFT(this,FFTSIZE);
     list.append(new IDecoder()); // 0 just dummy
@@ -229,5 +230,7 @@ void CDecoder::setDecoder(CDecoder::decoder_t decoder) {
     if(this->decoder.window == "Hann") slotChangeWindowFunction(CFFT::Hann);
     if(this->decoder.window == "Hamming") slotChangeWindowFunction(CFFT::Hamming);
     if(this->decoder.window == "Rectangle") slotChangeWindowFunction(CFFT::Rectangle);
-
+    slotSetDemodulator(this->decoder.type,this->decoder.channel,32768);
+    setScopeType(this->decoder.scopeType);
+    initBuffer(32768);
 }

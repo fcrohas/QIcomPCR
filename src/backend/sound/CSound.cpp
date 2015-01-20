@@ -26,7 +26,7 @@ ISound *CSound::Builder(SoundType type) {
         case eFile : return sound = new CSoundFile(); break;
 #endif
 #ifdef WITH_PORTAUDIO
-        case ePortAudio : return sound = new CPortAudio(); break;
+    case ePortAudio : return sound = new CPortAudio(0,ISound::ePlay); break;
 #endif
 #ifdef WITH_PULSEAUDIO
         case ePulse : return new CPulseSound();  break;

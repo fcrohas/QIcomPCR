@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 CBackend::CBackend(QObject *parent) :
     QObject(parent)
 {
-    // Install sound device
-    sound = CSound::Builder(CSound::ePortAudio);
     // Install Decoder
     decoders = new CDecoder(this);
     // Install Radio device
@@ -36,8 +34,6 @@ CBackend::CBackend(QObject *parent) :
     initializeRemote();
     initializeDecoders();
     initializeDevice();
-    // Restore settings
-    restoreSettings();
 }
 
 CBackend::~CBackend() {
@@ -60,6 +56,8 @@ void CBackend::initializeRemote() {
     connect(remote,SIGNAL(sigBandScope(CCommand::bandscope_t)), cmd, SLOT(setBandscope(CCommand::bandscope_t)));
     // Connect remote to decoder event
     connect(remote,SIGNAL(sigDecoder(CDecoder::decoder_t)), decoders, SLOT(setDecoder(CDecoder::decoder_t)));
+    //connect(remote, SIGNAL(sigSelectFrequency(double)), decoders->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    //connect(remote, SIGNAL(sigSelectBandwidth(double)), decoders->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     // Connect sound event
     connect(remote,SIGNAL(sigSoundMute(bool)), cmd, SLOT(setSoundMute(bool)));
     connect(remote,SIGNAL(sigSoundVolume(uint)), cmd, SLOT(setSoundVolume(uint)));
@@ -69,13 +67,13 @@ void CBackend::initializeDecoders() {
     // Send decoder event to remote control
     connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
     // Connect Demodulator to debug windows
-    connect(decoders,SIGNAL(sendData(QString)),this,SLOT(setDemodulatorData(QString)));
+    //connect(decoders,SIGNAL(sendData(QString)),this,SLOT(setDemodulatorData(QString)));
     // Connect spectrum widget
-    connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)),this,SLOT(slotRawSamples(double*,double*,int)));
+    //connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)),this,SLOT(slotRawSamples(double*,double*,int)));
 }
 
 void CBackend::initializeDevice() {
-    connect(cmd,SIGNAL(dataChanged(status_t)), this, SLOT(statusChanged(CCommand::status_t)));
+    connect(cmd,SIGNAL(dataChanged(CCommand::status_t)), this, SLOT(statusChanged(CCommand::status_t)));
 }
 
 CCommand::radio_t CBackend::getRadioSettings(int radio) {
@@ -83,11 +81,26 @@ CCommand::radio_t CBackend::getRadioSettings(int radio) {
 }
 
 void CBackend::restoreSettings() {
-
+    CSettings::global *params = new CSettings::global();
+    settings->getGlobal(params);
+    // Install sound device
+    sound = CSound::Builder(CSound::ePortAudio);
+    // Input device
+    sound->selectInputDevice(params->inputDevice);
+    qDebug() << "input device " << params->inputDevice << "\r\n";
+    // output device
+    sound->selectOutputDevice(params->outputDevice);
+    qDebug() << "output device " << params->outputDevice << "\r\n";
+    // decoders
+    sound->SetDecoder(decoders);
+    decoders->initBuffer(32768);
+    cmd->setSoundDevice(sound);
+    // Sound initialize
+    sound->Initialize();
+    sound->setRunning(true);
 }
 
 void CBackend::saveSettings() {
-
 }
 
 bool CBackend::getPower() {
@@ -96,16 +109,17 @@ bool CBackend::getPower() {
 
 void CBackend::setPower(bool value) {
     if (value) {
+        // Radio is powered on need to restoreprevious settings now
+        restoreSettings();
         if (cmd->Open()) {
             cmd->Initialize();
         }
-        // Radio is powered on need to restoreprevious settings now
-        restoreSettings();
     } else {
         cmd->Close();
         // Radio is power off save settings now
         saveSettings();
     }
+    radio.power = value;
 }
 
 // Bandscope properties
@@ -124,10 +138,6 @@ void CBackend::setDecoder(CDecoder::decoder_t decoder) {
     decoders->setDecoder(decoder);
 }
 
-CDecoder::decoder_t CBackend::getDecoder() {
-    return this->decoder;
-}
-
 // Radio properties
 void CBackend::setRadio(CCommand::radio_t radio) {
     this->radio = radio;
@@ -140,4 +150,16 @@ CCommand::radio_t CBackend::getRadio() {
 
 void CBackend::statusChanged(CCommand::status_t status) {
     emit sigStatus(status);
+}
+
+CDecoder* CBackend::getDecoder() {
+    return decoders;
+}
+
+ISound* CBackend::getSound() {
+    return sound;
+}
+
+CSettings* CBackend::getSettings() {
+    return settings;
 }

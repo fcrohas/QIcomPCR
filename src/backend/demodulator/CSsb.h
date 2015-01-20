@@ -9,6 +9,7 @@ class CSsb : public CDemodulatorBase
     Q_OBJECT
 public:
     explicit CSsb(QObject *parent=0, CDemodulatorBase::Mode mode = CDemodulatorBase::eLSB);
+    QString getName();
 signals:
 
 public slots:

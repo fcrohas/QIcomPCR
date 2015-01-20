@@ -37,6 +37,7 @@ public:
 
 signals:
     void sendData(QString data);
+    void dumpData(double*,double*,int);
     
 public slots:
     void slotFrequency(double value);

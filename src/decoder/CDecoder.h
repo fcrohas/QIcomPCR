@@ -46,9 +46,11 @@ public:
     void setScopeType(uint scope);
     IDecoder* getDemodulatorFromChannel(int channel);
     struct decoder_t {
+        decoder_t() : channel(1),frequency(1000),bandwidth(500),type(0),scopeType(0) { }
         uint frequency;
         uint bandwidth;
         uint type;
+        uint scopeType;
         uint channel;
         int threshold;
         uint correlationLength;
@@ -60,7 +62,6 @@ signals:
     void sendData(QString msg);
 
 public slots:
-    //void slotDataBuffer(int16_t *buffer, int size);
     void setDecoder(CDecoder::decoder_t decoder);
     void doWork();
     void slotSendData(QString data);

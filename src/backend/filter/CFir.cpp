@@ -248,7 +248,7 @@ void CFIR<T>::convert() {
     }
     scaleFactor = std::min(abs(tmin/minvalue), abs(tmax/maxvalue));
     if (scaleFactor > 16384) scaleFactor = 16384;
-    qDebug() << "scale factor is " << scaleFactor;
+    //qDebug() << "scale factor is " << scaleFactor;
     if (scaleFactor == 0) scaleFactor = 1.0;
     for (int i=0; i < N; i++) {
         tfir[i] = fir[i] * scaleFactor;

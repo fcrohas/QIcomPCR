@@ -218,4 +218,5 @@ void CRtlSdr::Demodulate() {
 
 void CRtlSdr::setDemodulator(CDemodulatorBase *value) {
     demo = value;
+    qDebug() << "Set demodulator " << demo->getName() <<"\r\n";
 }

@@ -7,7 +7,8 @@ CCommand::CCommand(QObject *parent) :
     polarity(0),
     reverse(0),
     sound(NULL),
-    demoThread(NULL)
+    demoThread(NULL),
+    radio(1)
 {
     // Initialize radio struct
     radioList = new QList<radio_t*>();
@@ -86,6 +87,20 @@ uint CCommand::getSquelch()
 // At this time, only set to device on frequency set
 void CCommand::setModulation(uint value)
 {
+
+    if (currentRadio->demodulator != NULL) {
+          timer->stop();
+          demoThread->quit();
+          disconnect(SIGNAL(sigFilter(uint)),currentRadio->demodulator);
+          demoThread->wait();
+          delete demoThread;
+          //delete currentRadio->demodulator;
+          currentRadio->demodulator = NULL;
+    }
+
+    //if (!status.power)
+    //    return;
+    qDebug() << "Build demodulator " << value << "\r\n";
     currentRadio->modulation = value;
     currentRadio->demodulator = CDemodulatorFactory::Builder((CDemodulatorBase::Mode)value);
     if (currentRadio->demodulator != NULL) {
@@ -93,20 +108,23 @@ void CCommand::setModulation(uint value)
         currentRadio->demodulator->setSampleRate(RTLSDR_SAMPLE_RATE);
         // Set demodulator to thread
         currentRadio->demodulator->setSoundDevice(sound);
-        demoThread = new QThread();
-        connect(currentRadio->demodulator, SIGNAL(finished()), demoThread, SLOT(quit()));
-        connect(currentRadio->demodulator, SIGNAL(finished()), currentRadio->demodulator, SLOT(deleteLater()));
-        connect(demoThread, SIGNAL(finished()), demoThread, SLOT(deleteLater()));
-        //connect(m_device,SIGNAL(sigSampleRead(int16_t*,int)),this,SLOT(slotSamplesRead(int16_t*,int)));
         m_device->setDemodulator(currentRadio->demodulator);
-        connect(this,SIGNAL(sigSetFilter(uint)),currentRadio->demodulator,SLOT(slotSetFilter(uint)));
+        demoThread = new QThread();
+        //connect(currentRadio->demodulator, SIGNAL(finished()), demoThread, SLOT(quit()));
+        connect(demoThread, SIGNAL(finished()), currentRadio->demodulator, SLOT(deleteLater()));
+        connect(demoThread, SIGNAL(finished()), demoThread, SLOT(deleteLater()));
+        connect(this,SIGNAL(sigFilter(uint)), currentRadio->demodulator,SLOT(slotSetFilter(uint)));
         currentRadio->demodulator->moveToThread(demoThread);
         demoThread->start();
+        timer->start(1000); // 200ms ???
     }
 }
 
 void CCommand::setFilter(uint value)
 {
+    if (!status.power)
+        return;
+
     switch(value) {
         case e28k : value = 2800; break;
         case e6k : value = 6000; break;
@@ -117,15 +135,17 @@ void CCommand::setFilter(uint value)
 
     currentRadio->filter = value;
     // send new filter value
-    currentRadio->demodulator->slotSetFilter(value);
+    emit sigFilter(value);
 }
 
 void CCommand::setRadio(uint value)
 {
     if (value < (uint)radioList->count()) {
-        currentRadio = radioList->at(value);
+        //currentRadio = radioList->at(value);
+        currentRadio->antenna = value;
         radio = value;
     }
+    //qDebug() << "Build Radio " << value << "\r\n";
 }
 
 void CCommand::setRadioMode(uint value)
@@ -147,6 +167,7 @@ void CCommand::setIFShift(uint value)
 
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->ifshift = value;
+    qDebug() << "Build ifshift " << value << "\r\n";
     //qDebug() << "IFShift " << data << "\n";
     emit sendData(data);
 }
@@ -159,6 +180,7 @@ void CCommand::setSquelch(uint value)
 
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->squelch = value;
+    //qDebug() << "Build squelch " << value << "\r\n";
     //qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
@@ -172,6 +194,7 @@ void CCommand::setToneSquelch(uint value)
 
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->squelch = value;
+    qDebug() << "Build tone squelch " << value << "\r\n";
     //qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
@@ -184,6 +207,7 @@ void CCommand::setDTCS(uint value)
 
     data = data.arg(polarity, 1, 16, QChar('0')).arg(reverse, 1, 16, QChar('0')).arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->squelch = value;
+    qDebug() << "Build dtcs " << value << "\r\n";
     //qDebug() << "Squelch " << data << "\n";
     emit sendData(data);
 }
@@ -191,6 +215,7 @@ void CCommand::setDTCS(uint value)
 
 void CCommand::setAutomaticGainControl(bool value)
 {
+    //qDebug() << "Build agc " << value << "\r\n";
     m_device->setAgcControl(value);
 }
 
@@ -200,6 +225,7 @@ void CCommand::setNoiseBlanker(bool value)
     data = (radio == 0) ? "J46%1" : "J66%1";
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->nb = value;
+    qDebug() << "Build Noise blanker " << value << "\r\n";
     //qDebug() << "Noise Blanker " << data << "\n";
     emit sendData(data);
 }
@@ -210,6 +236,7 @@ void CCommand::setVoiceControl(bool value)
     data = (radio == 0) ? "J50%1" : "J70%1";
     data = data.arg(value, 2, 16, QChar('0')).toUpper();
     currentRadio->vsc = value;
+    qDebug() << "Build VSC " << value << "\r\n";
     //qDebug() << "Voice Control " << data << "\n";
     emit sendData(data);
 }
@@ -257,6 +284,7 @@ bool CCommand::Open()
         if (m_device->open()) {
             opened = true;
             status.power = true;
+            Initialize();
             qDebug() << "Connected";
             emit dataChanged(status);
             break;
@@ -268,6 +296,8 @@ bool CCommand::Open()
         sleep(1);
         retry++;
     }
+    if (opened)
+            Initialize();
     return opened;
 }
 
@@ -281,7 +311,7 @@ void CCommand::Close()
 
 void CCommand::Initialize()
 {
-
+    setModulation(CDemodulatorBase::eWFM);
 }
 
 void CCommand::slotReceivedData(QString value)
@@ -322,25 +352,26 @@ void CCommand::slotSamplesRead(int16_t *buffer, int len) {
 void CCommand::getSNR() {
     status.readCount = m_device->log_t.dataReceive;
     status.sendCount = m_device->log_t.dataSent;
-    if (currentRadio->power) {
-        status.snr[radio] = currentRadio->demodulator->mad(2);
+    if (status.power) {
+        //qDebug() << "radio=" << radio << " antenna=" << currentRadio->antenna << "\r\n";
+        status.snr[currentRadio->antenna] = currentRadio->demodulator->mad(2);
         emit dataChanged(status);
     }
 }
 
 void CCommand::setRadio(CCommand::radio_t radio) {
-    if (radio.agc != currentRadio->agc) setAutomaticGainControl(radio.agc);
-    if (radio.nb != currentRadio->nb) setNoiseBlanker(radio.nb);
+    qDebug() << "antenna=" << radio.antenna << " freq="<< radio.frequency <<"\r\n";
+    if (radio.power != currentRadio->power) setPower(radio.power);
+    if (radio.antenna != currentRadio->antenna) setRadio(radio.antenna);
+    if (radio.modulation != currentRadio->modulation) setModulation(radio.modulation);
     if (radio.filter != currentRadio->filter) setFilter(radio.filter);
     if (radio.frequency != currentRadio->frequency) setFrequency(radio.frequency);
+    if (radio.agc != currentRadio->agc) setAutomaticGainControl(radio.agc);
+    if (radio.nb != currentRadio->nb) setNoiseBlanker(radio.nb);
     if (radio.ifshift != currentRadio->ifshift) setIFShift(radio.ifshift);
-    if (radio.modulation != radio.modulation) setModulation(radio.modulation);
-    if (radio.antenna != currentRadio->antenna) setRadioMode(radio.antenna);
     if (radio.squelch != currentRadio->squelch) setSquelch(radio.squelch);
     if (radio.vsc != currentRadio->vsc) setVoiceControl(radio.vsc);
     if (radio.volume != currentRadio->volume) setSoundVolume(radio.volume);
-    if (radio.power != currentRadio->power) setPower(radio.power);
-
 }
 
 void CCommand::setBandscope(CCommand::bandscope_t bandscope) {

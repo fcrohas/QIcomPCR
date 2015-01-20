@@ -39,7 +39,7 @@ bool CApplication::event(QEvent *event)
             {
                 qWarning() << "main window is NULL, enqueueing event";
                 filesToOpen.enqueue(static_cast<QFileOpenEvent *>(event)->file());
-                startTimer(1000);
+                //startTimer(1000);
             }
             return true;
         default:
@@ -55,6 +55,6 @@ void CApplication::timerEvent(QTimerEvent *event)
         {
             //theMainWindow->loadData(filesToOpen.dequeue(), "");
         }
-        killTimer(event->timerId());
+        //killTimer(event->timerId());
     }
 }

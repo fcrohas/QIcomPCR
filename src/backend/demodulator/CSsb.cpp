@@ -8,3 +8,7 @@ CSsb::CSsb(QObject *parent,Mode mode) :
 void CSsb::doWork() {
 
 }
+
+QString CSsb::getName() {
+    return QString("CSsb");
+}

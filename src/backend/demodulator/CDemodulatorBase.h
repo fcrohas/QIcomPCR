@@ -33,6 +33,8 @@ public:
     int mad(int step);
     //
     QMutex update;
+    // Demodulator name
+    virtual QString getName();
 signals:
     void finished();
 

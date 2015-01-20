@@ -40,6 +40,12 @@ public:
     CCommand::radio_t getRadioSettings(int radio);
     void restoreSettings();
     void saveSettings();
+    // Decoder object manager
+    CDecoder* getDecoder();
+    // Sound object manager
+    ISound* getSound();
+    // Settings Manager
+    CSettings* getSettings();
 
 signals:
     void sigStatus(CCommand::status_t status);
@@ -53,7 +59,6 @@ public slots:
     CCommand::bandscope_t getBandscope();
     // Decoder setter/getter
     void setDecoder(CDecoder::decoder_t decoder);
-    CDecoder::decoder_t getDecoder();
     // Radio setter/getter
     void setRadio(CCommand::radio_t radio);
     CCommand::radio_t getRadio();

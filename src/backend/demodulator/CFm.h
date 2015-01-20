@@ -9,7 +9,7 @@ class CFm : public CDemodulatorBase
     Q_OBJECT
 public:
     explicit CFm(QObject *parent=0,CDemodulatorBase::Mode mode = CDemodulatorBase::eFM);
-
+    QString getName();
 signals:
 
 public slots:

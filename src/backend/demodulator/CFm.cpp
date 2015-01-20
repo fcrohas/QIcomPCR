@@ -6,7 +6,7 @@ CFm::CFm(QObject *parent, Mode mode) :
     filter(NULL),
     deemph_a(1)
 {
-    qDebug() << "CFM constructor...\r\n";
+    //qDebug() << "CFM constructor...\r\n";
     // Build Window blackman
     winfunc = new CWindowFunc(this);
     winfunc->init(32);
@@ -16,9 +16,10 @@ CFm::CFm(QObject *parent, Mode mode) :
     filter = new CFIR<int16_t>();
     filter->setOrder(32);
     filter->setWindow(winfunc->getWindow());
-    slotSetFilter(filterfreq);
     this->mode = mode;
-    qDebug() << "CFM constructor\r\n";
+    slotSetFilter(filterfreq);
+    //qDebug() << "CFM constructor Mode="<< mode << "\r\n";
+
 }
 
 void CFm::doWork() {
@@ -119,6 +120,7 @@ void CFm::slotSetFilter(uint frequency) {
     CDemodulatorBase::slotSetFilter(frequency);
     if (filter != NULL) {
         filter->setSampleRate(22050);
+        //qDebug() << "Initialize FIR filter frequency=" << frequency <<" mode=" << mode << " intfreq=" << intfreq << "\r\n";
         if (mode == eWFM) {
             deemph_a = (int)round(1.0/((1.0-exp(-1.0/(intfreq * 75e-6)))));
             filter->bandpass(5530.0,11000.0);
@@ -187,4 +189,8 @@ void CFm::processPll(int i, int q) {
 
     return osc;
     */
+}
+
+QString CFm::getName() {
+    return QString("CFm");
 }

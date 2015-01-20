@@ -22,21 +22,21 @@ public:
 
     // Radio settings per antenna
     struct radio_t {
-        radio_t() : power(false),antenna(0) {}
-        uint antenna;
-        uint frequency; // eg. 0106500000 for 106.5 Mhz padding is needed
-        uint mode; // enum mode
-        uint modulation;
-        uint filter; // enum filter
-        uint ifshift; // 00=min deviation, FF=max deviation
-        uint squelch; // 00=min deviation, FF=max deviation
-        uint step;
+        radio_t() : power(false),antenna(1),modulation(6),demodulator(NULL) {}
+        int antenna;
+        int frequency; // eg. 0106500000 for 106.5 Mhz padding is needed
+        int mode; // enum mode
+        int modulation;
+        int filter; // enum filter
+        int ifshift; // 00=min deviation, FF=max deviation
+        int squelch; // 00=min deviation, FF=max deviation
+        int step;
         bool agc; // false=off ,true=on
         bool nb; // Noise blanker
         bool vsc;
         bool mute;
         bool power;
-        uint volume;
+        int volume;
         CDemodulatorBase *demodulator;
     };
 
@@ -93,6 +93,7 @@ public:
 signals:
     void sendData(QString &value);
     void dataChanged(CCommand::status_t status);
+    void sigFilter(uint value);
 
 public slots:
     // Radio slot

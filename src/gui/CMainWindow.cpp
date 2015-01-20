@@ -88,7 +88,6 @@ CMainWindow::~CMainWindow()
 void CMainWindow::connectSignals()
 {
     connect(backend,SIGNAL(sigStatus(CCommand::status_t)), this, SLOT(slotReceivedData(CCommand::status_t)));
-    //connect(cmd,SIGNAL(dataChanged(QString)), this, SLOT(slotReceivedData(QString)));
     connect(ui->pushPower, SIGNAL(toggled(bool)), this, SLOT(powerOn(bool)));
     connect(dbgWin,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
     //connect(cmd,SIGNAL(sendData(QString&)),this,SLOT(slotSendData(QString&)));
@@ -111,14 +110,14 @@ void CMainWindow::connectSignals()
     connect( myBandScope, SIGNAL(frequencyChanged(QString)), this, SLOT(slotFrequency(QString)));
 
     // Set threshold
-    //connect(ui->threshold, SIGNAL(valueChanged(int)), decoder, SLOT(slotThreshold(int)));
-    //connect(ui->correlationLength,SIGNAL(valueChanged(int)), decoder, SLOT(slotSetCorrelationLength(int)));
+    connect(ui->threshold, SIGNAL(valueChanged(int)), backend->getDecoder(), SLOT(slotThreshold(int)));
+    connect(ui->correlationLength,SIGNAL(valueChanged(int)), backend->getDecoder(), SLOT(slotSetCorrelationLength(int)));
 
     // Connect Decoder
     connect(ui->decoderList, SIGNAL(currentIndexChanged(int)), this, SLOT(slotDecoderChange(int)));
 
     // Channel change
-    connect(ui->channel, SIGNAL(currentIndexChanged(int)), this, SLOT(slotChannelChange(int)));
+    connect(ui->channel, SIGNAL(currentIndexChanged(int)), backend->getDecoder(), SLOT(slotSetChannel(int)));
 
     // Connect Scope type
     connect(ui->cbPlotterType , SIGNAL(currentIndexChanged(int)),this, SLOT(slotScopeChanged(int)));
@@ -141,6 +140,11 @@ void CMainWindow::connectSignals()
     connect(ui->pushRecord, SIGNAL(clicked(bool)), this, SLOT(slotRecordAudio(bool)));
     connect(display, SIGNAL(radioChanged(int)), this, SLOT(slotRadioClicked(int)));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
+    // Connect spectrum widget
+    connect(backend->getDecoder(),SIGNAL(sigRawSamples(double*,double*,int)),mySpectrum,SLOT(slotRawSamples(double*,double*,int)));
+
+    // Connect Demodulator to debug windows
+    connect(backend->getDecoder(),SIGNAL(sendData(QString)),this,SLOT(slotDemodulatorData(QString)));
 }
 
 void CMainWindow::restoreSettings()
@@ -173,6 +177,7 @@ void CMainWindow::restoreSettings()
         slotVSC(radio.vsc);
         slotAGC(radio.agc);
         slotVolume1(radio.volume);
+        backend->setRadio(radio);
     }
 }
 
@@ -180,7 +185,7 @@ void CMainWindow::saveSettings()
 {
     for (int i=0; i<MAX_RADIO; i++) {
         radioList[i]->step = display->getStep(i);
-        //backend->setRadio(i,radioList[i]);
+        backend->getSettings()->setRadio(i,radioList[i]);
     }
 }
 
@@ -247,6 +252,7 @@ void CMainWindow::slotReceivedData(CCommand::status_t status)
 
 
     statusbar->slotUpdate(info.arg(sent).arg(received).arg(sentUnit).arg(receiveUnit));
+    this->status = status;
 
 }
 
@@ -282,9 +288,6 @@ void CMainWindow::slotFrequency(QString value)
 {
     if (value != "") {
         int current = display->getRadio();
-        //cmd->setRadio(current);
-        //cmd->setFrequency(value.toInt());
-
         // Set bandscope central frequency only on corerct entry
         if (current == bandscopeActivate)
             myBandScope->setCentralFrequency(value.toInt());
@@ -313,15 +316,12 @@ void CMainWindow::slotFilter(int filter)
     if (filter < 0) {
         filter = abs(filter)-2;
     }
-
-    qDebug() << "Filter " << filter;
     // Convert buttongroup to enum value
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setFilter((CCommand::filter)filter);
     display->setFilter((CCommand::filter)filter);
     // save to radio
-    radioList[current]->filter = (CCommand::filter)filter;
+    radioList[current]->filter = filter;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotModulation(int mode)
@@ -329,19 +329,18 @@ void CMainWindow::slotModulation(int mode)
     if(mode < 0) {
         mode = abs(mode)-2;
     }
-    qDebug() << "Modulation " << mode;
     // Convert buttongroup to enum value
     int current = display->getRadio();
-    //cmd->setRadio(current);
-    //cmd->setModulation((CCommand::mode)mode);
     display->setMode((CCommand::mode)mode);
     // save to radio
-    radioList[current]->mode = (CCommand::filter)mode;
+    radioList[current]->modulation = mode;
+    backend->setRadio(*radioList[current]);
 }
 
 void CMainWindow::slotRadioClicked(int value)
 {
     // Update knob settings
+    radioList[value]->antenna = value;
     ui->knobSquelch->setValue(radioList[value]->squelch);
     ui->knobIF->setValue(radioList[value]->ifshift);
     ui->pushNoiseBlanker->setChecked(radioList[value]->nb);
@@ -396,16 +395,13 @@ void CMainWindow::slotDecoderChange(int value)
     int channel = ui->channel->currentIndex();
     decoder.type = value;
     qDebug() << "CMainWindow::slotDecoderChange(" << value << ")";
-    //decoder->slotSetDemodulator(value,channel,16384);
+    backend->getDecoder()->slotSetDemodulator(value,channel,32768);
     // Connect Demodulator to debug windows
-    //connect(decoder->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
-    //connect(mySpectrum, SIGNAL(frequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    //connect(myDecoder, SIGNAL(threshold(double)), decoder->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
-    //connect(mySpectrum, SIGNAL(bandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
-    //connect(remote, SIGNAL(sigSelectFrequency(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    //connect(remote, SIGNAL(sigSelectBandwidth(double)), decoder->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
-    //connect(myDecoder, SIGNAL(threshold(double)), this, SLOT(slotThreshold(double)));
-    //myDecoder->setScaleType(CSpectrumWidget::eTime);
+    connect(backend->getDecoder()->getDemodulatorFromChannel(channel),SIGNAL(dumpData(double*,double*,int)),myDecoder,SLOT(slotRawSamples(double*,double*,int)));
+    connect(mySpectrum, SIGNAL(frequency(double)), backend->getDecoder()->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
+    connect(myDecoder, SIGNAL(threshold(double)), backend->getDecoder()->getDemodulatorFromChannel(channel), SLOT(setThreshold(double)));
+    connect(mySpectrum, SIGNAL(bandwidth(double)), backend->getDecoder()->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
+    myDecoder->setScaleType(CSpectrumWidget::eTime);
     if (value == 4) {
         myDecoder->setAxis(0,512,-30.0,30.0);
         myDecoder->setPickerType(CSpectrumWidget::eThresholdPicker);
@@ -435,14 +431,16 @@ void CMainWindow::slotScopeChanged(int value)
 {
     qDebug() << "cb changed =" << value;
     mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
-    decoder.type = value;
     if (value == 1) {
+        decoder.scopeType = 1;
         mySpectrum->setAxis(0,FFTSIZE,0,50);
     } else
     if (value == 2) {
+        decoder.scopeType = 1;
         mySpectrum->setAxis(0,FFTSIZE,0,WATERFALL_MAX);
     }
     else {
+        decoder.scopeType = 0;
         mySpectrum->setAxis(0,1024,0,256);
     }
 
@@ -540,14 +538,12 @@ void CMainWindow::slotBandScopeStep(int value)
 
 void CMainWindow::slotSettings()
 {
-    /*
-    CDlgSettings *dlgparam = new CDlgSettings(this, settings);
-    dlgparam->addInputSoundDevices(sound->getDeviceList());
-    dlgparam->addOutputSoundDevices(sound->getDeviceList());
+    CDlgSettings *dlgparam = new CDlgSettings(this, backend->getSettings());
+    dlgparam->addInputSoundDevices(backend->getSound()->getDeviceList());
+    dlgparam->addOutputSoundDevices(backend->getSound()->getDeviceList());
     dlgparam->initialize();
     dlgparam->exec();
     delete dlgparam;
-    */
 }
 
 void CMainWindow::slotThreshold(double threshold)
