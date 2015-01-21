@@ -2,6 +2,8 @@
 #define CBANDSCOPEWORKER_H
 
 #include <QThread>
+#include <QMutex>
+#include <math.h>
 #include <fftw3.h>
 #include <stdint.h>
 #define DEFAULT_BUF_LENGTH		(1 * 16384)

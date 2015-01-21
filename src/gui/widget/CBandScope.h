@@ -137,6 +137,7 @@ private:
     int step;
     int position;
     int frequency;
+    int minoffset;
 };
 
 #endif // CBANDSCOPE_H

@@ -393,9 +393,11 @@ void CCommand::setBandscope(CCommand::bandscope_t bandscope) {
         int size = bandscope.width / bandscope.step;
         if (size != this->status.bandscopesize) {
             status.bandscope = new int16_t[size];
+            memset(status.bandscope,0,size*2);
             status.bandscopesize = size;
         }
         bandscopeW->setBandScope(size);
         bandscopeW->update.unlock();
+        bandscopeT->start();
     }
 }

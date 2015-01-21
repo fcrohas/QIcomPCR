@@ -62,8 +62,9 @@ void CBandScope::setupUi(QWidget *widget)
 }
 
 void CBandScope::setSamples(int16_t* data, int length) {
-    for (int i=0; i < length; i++) {
-        samples[i] = QwtIntervalSample(data[i],i,i+1);
+    for (int i=minoffset; i < length+minoffset; i++) {
+        //qDebug() <<"data="<< data[i-minoffset];
+        samples[i] = QwtIntervalSample(data[i-minoffset],i,i+1);
     }
     bandscope->setSamples(samples);
     qwtPlot->replot();
@@ -97,7 +98,9 @@ void CBandScope::setBandWidth(int value)
     // 80 hex is middle so
     int min = 128 - (size / step) / 2;
     int max = 128 + (size / step) / 2;
+    minoffset = min;
     xAxis->setParams(frequency,step);
+    //qDebug() << "setBandWidth min=" << min <<" max="<<max;
     qwtPlot->setAxisScale(QwtPlot::xBottom,min,max);
 }
 
@@ -106,7 +109,9 @@ void CBandScope::setStep(int value)
     step = value;
     int min = 128 - (size / step) / 2;
     int max = 128 + (size / step) / 2;
+    minoffset = min;
     xAxis->setParams(frequency,step);
+    //qDebug() << "setStep min=" << min <<" max="<<max;
     qwtPlot->setAxisScale(QwtPlot::xBottom,min,max);
     //qwtPlot->axisWidget( QwtPlot::xBottom )->repaint();
 }

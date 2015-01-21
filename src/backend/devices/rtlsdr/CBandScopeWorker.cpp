@@ -1,4 +1,5 @@
 #include "CBandScopeWorker.h"
+#include <QDebug>
 
 CBandScopeWorker::CBandScopeWorker(QObject *parent) :
     QObject(parent),
@@ -19,13 +20,14 @@ CBandScopeWorker::~CBandScopeWorker() {
 void CBandScopeWorker::doWork() {
     update.lock();
     for (int i =0; i < this->length;i+=2) {
-        fftSamplesIn[i][0] = this->buffer[i] ;
-        fftSamplesIn[i][1] = this->buffer[i+1] ;
+        fftSamplesIn[i][0] = this->buffer[i]*1.0/32768.0 ; // to double
+        fftSamplesIn[i][1] = this->buffer[i+1]*1.0/32768.0 ; // to double
     }
     fftw_execute(fftplan);
     // fill output buffer
     for (int i =0; i < this->bins;i++) {
-        this->binsData[i] = sqrt(fftSamplesOut[i][0] * fftSamplesOut[i][0] + fftSamplesOut[i][1] * fftSamplesOut[i][1]);
+        this->binsData[i] = sqrt(pow(fftSamplesOut[i][0],2) + pow(fftSamplesOut[i][1],2))*32768/255;
+        //qDebug() << "data=" << this->binsData[i];
     }
     update.unlock();
 }
@@ -33,10 +35,10 @@ void CBandScopeWorker::doWork() {
 void CBandScopeWorker::setBandScope(int bins) {
     if(bins != this->bins) {
         this->bins = bins;
-        binsData = new int16_t[bins];
+        binsData = new int16_t[this->bins];
         if (fftplan!= NULL)
             fftw_destroy_plan(fftplan);
-        fftplan = fftw_plan_dft_1d( bins, fftSamplesIn, fftSamplesOut, FFTW_FORWARD, FFTW_ESTIMATE );
+        fftplan = fftw_plan_dft_1d( this->bins*2, fftSamplesIn, fftSamplesOut, FFTW_FORWARD, FFTW_ESTIMATE );
     }
 }
 
