@@ -84,11 +84,12 @@ void CDecoder::doWork()
         channel    = demodulator->getChannel();
         bufferSize = demodulator->getBufferSize();
 
-        if ((bufferSize!=0))
+        //if ((bufferSize!=0))
             // Check if buffersize is reached for this demodulator;
             //qDebug() << "Demodulator(" << i << ") channelSize=" << channelSize << " dataSize=" << demodulator->getDataSize() << " bufferBlock=" << bufferBlock <<" bufferSize=" << bufferSize << " buffer=" << ((bufferBlock * channelSize + channelSize) % bufferSize);
-        if ((bufferSize!=0) && ((bufferBlock * channelSize + channelSize)  == bufferSize)) {
-            //qDebug() << "Demodulator(" << i << ") channel=" << channel << " dataSize=" << demodulator->getDataSize() << " Buffersize=" << bufferBlock * channelSize + channelSize;
+//qDebug() << "Demodulator(" << i << ") channel=" << channel << " dataSize=" << demodulator->getDataSize() << " Buffersize=" << bufferBlock * channelSize + channelSize;
+        if ((bufferSize!=0) && ((bufferBlock * channelSize + channelSize) - bufferSize > 0)) {
+
 
 #if 1
             if (demodulator->getDataSize() == 8) {

@@ -6,6 +6,8 @@
 #include <CRtlSdr.h>
 #include <CDemodulatorBase.h>
 #include <CDemodulatorFactory.h>
+#include <CBandScopeWorker.h>
+#include <QThread>
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -19,6 +21,7 @@ class CCommand : public QObject
     Q_OBJECT
 public:
     explicit CCommand(QObject *parent = 0);
+    ~CCommand();
 
     // Radio settings per antenna
     struct radio_t {
@@ -55,6 +58,8 @@ public:
         bool power;
         int readCount;
         int sendCount;
+        int16_t *bandscope;
+        int bandscopesize;
     };
 
     // Power command
@@ -177,6 +182,7 @@ private:
     int radio;
     radio_t *currentRadio;
     status_t status;
+    bandscope_t bandscope;
     // List of radio antenna settings
     QList<radio_t*> *radioList;
 
@@ -186,8 +192,6 @@ private:
     // Radiomode
     uint radiomode; // 0=both, 1=single, 2=diversity
 
-    // BandScope
-    bandscope_t bandscope;
     int polarity;
     int reverse;
     bool scopepower;
@@ -199,6 +203,10 @@ private:
     QThread *demoThread;
     // Timer event
     QTimer *timer;
+    // Bandscope worker
+    CBandScopeWorker *bandscopeW;
+    // Bandscope Thread
+    QThread *bandscopeT;
 };
 
 #endif // CCOMMAND_H

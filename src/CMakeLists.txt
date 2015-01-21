@@ -80,8 +80,8 @@ if(WITH_ICOMPCR)
 endif(WITH_ICOMPCR)
 
 if(WITH_RTLSDR)
-    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h)
-    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp)
+    set(qicompcr_HDRS ${qicompcr_HDRS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.h ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CBandScopeWorker.h)
+    set(qicompcr_SRCS ${qicompcr_SRCS} ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CCommand.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CRtlSdr.cpp ${CMAKE_SOURCE_DIR}/src/backend/devices/rtlsdr/CBandScopeWorker.cpp)
     # NOMINMAX to avoid windows.h bug
     add_definitions(-DWITH_RTLSDR)
     if(WIN32)

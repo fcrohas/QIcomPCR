@@ -2,6 +2,7 @@
 #define CRTLSDR_H
 
 #include <QDebug>
+#include <CBandScopeWorker.h>
 #include "IDevice.h"
 #include "CDemodulatorBase.h"
 #include "pa_ringbuffer.h"
@@ -73,6 +74,8 @@ class CRtlSdr : public IDevice
         struct dongle_state dongle;
         struct demodule_state demod;
         void Demodulate();
+        void doBandscope();
+        void setBandscope(CBandScopeWorker *bandscopeW);
         void setDemodulator(CDemodulatorBase *value);
     signals:
         void sigSampleRead(int16_t *buffer,int len);
@@ -80,10 +83,10 @@ class CRtlSdr : public IDevice
         bool power;
         int device_count;
         CDemodulatorBase *demo;
+        CBandScopeWorker *bandscopeW;
     private slots:
         void slotNewDataReceived(const QByteArray &dataReceived);
         void slotWatchdog();
-
 };
 
 #endif // CRTLSDR_H

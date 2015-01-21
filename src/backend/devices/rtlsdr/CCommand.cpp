@@ -31,6 +31,17 @@ CCommand::CCommand(QObject *parent) :
     // initialize status
     status.snr[0] = 0;
     status.snr[1] = 0;
+    bandscopeW = new CBandScopeWorker();
+    bandscopeT = new QThread();
+    m_device->setBandscope(bandscopeW);
+    bandscopeW->moveToThread(bandscopeT);
+}
+
+CCommand::~CCommand() {
+    bandscopeT->quit();
+    bandscopeT->wait();
+    delete bandscopeT;
+    delete bandscopeW;
 }
 
 void CCommand::setPower(bool value)
@@ -355,12 +366,14 @@ void CCommand::getSNR() {
     if (status.power) {
         //qDebug() << "radio=" << radio << " antenna=" << currentRadio->antenna << "\r\n";
         status.snr[currentRadio->antenna] = currentRadio->demodulator->mad(2);
+        status.bandscope = bandscopeW->getBins();
+        status.bandscopesize = bandscopeW->getSize();
         emit dataChanged(status);
     }
 }
 
 void CCommand::setRadio(CCommand::radio_t radio) {
-    qDebug() << "antenna=" << radio.antenna << " freq="<< radio.frequency <<"\r\n";
+    //qDebug() << "antenna=" << radio.antenna << " freq="<< radio.frequency <<"\r\n";
     if (radio.power != currentRadio->power) setPower(radio.power);
     if (radio.antenna != currentRadio->antenna) setRadio(radio.antenna);
     if (radio.modulation != currentRadio->modulation) setModulation(radio.modulation);
@@ -375,11 +388,14 @@ void CCommand::setRadio(CCommand::radio_t radio) {
 }
 
 void CCommand::setBandscope(CCommand::bandscope_t bandscope) {
-    QString data("ME0000%1%2%3%4%5");
-    bandscope.samplewidth = bandscope.width / bandscope.step;
-    data = data.arg(currentRadio->antenna +1).arg(bandscope.samplewidth, 2, 16, QChar('0'))
-                                     .arg(bandscope.refresh, 2, 16, QChar('0'))
-                                     .arg(bandscope.power, 2, 16, QChar('0'))
-                                     .arg(bandscope.step, 8, 10, QChar('0'));
-    emit sendData(data);
+    if (bandscope.power == true) {
+        bandscopeW->update.lock();
+        int size = bandscope.width / bandscope.step;
+        if (size != this->status.bandscopesize) {
+            status.bandscope = new int16_t[size];
+            status.bandscopesize = size;
+        }
+        bandscopeW->setBandScope(size);
+        bandscopeW->update.unlock();
+    }
 }

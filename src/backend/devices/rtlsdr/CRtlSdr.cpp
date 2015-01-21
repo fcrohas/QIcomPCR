@@ -208,15 +208,28 @@ void CRtlSdr::setAgcControl(bool state) {
 
 void CRtlSdr::Demodulate() {
     demo->update.lock();
+
     log_t.dataReceive += dongle.buf_len;
     demod.buf_len = dongle.buf_len;
     memcpy(demod.buf16, dongle.buf16, dongle.buf_len*2);
     demo->setData(demod.buf16,demod.buf_len);
     demo->update.unlock();
     QMetaObject::invokeMethod(demo, "doWork");
+    doBandscope();
 }
 
 void CRtlSdr::setDemodulator(CDemodulatorBase *value) {
     demo = value;
     qDebug() << "Set demodulator " << demo->getName() <<"\r\n";
+}
+
+void CRtlSdr::doBandscope() {
+    bandscopeW->update.lock();
+    bandscopeW->setData(demod.buf16, demod.buf_len);
+    bandscopeW->update.unlock();
+    QMetaObject::invokeMethod(bandscopeW, "doWork");
+}
+
+void CRtlSdr::setBandscope(CBandScopeWorker *bandscopeW) {
+    this->bandscopeW = bandscopeW;
 }

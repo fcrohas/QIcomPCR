@@ -61,6 +61,14 @@ void CBandScope::setupUi(QWidget *widget)
     //qwtPlot->replot();
 }
 
+void CBandScope::setSamples(int16_t* data, int length) {
+    for (int i=0; i < length; i++) {
+        samples[i] = QwtIntervalSample(data[i],i,i+1);
+    }
+    bandscope->setSamples(samples);
+    qwtPlot->replot();
+}
+
 void CBandScope::setSamples(QString data)
 {
     // Offset of those samples

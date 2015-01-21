@@ -224,6 +224,9 @@ void CMainWindow::slotReceivedData(CCommand::status_t status)
         }
         statusbar->setState(status.power);
     }
+    if (this->bandscope.power) {
+        myBandScope->setSamples(status.bandscope, status.bandscopesize);
+    }
     /*
     if (data.contains("NE")) {
         myBandScope->setSamples(data);
@@ -433,7 +436,7 @@ void CMainWindow::slotScopeChanged(int value)
     mySpectrum->setPlotterType((CSpectrumWidget::ePlotter)value);
     if (value == 1) {
         decoder.scopeType = 1;
-        mySpectrum->setAxis(0,FFTSIZE,0,50);
+        mySpectrum->setAxis(decoder.channel*FFTSIZE/2,(decoder.channel == 1) ? FFTSIZE/2:FFTSIZE,0,50);
     } else
     if (value == 2) {
         decoder.scopeType = 1;
@@ -441,7 +444,7 @@ void CMainWindow::slotScopeChanged(int value)
     }
     else {
         decoder.scopeType = 0;
-        mySpectrum->setAxis(0,1024,0,256);
+        mySpectrum->setAxis(0,16384,-127,128);
     }
 
     backend->setDecoder(decoder);

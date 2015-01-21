@@ -22,6 +22,7 @@
 #include <QWidget>
 #include <QHBoxLayout>
 #include <QMouseEvent>
+#include <stdint.h>
 #include <qwt_plot.h>
 #include <qwt_scale_draw.h>
 #include <qwt_scale_widget.h>
@@ -111,6 +112,7 @@ class CBandScope : public QWidget
 public:
     explicit CBandScope(QWidget *parent = 0);
     void setSamples(QString data);
+    void setSamples(int16_t* data, int length);
     void setSamples(QVector<QwtIntervalSample> samples);
     void setBandWidth(int size);
     void setStep(int step);

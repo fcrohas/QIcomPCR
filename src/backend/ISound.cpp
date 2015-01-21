@@ -20,19 +20,34 @@
 
 ISound::ISound(QObject *parent) :
     QThread(parent)
-  ,pFile(NULL)
+  ,pFile(NULL),
+  decod(NULL),
+  decoder(NULL)
 {
-    decoder = new QThread();
+
 }
 
 ISound::~ISound()
 {
-    decoder->terminate();
+    if (decod != NULL) {
+        decoder->quit();
+        //disconnect(SIGNAL(sigFilter(uint)),currentRadio->demodulator);
+        decoder->wait();
+        delete decoder;
+    }
 }
 
 void ISound::SetDecoder(CDecoder *value, Mode mode)
 {
+    if (decod != NULL) {
+        decoder->quit();
+        //disconnect(SIGNAL(sigFilter(uint)),currentRadio->demodulator);
+        decoder->wait();
+        delete decoder;
+    }
+    decoder = new QThread();
     decod = value;
+    decod->moveToThread(decoder);
     decoder->start();
 }
 
