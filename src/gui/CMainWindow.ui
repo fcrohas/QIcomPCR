@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1128</width>
+    <width>2578</width>
     <height>813</height>
    </rect>
   </property>
@@ -27,7 +27,7 @@
     <item>
      <widget class="QMdiArea" name="mdiArea">
       <property name="viewMode">
-       <enum>QMdiArea::TabbedView</enum>
+       <enum>QMdiArea::SubWindowView</enum>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -83,47 +83,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="toolBox">
-       <property name="windowTitle">
-        <string>Command</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QPushButton" name="pushSwitchSound">
-            <property name="text">
-             <string>Switch Sound</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushRecord">
-            <property name="text">
-             <string>Record</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushStopPlay">
-            <property name="text">
-             <string>Play</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
       <widget class="QWidget" name="radio">
        <property name="windowTitle">
         <string>Radio controller</string>
@@ -173,13 +132,13 @@
                  <property name="knobWidth">
                   <number>30</number>
                  </property>
-                 <property name="borderWidth">
-                  <number>4</number>
-                 </property>
                  <property name="totalAngle">
                   <double>270.000000000000000</double>
                  </property>
-                 <property name="markerSize" stdset="0">
+                 <property name="markerSize">
+                  <number>4</number>
+                 </property>
+                 <property name="borderWidth">
                   <number>4</number>
                  </property>
                 </widget>
@@ -199,10 +158,10 @@
                  <property name="knobWidth">
                   <number>30</number>
                  </property>
-                 <property name="borderWidth">
+                 <property name="markerSize">
                   <number>4</number>
                  </property>
-                 <property name="markerSize" stdset="0">
+                 <property name="borderWidth">
                   <number>4</number>
                  </property>
                 </widget>
@@ -1101,8 +1060,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1128</width>
-     <height>19</height>
+     <width>2578</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

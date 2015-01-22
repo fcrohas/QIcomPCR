@@ -39,16 +39,16 @@ public:
     void setOrder(int value);
     void setSampleRate(double value);
     void apply(T *&in, int size);
-    //void apply(int16_t *in, int size);
+    void applyIQ(T *&in, int size);
     void intToFloat( int16_t *input, double *output, int length );
     void floatToInt( double *input, int16_t *output, int length );
     void convert();
 private:
     double *win;
     double *fir;
+    double *firQ;
     T *tfir;
     T *buffer;
-    double *bufferd;
     int N;
     double M;
     double wc;

@@ -124,7 +124,6 @@ void CMainWindow::connectSignals()
     connect(ui->refreshRate, SIGNAL(valueChanged(int)), this, SLOT(slotRefreshRate(int)));
     connect(ui->cbWindow, SIGNAL(currentIndexChanged(QString)), this, SLOT(slotWindowFunction(QString)));
 
-    connect(ui->pushSwitchSound,SIGNAL(clicked(bool)),this,SLOT(slotSwitchSound(bool)));
     // Band Scope
     connect(ui->pushBandscope,SIGNAL(clicked(bool)),this,SLOT(slotBandScope(bool)));
     connect(ui->cbBandwidth, SIGNAL(currentIndexChanged(int)), this, SLOT(slotBandScopeWidth(int)));
@@ -136,8 +135,6 @@ void CMainWindow::connectSignals()
 
     // Connect load file
     connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(slotLoadFile()));
-    connect(ui->pushStopPlay, SIGNAL(clicked(bool)), this, SLOT(slotStopPlay(bool)));
-    connect(ui->pushRecord, SIGNAL(clicked(bool)), this, SLOT(slotRecordAudio(bool)));
     connect(display, SIGNAL(radioChanged(int)), this, SLOT(slotRadioClicked(int)));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
     // Connect spectrum widget

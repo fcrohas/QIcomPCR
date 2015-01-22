@@ -364,8 +364,10 @@ void CCommand::getSNR() {
     status.readCount = m_device->log_t.dataReceive;
     status.sendCount = m_device->log_t.dataSent;
     if (status.power) {
-        //qDebug() << "radio=" << radio << " antenna=" << currentRadio->antenna << "\r\n";
-        status.snr[currentRadio->antenna] = currentRadio->demodulator->mad(2);
+        int snr = currentRadio->demodulator->getSnr();
+        //qDebug() << "snr=" << currentRadio->demodulator->getSnr();
+        if (snr>0)
+            status.snr[currentRadio->antenna] = (status.snr[currentRadio->antenna] + snr)/2;
         status.bandscope = bandscopeW->getBins();
         status.bandscopesize = bandscopeW->getSize();
         emit dataChanged(status);

@@ -36,6 +36,8 @@ private:
     CWindowFunc *winfunc;
     // FIR bandpass filter
     CFIR<int16_t> *filter;
+    // FIR lowpass filter IQ
+    CFIR<int16_t> *filterIQ;
     // Init PLL
     void initPLL();
     // process PLL

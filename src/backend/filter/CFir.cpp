@@ -23,7 +23,6 @@ CFIR<T>::CFIR() :
     win(NULL),
     fir(NULL),
     buffer(NULL),
-    bufferd(NULL),
     update(false),
     scaleFactor(1.0)
 {
@@ -38,9 +37,7 @@ template<class T>
 CFIR<T>::~CFIR()
 {
     delete [] buffer;
-    delete [] bufferd;
     buffer = NULL;
-    bufferd = NULL;
 }
 
 template<class T>
@@ -55,13 +52,19 @@ void CFIR<T>::lowpass(double frequency)
     update = true;
     wc = (2.0 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
-        if (i==M)
+        if (i==M) {
             fir[i] = wc/M_PI;
-        else
+            firQ[i] = wc/M_PI;
+        }
+        else {
             fir[i] = sin(wc*(i-M))/(M_PI*(i-M));
+            firQ[i] = cos(wc*(i-M))/(M_PI*(i-M));
+        }
         // Apply window
-        if (win != NULL)
+        if (win != NULL) {
             fir[i] = fir[i] * win [i];
+            firQ[i] = firQ[i] * win [i];
+        }
     }
     convert();
     delete [] buffer;
@@ -76,13 +79,19 @@ void CFIR<T>::highpass(double frequency)
     wc = (2.0 * M_PI * frequency) / fs;
     //wc = (2 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
-        if (i==M)
+        if (i==M) {
             fir[i] = - sin(wc*(i-M))/(M_PI*(i-M));
-        else
+            firQ[i] = - cos(wc*(i-M))/(M_PI*(i-M));
+        }
+        else {
             fir[i] = 1 - wc / M_PI;
+            firQ[i] = 1 - wc / M_PI;
+        }
         // Apply window
-        if (win != NULL)
+        if (win != NULL) {
             fir[i] = fir[i] * win [i];
+            firQ[i] = firQ[i] * win [i];
+        }
     }
     convert();
     delete [] buffer;
@@ -98,13 +107,19 @@ void CFIR<T>::bandpass(double centerfreq, double bandwidth)
     double wc2 = (2.0 * M_PI * (centerfreq+bandwidth/2.0)) / fs;
     //wc = (2 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
-        if (i==M)
+        if (i==M) {
             fir[i] = (wc2 - wc1)/M_PI;
-        else
+            firQ[i] = (wc2 - wc1)/M_PI;
+        }
+        else {
             fir[i] = sin(wc2*(i-M))/(M_PI*(i-M)) - sin(wc1*(i-M))/(M_PI*(i-M));
+            firQ[i] = cos(wc2*(i-M))/(M_PI*(i-M)) - cos(wc1*(i-M))/(M_PI*(i-M));
+        }
         // Apply window
-        if (win != NULL)
+        if (win != NULL) {
             fir[i] = fir[i] * win [i];
+            firQ[i] = firQ[i] * win [i];
+        }
     }
     convert();
     delete [] buffer;
@@ -120,13 +135,19 @@ void CFIR<T>::stopband(double centerfreq, double bandwidth)
     double wc2 = (2.0 * M_PI * (centerfreq+bandwidth/2.0)) / fs;
     //wc = (2 * M_PI * frequency) / fs;
     for (int i=0; i<N; i++) {
-        if (i==M)
+        if (i==M) {
             fir[i] = 1.0 - (wc2 - wc1)/M_PI;
-        else
+            firQ[i] = 1.0 - (wc2 - wc1)/M_PI;
+        }
+        else {
             fir[i] = sin(wc1*(i-M))/(M_PI*(i-M)) - sin(wc2*(i-M))/(M_PI*(i-M));
+            firQ[i] = cos(wc1*(i-M))/(M_PI*(i-M)) - cos(wc2*(i-M))/(M_PI*(i-M));
+        }
         // Apply window
-        if (win != NULL)
+        if (win != NULL) {
             fir[i] = fir[i] * win [i];
+            firQ[i] = firQ[i] * win [i];
+        }
     }
     convert();
     delete [] buffer;
@@ -142,12 +163,15 @@ void CFIR<T>::setOrder(int value)
     if (fir == NULL) {
         tfir = new T[N];
         fir = new double[N];
+        firQ = new double[N];
     }
     else {
+        delete [] firQ;
         delete [] fir;
         delete [] tfir;
         tfir = new T[N];
         fir = new double[N];
+        firQ = new double[N];
     }
 }
 
@@ -172,7 +196,6 @@ void CFIR<T>::apply(T *&in, int size)
         buffer = new T[size*2];
     }
     // loop on buffer and apply filter
-#if 1
     T *inputp;
     T acc;
     // put the new samples at the high end of the buffer
@@ -192,50 +215,47 @@ void CFIR<T>::apply(T *&in, int size)
     // shift input samples back in time for next time
     memmove( &buffer[0], &buffer[size],
             (N - 1) * sizeof(T) );
-#endif
-#if 0
-    for (int i=0; i<size; i++) {
-        T sample = 0.0;
-        // act as a ring buffer for current and previous call
-        buffer[i] = in[i];
-        // direct fir filter
-        for (int j=0; j<N; j++) {
-            if ((i-j) < 0)
-                sample += buffer[size+i-j] * tfir[j]; // use previous buffer call values
-            else
-                sample += buffer[i-j] * tfir[j]; // use current buffer values
-            //sample += in[i] * tfir[j];
-        }
-        // Save
-        in[i] = sample;
+}
+
+// the FIR filter function
+template<class T>
+void CFIR<T>::applyIQ(T *&in, int size)
+{
+    if (update)
+        return;
+    if (in == NULL) {
+        return;
     }
-#endif
-#if 0
-    __m128d X, Y, Z;
-    for (int i=0; i<size; i++) {
-        double sample = 0.0;
-        // act as a ring buffer for current and previous call
-        buffer[i] = in[i];
-        // direct fir filter
-        for (int j=0; j<N; j+=4) {
-            if ((i-j) < 0) {
-                X = _mm_load_pd(&buffer[size+i-j]);
-            }
-            else {
-                X = _mm_load_pd(&buffer[i-j]);
-            }
-            Y = _mm_load_pd(&fir[j]);
-            X = _mm_mul_pd(X, Y);
-            Z = _mm_setzero_pd();
-            Z = _mm_add_pd(X, Z);
-        }
-        // Save
-        for(int j=0; j<4; j++) {
-            sample = Z.m128d_f64[j] + sample;
-        }
-        in[i] = sample;
+
+    if (buffer == NULL) {
+        buffer = new T[size*2];
     }
-#endif
+    // loop on buffer and apply filter
+    T *inputpI;
+    T *inputpQ;
+    T accI;
+    T accQ;
+    // put the new samples at the high end of the buffer
+    memcpy( &buffer[N - 1], in,
+            size * sizeof(T) );
+
+    // apply the filter to each input sample
+    for (int n = 0; n < size; n++ ) {
+        // calculate output n
+        inputpI = &buffer[N - 1 + n]; // I sample
+        inputpQ = &buffer[N - 1 + (n+1)]; // Q sample
+        accI = 0;
+        accQ = 0;
+        for (int k = 0; k < N; k++ ) {
+            accI += fir[k] * (*inputpI--);
+            accQ += firQ[k] * (*inputpQ--);
+        }
+        in[n] = accI;
+        in[n+1] = accQ;
+    }
+    // shift input samples back in time for next time
+    memmove( &buffer[0], &buffer[size],
+            (N - 1) * sizeof(T) );
 }
 
 template<class T>
@@ -254,40 +274,7 @@ void CFIR<T>::convert() {
         tfir[i] = fir[i] * scaleFactor;
     }
 }
-/*
-// the FIR filter function
-template<class T>
-void CFIR<T>::apply(int16_t *in, int size)
-{
-    if (update)
-        return;
-    if (in == NULL) {
-        return;
-    }
 
-    if (bufferd == NULL) {
-        bufferd = new double[size];
-    }
-    // loop on buffer and apply filter
-#if 1
-    double *inputp;
-    double acc;
-    // Convert for int16_t
-    intToFloat(in,bufferd,size);
-    // apply the filter to each input sample
-    for ( int n = 0; n < size; n++ ) {
-        inputp = &bufferd[N - 1 + n];
-        acc = 0;
-        for ( int k = 0; k < N; k++ ) {
-            acc += tfir[k] * (*inputp--);
-        }
-        in[n] = acc;
-    }
-    // convert back
-    floatToInt(bufferd,in,size);
-#endif
-}
-*/
 template<class T>
 void CFIR<T>::intToFloat( int16_t *input, double *output, int length )
 {

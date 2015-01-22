@@ -13,7 +13,8 @@ CDemodulatorBase::CDemodulatorBase(QObject *parent, Mode mode) :
     decimation(4),
     intfreq(256000),
     mode(eWFM),
-    len(0)
+    len(0),
+    snr(0)
 {
     //qDebug() << "IDemodulator constructor...\r\n";
     // save mode
@@ -183,4 +184,8 @@ void CDemodulatorBase::setSampleRate(uint frequency) {
 
 QString CDemodulatorBase::getName() {
     return QString("CDemodulatorBase");
+}
+
+int CDemodulatorBase::getSnr() {
+    return snr;
 }

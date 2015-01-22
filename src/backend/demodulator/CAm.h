@@ -19,10 +19,17 @@ public slots:
     void slotSetFilter(uint frequency);
 
 private:
+    // Avrage IQ samples
+    void averageIQ(int16_t *buffer, int len, int *avgI, int *avgQ);
     // Filters
     CWindowFunc *winfunc;
-    // FIR bandpass filter
+    // FIR lowpass filter
     CFIR<int16_t> *filter;
+    // FIR lowpass IQ filter
+    CFIR<int16_t> *filterIQ;
+    // Average
+    int avgI;
+    int avgQ;
 };
 
 #endif // CAM_H

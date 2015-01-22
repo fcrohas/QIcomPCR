@@ -31,7 +31,9 @@ public:
     int rms(int step);
     // MAD power
     int mad(int step);
-    //
+    // Signal noise
+    int getSnr();
+    // Mutex thread
     QMutex update;
     // Demodulator name
     virtual QString getName();
@@ -59,6 +61,7 @@ private:
     float *outputbufferf;
 
 protected:
+    // Modulation type
     Mode mode;
     int filterfreq;
     // decimation 1st stage
@@ -68,6 +71,8 @@ protected:
     // internal thread buffer
     int16_t *buffer;
     int len;
+    // Signal noise ratio
+    int snr;
 };
 
 #endif // CDEMODULATORBASE_H

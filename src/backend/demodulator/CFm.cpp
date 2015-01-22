@@ -4,6 +4,7 @@ CFm::CFm(QObject *parent, Mode mode) :
     CDemodulatorBase(parent),
     avg(0),
     filter(NULL),
+    filterIQ(NULL),
     deemph_a(1)
 {
     //qDebug() << "CFM constructor...\r\n";
@@ -11,6 +12,10 @@ CFm::CFm(QObject *parent, Mode mode) :
     winfunc = new CWindowFunc(this);
     winfunc->init(32);
     winfunc->blackmanharris();
+    // Low pass IQ FIR filter
+    filterIQ = new CFIR<int16_t>();
+    filterIQ->setOrder(32);
+    filterIQ->setWindow(winfunc->getWindow());
     // Set FIR filter
     // Build Bandpass filter
     filter = new CFIR<int16_t>();
@@ -24,7 +29,14 @@ CFm::CFm(QObject *parent, Mode mode) :
 
 void CFm::doWork() {
     update.lock();
+    // Signal to noise ratio
+    int prev = 0;
+    int difSqrSum = 0;
+    // Decimate to get 250K sample rate
     len = CDemodulatorBase::downsample(buffer,len,decimation);
+    // Low pass filtering IQ samples
+    filterIQ->applyIQ(buffer,len);
+    // Demodulate with discriminator
     int16_t pr = pre_real;
     int16_t pj = pre_img;
     int pcm = 0;
@@ -36,10 +48,14 @@ void CFm::doWork() {
             pcm = polar_discriminant(buffer[i], buffer[i+1], pr, pj);
         pr = buffer[i];
         pj = buffer[i+1];
+        difSqrSum += (prev - pcm) * (prev - pcm);
         buffer[i/2] = (int16_t)pcm;
+        prev = pcm;
     }
     // Update new length for one channel
     len = len/2;
+    // Update snr
+    snr = abs(1 - sqrt(difSqrSum / len));
     // Deemphasis filter if WBFM mode
     if (mode == eWFM) {
         deemph_filter(buffer,len);
@@ -118,6 +134,7 @@ int CFm::polar_disc_fast(int ar, int aj, int br, int bj)
 
 void CFm::slotSetFilter(uint frequency) {
     CDemodulatorBase::slotSetFilter(frequency);
+    // audio filtering
     if (filter != NULL) {
         filter->setSampleRate(22050);
         //qDebug() << "Initialize FIR filter frequency=" << frequency <<" mode=" << mode << " intfreq=" << intfreq << "\r\n";
@@ -128,8 +145,12 @@ void CFm::slotSetFilter(uint frequency) {
         else {
             filter->lowpass(frequency);
         }
-        //
-        filter->convert();
+    }
+    // IQ filtering
+    if (filterIQ != NULL) {
+        // Sample rate after decimation
+        filterIQ->setSampleRate(intfreq);
+        filterIQ->lowpass(frequency);
     }
 }
 
