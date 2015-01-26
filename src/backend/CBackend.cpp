@@ -56,8 +56,6 @@ void CBackend::initializeRemote() {
     connect(remote,SIGNAL(sigBandScope(CCommand::bandscope_t)), cmd, SLOT(setBandscope(CCommand::bandscope_t)));
     // Connect remote to decoder event
     connect(remote,SIGNAL(sigDecoder(CDecoder::decoder_t)), decoders, SLOT(setDecoder(CDecoder::decoder_t)));
-    //connect(remote, SIGNAL(sigSelectFrequency(double)), decoders->getDemodulatorFromChannel(channel), SLOT(slotFrequency(double)));
-    //connect(remote, SIGNAL(sigSelectBandwidth(double)), decoders->getDemodulatorFromChannel(channel), SLOT(slotBandwidth(double)));
     // Connect sound event
     connect(remote,SIGNAL(sigSoundMute(bool)), cmd, SLOT(setSoundMute(bool)));
     connect(remote,SIGNAL(sigSoundVolume(uint)), cmd, SLOT(setSoundVolume(uint)));
@@ -66,10 +64,6 @@ void CBackend::initializeRemote() {
 void CBackend::initializeDecoders() {
     // Send decoder event to remote control
     connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)), remote, SLOT(controledRate(double*,double*,int)));
-    // Connect Demodulator to debug windows
-    //connect(decoders,SIGNAL(sendData(QString)),this,SLOT(setDemodulatorData(QString)));
-    // Connect spectrum widget
-    //connect(decoders,SIGNAL(sigRawSamples(double*,double*,int)),this,SLOT(slotRawSamples(double*,double*,int)));
 }
 
 void CBackend::initializeDevice() {
@@ -134,8 +128,20 @@ CCommand::bandscope_t CBackend::getBandscope() {
 
 // Decoder properties
 void CBackend::setDecoder(CDecoder::decoder_t decoder) {
+    bool channelChanges = false;
+    if (decoder.channel != this->decoder.channel) {
+        // disconnect slot
+        disconnect(remote,SIGNAL(sigSelectFrequency(double)));
+        disconnect(remote,SIGNAL(sigSelectBandwidth(double)));
+        channelChanges = true;
+    }
     this->decoder = decoder;
     decoders->setDecoder(decoder);
+    if (channelChanges) {
+        // connect newer
+        connect(remote, SIGNAL(sigSelectFrequency(double)), decoders->getDemodulatorFromChannel(decoder.channel), SLOT(slotFrequency(double)));
+        connect(remote, SIGNAL(sigSelectBandwidth(double)), decoders->getDemodulatorFromChannel(decoder.channel), SLOT(slotBandwidth(double)));
+    }
 }
 
 // Radio properties
