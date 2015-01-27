@@ -1,5 +1,4 @@
 import QtQuick 2.2
-import QtQuick.Window 2.1
 import QtQuick.Controls 1.1
 import CustomPlot 1.0
 
@@ -310,28 +309,66 @@ ApplicationWindow {
         border.color: "#493b3b"
         border.width: 3
         Row {
+            x: 19
+            y: 9
+            width: 490
+            height: 11
             spacing: 5
 
-            //Switch { checked : false }
+            Switch { checked : false }
 
-            ComboBox {
-                id: combo
-                x: 18
-                y: 0
-                editable: false
+            ListView {
+                width: 80; height: 10
+                spacing: 1
+                cacheBuffer: 20
+                snapMode: ListView.SnapOneItem
+                keyNavigationWraps: true
+                orientation: ListView.Horizontal
+                contentHeight: 10
+                contentWidth: 80
+                flickableDirection: Flickable.HorizontalFlick
+
+                Component {
+                    id: frequenciesDelegate
+                    Rectangle {
+                        id: wrapper
+                        width: 80
+                        height: freqInfo.height
+                        //color: ListView.isCurrentItem ? "black" : "red"
+                        Text {
+                            id: freqInfo
+                            text: freq + ": " + basef
+                            //color: wrapper.ListView.isCurrentItem ? "red" : "black"
+                        }
+                    }
+                }
+
                 model: ListModel {
-                 id: model
-                 ListElement { text: "Banana"; color: "Yellow" }
-                 ListElement { text: "Apple"; color: "Green" }
-                 ListElement { text: "Coconut"; color: "Brown" }
-               }
-               onAccepted: {
-                if (combo.find(currentText) === -1) {
-                   model.append({text: editText})
-                   currentIndex = combo.find(editText)
-                 }
-               }
+                    ListElement {
+                        freq: "1000"
+                        basef: "khz"
+                    }
+                    ListElement {
+                        freq: "500"
+                        basef: "khz"
+                    }
+                    ListElement {
+                        freq: "100"
+                        basef: "khz"
+                    }
+                    ListElement {
+                        freq: "50"
+                        basef: "khz"
+                    }
+                    ListElement {
+                        freq: "25"
+                        basef: "khz"
+                    }
+                }
+                delegate: frequenciesDelegate
+                focus: true
             }
+
         }
         CustomPlotItem {
             id: customPlot
@@ -345,15 +382,15 @@ ApplicationWindow {
             xAxis: CustomAxis {
                 label : "Frequency [Mhz]"
                 color : "#ffffff"
-                //min : 106.9
-                //max : 107.9
+                min : 106.9
+                max : 107.9
             }
 
             yAxis: CustomAxis {
                 label : "Power [db]"
                 color : "#ffffff"
-                //min : 0.0
-                //max : 50.0
+                min : 0.0
+                max : 50.0
             }
 
             Component.onCompleted: initCustomPlot()
