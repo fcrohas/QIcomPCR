@@ -11,13 +11,13 @@ Item {
 
     Image {
         id: knobBase
-        source: "resources/btn.png"
+        source: "icons/btn.png"
         anchors.centerIn: scaleIndicator
         anchors.verticalCenterOffset: 14
         rotation: knob.percentage * 90
 
         Image {
-            source: "resources/incavo.png"
+            source: "icons/incavo.png"
             anchors.top: knobBase.top
             anchors.topMargin: 2
             anchors.horizontalCenter: knobBase.horizontalCenter
@@ -36,7 +36,7 @@ Item {
 
     Image {
         id: scaleIndicator
-        source: "resources/indicatore.png"
+        source: "icons/indicatore.png"
     }
 
     Text {

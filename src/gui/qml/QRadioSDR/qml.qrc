@@ -5,8 +5,8 @@
         <file>Bargraph.qml</file>
     </qresource>
     <qresource prefix="/icons">
-        <file>resources/btn.png</file>
-        <file>resources/incavo.png</file>
-        <file>resources/indicatore.png</file>
+        <file>btn.png</file>
+        <file>incavo.png</file>
+        <file>indicatore.png</file>
     </qresource>
 </RCC>

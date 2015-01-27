@@ -12,7 +12,7 @@ Item {
             model: 100
             delegate: Rectangle {
                 color : (index < 35) ? "#15f327" : (index < 75) ? "#ff9900" : "#ff0000"
-                x: index * (100 * 4) / parent.width
+                x: index * (100 * 4.4) / parent.width
                 y: 0
                 width: 1
                 height : parent.height

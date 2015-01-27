@@ -1,12 +1,37 @@
 import QtQuick 2.2
 import QtQuick.Window 2.1
 import QtQuick.Controls 1.1
+import CustomPlot 1.0
 
-Window {
+ApplicationWindow {
     visible: true
     width: 800
     height: 600
     title: "QRadioSDR"
+
+    menuBar: MenuBar {
+        Menu {
+            title: "File"
+            MenuItem { text: "Open..." }
+            MenuItem { text: "Close" }
+        }
+
+        Menu {
+            title: "Edit"
+            MenuItem { text: "Cut" }
+            MenuItem { text: "Copy" }
+            MenuItem { text: "Paste" }
+        }
+    }
+
+    toolBar: ToolBar {
+        Row {
+                    anchors.fill: parent
+                    ToolButton {
+                        iconSource: "icons/btn.png"
+                    }
+        }
+    }
 
     Grid {
         id: maingrid
@@ -218,7 +243,7 @@ Window {
             y: 56
             width: 209
             height: 10
-            value: 20
+            value: 10
         }
         Bargraph {
             id: signal2
@@ -284,5 +309,62 @@ Window {
         radius: 19
         border.color: "#493b3b"
         border.width: 3
+        Row {
+            spacing: 5
+
+            //Switch { checked : false }
+
+            ComboBox {
+                id: combo
+                x: 18
+                y: 0
+                editable: false
+                model: ListModel {
+                 id: model
+                 ListElement { text: "Banana"; color: "Yellow" }
+                 ListElement { text: "Apple"; color: "Green" }
+                 ListElement { text: "Coconut"; color: "Brown" }
+               }
+               onAccepted: {
+                if (combo.find(currentText) === -1) {
+                   model.append({text: editText})
+                   currentIndex = combo.find(editText)
+                 }
+               }
+            }
+        }
+        CustomPlotItem {
+            id: customPlot
+            //anchors.fill: parent
+            x: 5
+            y: 26
+            width: 514
+            height: 181
+            // Color settings
+            background : "#000000"
+            xAxis: CustomAxis {
+                label : "Frequency [Mhz]"
+                color : "#ffffff"
+                //min : 106.9
+                //max : 107.9
+            }
+
+            yAxis: CustomAxis {
+                label : "Power [db]"
+                color : "#ffffff"
+                //min : 0.0
+                //max : 50.0
+            }
+
+            Component.onCompleted: initCustomPlot()
+
+        }
+    }
+    statusBar: StatusBar {
+        id:status
+        Row {
+                anchors.fill: parent
+                Label { text: "Read Only" }
+            }
     }
 }

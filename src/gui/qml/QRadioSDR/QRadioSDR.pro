@@ -1,8 +1,10 @@
 TEMPLATE = app
 
-QT += qml quick
+QT += qml quick widgets printsupport
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    qcustomplot.cpp \
+    CustomPlotItem.cpp
 
 RESOURCES += qml.qrc
 
@@ -11,3 +13,7 @@ QML_IMPORT_PATH =
 
 # Default rules for deployment.
 include(deployment.pri)
+
+HEADERS += \
+    qcustomplot.h \
+    CustomPlotItem.h
