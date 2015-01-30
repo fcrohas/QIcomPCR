@@ -39,11 +39,28 @@ private:
     // FIR lowpass filter IQ
     CFIR<int16_t> *filterIQ;
     // Init PLL
-    void initPLL();
+    void initPLL(float frequency, float range);
     // process PLL
-    void  processPll(int i, int q);
-
-
+    double processPll(int i, int q);
+    // PLL variables
+    float phase;
+    float centerf;  // center frequency radian
+    float lowerf; // lower frequency
+    float higherf; // higher frequency
+    float alpha;
+    float beta;
+    float zeta;
+    float phaseAdjust;
+    float phaseAdjustM;
+    float phaseAdjustB;
+    float lockAlpha;
+    float lockTime;
+    float phaseErrorAvg;
+    float adjustedPhase;
+    float *sinPtr;
+    float *cosPtr;
+    int _mask;
+    float _indexScale;
 };
 
 #endif // CFM_H

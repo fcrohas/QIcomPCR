@@ -176,7 +176,7 @@ void CDemodulatorBase::setSampleRate(uint frequency) {
     // sample rate of input device
     samplerate = frequency;
     // Want 250K samplerate for work
-    decimation = samplerate / 250000;
+    decimation = samplerate / 256000;
     // first intermediate frequency
     intfreq = samplerate / decimation;
 

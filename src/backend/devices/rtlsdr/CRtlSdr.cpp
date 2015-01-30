@@ -117,7 +117,7 @@ bool CRtlSdr::open() {
         return false;
     }
 
-    r = rtlsdr_set_tuner_if_gain(dongle.dev,1,20);
+    r = rtlsdr_set_tuner_gain(dongle.dev,20);
     if (r < 0) {
         qDebug() << "Failed to set gain to " << dongle.gain << "\n";
         power = false;

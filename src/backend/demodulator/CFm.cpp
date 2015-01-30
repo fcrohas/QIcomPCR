@@ -24,7 +24,22 @@ CFm::CFm(QObject *parent, Mode mode) :
     this->mode = mode;
     slotSetFilter(filterfreq);
     //qDebug() << "CFM constructor Mode="<< mode << "\r\n";
+    _mask = ~(-1 << 16);
+    int sampleCount = _mask + 1;
+    sinPtr = new float[sampleCount];
+    cosPtr = new float[sampleCount];
+    _indexScale = sampleCount / (2.0f*M_PI);
+    for (int i = 0; i < sampleCount; i++)
+    {
+        sinPtr[i] = (float) sin((i + 0.5f) / sampleCount * (2*M_PI));
+        cosPtr[i] = (float) cos((i + 0.5f) / sampleCount * (2*M_PI));
+    }
 
+    for (float angle = 0.0f; angle < M_PI*2.0; angle += M_PI/2.0)
+    {
+        sinPtr[(int) (angle * _indexScale) & _mask] = (float) sin(angle);
+        cosPtr[(int) (angle * _indexScale) & _mask] = (float) cos(angle);
+    }
 }
 
 void CFm::doWork() {
@@ -42,8 +57,12 @@ void CFm::doWork() {
     int pcm = 0;
     // demodulate FM
     for (int i = 0; i < len; i += 2) {
-        if (mode == eWFM)
+        if (mode == eWFM) {
+            // Demodulate
             pcm = polar_disc_fast(buffer[i], buffer[i+1], pr, pj);
+            // Detect 19Khz
+            //pcm = processPll(buffer[i], buffer[i+1]);
+        }
         else
             pcm = polar_discriminant(buffer[i], buffer[i+1], pr, pj);
         pr = buffer[i];
@@ -67,6 +86,7 @@ void CFm::doWork() {
     // send sound to queue
     CDemodulatorBase::processSound(buffer,len);
     update.unlock();
+    qDebug() << " phase error=" << phaseErrorAvg;
 }
 
 int CFm::esbensen(int ar, int aj, int br, int bj)
@@ -134,6 +154,8 @@ int CFm::polar_disc_fast(int ar, int aj, int br, int bj)
 
 void CFm::slotSetFilter(uint frequency) {
     CDemodulatorBase::slotSetFilter(frequency);
+    // Initiliaze PLL
+    initPLL(12500,25000);
     // audio filtering
     if (filter != NULL) {
         filter->setSampleRate(22050);
@@ -143,7 +165,7 @@ void CFm::slotSetFilter(uint frequency) {
             filter->bandpass(5530.0,11000.0);
         }
         else {
-            filter->lowpass(frequency);
+            filter->lowpass(22050/2);
         }
     }
     // IQ filtering
@@ -170,46 +192,48 @@ void CFm::deemph_filter(int16_t *buffer,int len)
     }
 }
 
-void CFm::initPLL() {
-    /*
-    _phase = 0.0f;
-    var norm = (float) (2.0 * Math.PI / _sampleRate);
-    _frequencyRadian = _defaultFrequency * norm;
-    _minFrequencyRadian = (_defaultFrequency - _range) * norm;
-    _maxFrequencyRadian = (_defaultFrequency + _range) * norm;
-    _alpha = 2.0f * _zeta * _bandwidth * norm;
-    _beta = (_alpha * _alpha) / (4.0f * _zeta * _zeta);
-    _phaseAdj = _phaseAdjM * _sampleRate + _phaseAdjB;
-    _lockAlpha = (float) (1.0 - Math.Exp(-1.0 / (_sampleRate * _lockTime)));
-    _lockOneMinusAlpha = 1.0f - _lockAlpha;
-    */
+void CFm::initPLL(float frequency, float bandwidth) {
+    phase = 0.0f;
+    zeta = 0.707f;
+    phaseAdjustM = 0.0f;
+    phaseAdjustB = -1.75f;
+    //phaseErrorAvg = 1.0f;
+    float norm = 2.0f * M_PI / intfreq;
+    centerf = frequency * norm;
+    lowerf = (frequency - (bandwidth/2.0f)) * norm;
+    higherf = (frequency + (bandwidth/2.0f)) * norm;
+    alpha = 2.0f * zeta * bandwidth * norm;
+    beta = (alpha * alpha) / (4.0f * zeta * zeta);
+    phaseAdjust = phaseAdjustM * intfreq + phaseAdjustB;
+    lockAlpha = (float) (1.0f - exp(-1.0 / (intfreq * lockTime)));
 }
 
-void CFm::processPll(int i, int q) {
-    /*
-    var osc = Trig.SinCos(_phase);
+double CFm::processPll(int i, int q) {
+    int index = (int) (phase * _indexScale) & _mask;
+    float oscI = cosPtr[index];
+    float oscQ = sinPtr[index];
 
-    osc *= sample;
-    var phaseError = -osc.ArgumentFast();
+    oscI = oscI * i - oscQ * q;
+    oscQ = oscQ * i + oscI * q;
+    float phaseError = -atan2(oscQ,oscI);
 
-    _frequencyRadian += _beta * phaseError;
+    centerf += beta * phaseError;
 
-    if (_frequencyRadian > _maxFrequencyRadian)
+    if (centerf > higherf)
     {
-        _frequencyRadian = _maxFrequencyRadian;
+        centerf = higherf;
     }
-    else if (_frequencyRadian < _minFrequencyRadian)
+    else if (centerf < lowerf)
     {
-        _frequencyRadian = _minFrequencyRadian;
+        centerf = lowerf;
     }
 
-    _phaseErrorAvg = _lockOneMinusAlpha * _phaseErrorAvg + _lockAlpha * phaseError * phaseError;
-    _phase += _frequencyRadian + _alpha * phaseError;
-    _phase %= (float) (2.0 * Math.PI);
-    _adjustedPhase = _phase + _phaseAdj;
-
-    return osc;
-    */
+    phaseErrorAvg = (1.0f - lockAlpha) * phaseErrorAvg + lockAlpha * phaseError * phaseError;
+    phase += centerf + alpha * phaseError;
+    phase = fmodf((float)(2.0f * M_PI),phase);
+    adjustedPhase = phase + phaseAdjust;
+    //if (phaseErrorAvg < 1.0f) qDebug() << "Pll locked " << phaseErrorAvg;
+    return sqrtf(oscI*oscI+oscQ*oscQ);
 }
 
 QString CFm::getName() {
